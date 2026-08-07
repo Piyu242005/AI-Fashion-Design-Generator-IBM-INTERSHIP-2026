@@ -2,17 +2,20 @@
 Sidebar Component — AI-Powered Study Buddy
 ===========================================
 Renders the persistent left navigation sidebar with:
-- App branding
-- Navigation links (rendered as radio buttons)
-- Logged-in user info
-- Logout button
+- App branding + tagline
+- Navigation links
+- Theme selector (Dark/Light/Blue/Purple/System)
 - Study streak display
+- Logged-in user info
+- Help + Logout
 """
 
 from __future__ import annotations
 
 import streamlit as st
+
 from utils.session_state import is_logged_in, logout
+from themes.design_system import THEMES, inject_theme
 
 
 # ---------------------------------------------------------------------------
@@ -26,8 +29,8 @@ NAV_ITEMS = [
     ("Flashcards",  "🃏", "flashcards"),
     ("Profile",     "👤", "profile"),
     ("Settings",    "⚙️", "settings"),
+    ("Help",        "❓", "help"),
 ]
-
 
 def render_sidebar() -> str:
     """
@@ -71,6 +74,26 @@ def render_sidebar() -> str:
             selected_idx = labels.index(selected_label)
             selected_page = keys[selected_idx]
             st.session_state["current_page"] = selected_page
+
+            # ── Theme selector ────────────────────────────────────────────
+            theme_names = list(THEMES.keys())
+            current_theme = (
+                st.session_state.get("user_preferences", {}).get("theme", "Dark")
+            )
+            chosen_theme = st.selectbox(
+                "🎨 Theme",
+                theme_names,
+                index=theme_names.index(current_theme)
+                      if current_theme in theme_names else 0,
+                key="sidebar_theme",
+                label_visibility="visible",
+            )
+            if chosen_theme != current_theme:
+                prefs = st.session_state.get("user_preferences", {})
+                prefs["theme"] = chosen_theme
+                st.session_state["user_preferences"] = prefs
+                inject_theme(chosen_theme)
+                st.rerun()
 
             # ── Study streak ──────────────────────────────────────────────
             streak = st.session_state.get("user", {}).get("study_streak", 0) if st.session_state.get("user") else 0
