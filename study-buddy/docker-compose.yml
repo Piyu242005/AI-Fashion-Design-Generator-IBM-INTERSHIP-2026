@@ -1,48 +1,51 @@
 version: "3.9"
 
 services:
-
+  # ── FastAPI Backend ────────────────────────────────────────────────────
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: study-buddy-backend
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: study_buddy_api
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend:/app
-      - backend-data:/app/data
-      - backend-chroma:/app/chroma_db
-      - backend-uploads:/app/uploads
     env_file:
-      - ./backend/.env
-    environment:
-      - DATABASE_URL=sqlite+aiosqlite:///./data/study_buddy.db
-      - CHROMA_PERSIST_DIR=./chroma_db
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+      - ./chroma_db:/app/chroma_db
+      - ./logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "python", "-c",
+             "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
 
-  frontend-streamlit:
-    build:
-      context: ./frontend-streamlit
-      dockerfile: Dockerfile
-    container_name: study-buddy-streamlit
+  # ── Streamlit Frontend ─────────────────────────────────────────────────
+  frontend:
+    image: python:3.11-slim
+    container_name: study_buddy_ui
+    working_dir: /app
+    command: >
+      bash -c "pip install streamlit httpx --quiet &&
+               streamlit run app.py --server.port 8501 --server.headless true"
     ports:
       - "8501:8501"
-    volumes:
-      - ./frontend-streamlit:/app
     environment:
       - API_BASE_URL=http://backend:8000
+    volumes:
+      - ./frontend:/app
     depends_on:
       backend:
         condition: service_healthy
     restart: unless-stopped
 
 volumes:
-  backend-data:
-  backend-chroma:
-  backend-uploads:
+  data:
+  uploads:
+  chroma_db:
+  logs:
