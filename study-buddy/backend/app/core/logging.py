@@ -28,9 +28,14 @@ def setup_logging() -> logging.Logger:
     fmt = "%(asctime)s | %(levelname)-8s | %(name)-30s | %(message)s"
     date_fmt = "%Y-%m-%d %H:%M:%S"
 
-    handlers: list[logging.Handler] = [
-        logging.StreamHandler(sys.stdout),
-    ]
+    # Force UTF-8 on stdout so emoji/arrows don't crash on Windows cp1252
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        except Exception:
+            pass
+    handlers: list[logging.Handler] = [stdout_handler]
 
     # File handler (non-fatal if unavailable)
     try:

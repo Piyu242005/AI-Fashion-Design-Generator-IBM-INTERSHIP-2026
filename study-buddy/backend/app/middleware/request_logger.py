@@ -32,7 +32,7 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
         response.headers["X-Request-ID"] = request_id
 
         logger.info(
-            "%s %s → %d  [%dms]  id=%s",
+            "%s %s -> %d  [%dms]  id=%s",
             request.method,
             request.url.path,
             response.status_code,

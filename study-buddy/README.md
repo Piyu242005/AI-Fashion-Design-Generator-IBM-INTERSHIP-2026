@@ -32,26 +32,43 @@
 
 ## 🏗️ Architecture
 
-The system follows a **clean 5-layer architecture** with full separation of concerns:
+**One backend. Two frontends.** The FastAPI backend serves both the Streamlit IBM version
+and the Next.js portfolio version without any changes.
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  PRESENTATION LAYER  —  Streamlit Frontend           │
-│  Landing · Dashboard · Chat · Quiz · Flashcards      │
-├─────────────────────────────────────────────────────┤
-│  API GATEWAY LAYER  —  FastAPI + JWT + CORS          │
-│  13 REST endpoints · Request validation · Logging    │
-├─────────────────────────────────────────────────────┤
-│  BUSINESS LOGIC LAYER  —  Services + Agent Router    │
-│  RAG · Quiz · Summary · Flashcard · Recommendation   │
-├─────────────────────────────────────────────────────┤
-│  AI / LLM LAYER  —  LangChain + Gemini 1.5 Pro       │
-│  5 Agents · Prompt Templates · Guardrails · Memory   │
-├─────────────────────────────────────────────────────┤
-│  DATA LAYER  —  ChromaDB + SQLite + File System      │
-│  Vectors · Users · Sessions · Quiz Results           │
-└─────────────────────────────────────────────────────┘
+     ┌──────────────────────┐      ┌──────────────────────┐
+     │  Streamlit Frontend  │      │   Next.js Frontend   │
+     │  (IBM SkillsBuild)   │      │  (Portfolio Edition) │
+     │  frontend-streamlit/ │      │   frontend-web/      │
+     │     Port 8501        │      │     Port 3000        │
+     └──────────┬───────────┘      └──────────┬───────────┘
+                │                             │
+                └────────────┬────────────────┘
+                             │  HTTPS REST API
+                             ▼
+     ┌───────────────────────────────────────────────────┐
+     │  API GATEWAY  —  FastAPI 0.111 + JWT + CORS        │
+     │  15 endpoints · Validation · Request-ID Logging   │
+     ├───────────────────────────────────────────────────┤
+     │  BUSINESS LOGIC  —  Services + AgentRouter         │
+     │  RAG · Quiz · Summary · Flashcard · Dashboard      │
+     ├───────────────────────────────────────────────────┤
+     │  AI LAYER  —  LangChain LCEL + Gemini 1.5 Pro      │
+     │  5 Agents · Prompt Templates · Guardrails · Memory │
+     ├───────────────────────────────────────────────────┤
+     │  DATA LAYER  —  ChromaDB + SQLite + File System    │
+     │  Vectors · Users · Sessions · Quiz Results         │
+     └───────────────────────────────────────────────────┘
+                             │
+                             ▼
+                   Google Gemini 1.5 Pro API
 ```
+
+| Version | Frontend | Status |
+|---|---|---|
+| **v1 — IBM SkillsBuild** | Streamlit (`frontend-streamlit/`) | ✅ Complete |
+| **v2 — Portfolio** | Next.js 14 + TypeScript + Tailwind (`frontend-web/`) | ✅ Scaffolded |
+| **v3 — Roadmap** | Next.js + Clerk + Redis + PostgreSQL | 🔮 Planned |
 
 ---
 
