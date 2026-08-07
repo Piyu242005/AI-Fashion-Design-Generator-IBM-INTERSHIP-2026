@@ -60,6 +60,11 @@ def set_user(token: str, user: dict) -> None:
     st.session_state["logged_in"] = True
 
 
+def get_profile() -> dict | None:
+    """Return the current user dict stored in session state (or None)."""
+    return st.session_state.get("user")
+
+
 def logout() -> None:
     keys_to_clear = ["token", "user", "logged_in", "chat_history",
                      "documents", "dashboard_stats", "quiz_questions",

@@ -39,10 +39,10 @@ class User(Base):
     created_at:      Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     # Relationships
-    documents:    list["Document"]   = relationship("Document",   back_populates="user", cascade="all, delete-orphan")
-    chat_history: list["ChatHistory"] = relationship("ChatHistory", back_populates="user", cascade="all, delete-orphan")
-    quiz_results: list["QuizResult"] = relationship("QuizResult", back_populates="user", cascade="all, delete-orphan")
-    topic_scores: list["TopicScore"] = relationship("TopicScore", back_populates="user", cascade="all, delete-orphan")
+    documents:    Mapped[list["Document"]]    = relationship("Document",   back_populates="user", cascade="all, delete-orphan")
+    chat_history: Mapped[list["ChatHistory"]] = relationship("ChatHistory", back_populates="user", cascade="all, delete-orphan")
+    quiz_results: Mapped[list["QuizResult"]]  = relationship("QuizResult", back_populates="user", cascade="all, delete-orphan")
+    topic_scores: Mapped[list["TopicScore"]]  = relationship("TopicScore", back_populates="user", cascade="all, delete-orphan")
 
 
 # ---------------------------------------------------------------------------
@@ -63,8 +63,8 @@ class Document(Base):
     status:      Mapped[str]      = mapped_column(String(20), default="processing")  # processing|ready|error
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
-    user: "User" = relationship("User", back_populates="documents")
-    chat_history: list["ChatHistory"] = relationship("ChatHistory", back_populates="document")
+    user: Mapped["User"] = relationship("User", back_populates="documents")
+    chat_history: Mapped[list["ChatHistory"]] = relationship("ChatHistory", back_populates="document")
 
 
 # ---------------------------------------------------------------------------
@@ -83,8 +83,8 @@ class ChatHistory(Base):
     intent:      Mapped[str]      = mapped_column(String(30), default="ask")  # ask|quiz|summary|flashcard|teach
     created_at:  Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
-    user:     "User"     = relationship("User",     back_populates="chat_history")
-    document: "Document" = relationship("Document", back_populates="chat_history")
+    user:     Mapped["User"]     = relationship("User",     back_populates="chat_history")
+    document: Mapped["Document"] = relationship("Document", back_populates="chat_history")
 
 
 # ---------------------------------------------------------------------------
@@ -103,7 +103,7 @@ class QuizResult(Base):
     question_type: Mapped[str]    = mapped_column(String(30), default="mcq")
     created_at:  Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
-    user: "User" = relationship("User", back_populates="quiz_results")
+    user: Mapped["User"] = relationship("User", back_populates="quiz_results")
 
 
 # ---------------------------------------------------------------------------
@@ -120,4 +120,4 @@ class TopicScore(Base):
     attempts:   Mapped[int]      = mapped_column(Integer, default=0)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
 
-    user: "User" = relationship("User", back_populates="topic_scores")
+    user: Mapped["User"] = relationship("User", back_populates="topic_scores")

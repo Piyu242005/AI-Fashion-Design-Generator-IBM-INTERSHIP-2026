@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:8501",          # Streamlit dev
         "https://*.streamlit.app",        # Streamlit Cloud
+        "http://localhost:3000",          # Next.js dev (portfolio frontend)
+        "http://localhost:3001",          # Next.js alt port
+        "https://*.vercel.app",           # Vercel deployments
     ]
 
     # ── Database ───────────────────────────────────────────────────────────

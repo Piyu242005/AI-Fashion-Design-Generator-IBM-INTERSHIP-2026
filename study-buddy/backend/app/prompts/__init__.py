@@ -8,7 +8,7 @@ Stored here so they can be reviewed, versioned, and A/B tested.
 
 from __future__ import annotations
 
-from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessagePromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessagePromptTemplate
 
 # ---------------------------------------------------------------------------
 # RAG Q&A
