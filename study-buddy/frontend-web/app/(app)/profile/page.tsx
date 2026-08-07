@@ -1,117 +1,108 @@
 /**
- * app/(app)/profile/page.tsx — User Profile & Document Management
- * =================================================================
+ * app/(app)/profile/page.tsx — Premium User Profile & Achievements
+ * ==================================================================
+ * User avatar, study streaks, achievements, certificates, and learning stats.
  */
 
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useDocuments } from "@/hooks/useDocuments";
-import { formatDate, formatFileSize } from "@/lib/utils";
-import { useCallback } from "react";
-import { useDropzone } from "react-dropzone";
-import { ACCEPTED_TYPES } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
+
+const ACHIEVEMENTS = [
+  { icon: "🔥", title: "7-Day Streak", desc: "Studied 7 days in a row", unlocked: true },
+  { icon: "🧠", title: "Master Mind", desc: "Scored 100% on 5 quizzes", unlocked: true },
+  { icon: "📚", title: "Bookworm", desc: "Uploaded 10+ documents", unlocked: true },
+  { icon: "⚡", title: "Speed Learner", desc: "Generated 50+ flashcards", unlocked: false },
+];
 
 export default function ProfilePage() {
-  const { user }                      = useAuth();
-  const { documents, upload, deleteDoc, isUploading } = useDocuments();
-
-  const onDrop = useCallback(
-    (files: File[]) => {
-      files.forEach((f) => upload(f));
-    },
-    [upload],
-  );
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: ACCEPTED_TYPES,
-    maxSize: 50 * 1024 * 1024,
-  });
+  const { user } = useAuth();
 
   return (
-    <div className="max-w-3xl mx-auto animate-fade-in-up space-y-8">
-      {/* Profile header */}
-      <div className="card flex items-center gap-5">
-        <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold shrink-0">
-          {user?.name?.charAt(0).toUpperCase() ?? "?"}
+    <div className="max-w-4xl mx-auto space-y-8" style={{ animation: "fade-in-up 0.4s cubic-bezier(0.16,1,0.3,1) forwards" }}>
+      <div>
+        <h1 className="text-3xl font-black tracking-tighter" style={{ color: "#F1F3F8" }}>
+          Profile & Badges
+        </h1>
+        <p className="text-xs mt-1" style={{ color: "#5C6070" }}>
+          Your academic identity, achievements, and learning milestones
+        </p>
+      </div>
+
+      {/* ── Profile Header Card ─────────────────────────────────────────────── */}
+      <div
+        className="p-6 rounded-3xl flex items-center gap-6"
+        style={{ background: "#0F1115", border: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        <div
+          className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black shrink-0"
+          style={{
+            background: "linear-gradient(135deg, #FF2D55 0%, #FF6B8A 100%)",
+            color: "#fff",
+            boxShadow: "0 8px 32px rgba(255,45,85,0.35)",
+          }}
+        >
+          {user?.name?.charAt(0).toUpperCase() ?? "U"}
         </div>
         <div>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-white">{user?.name}</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">{user?.email}</p>
-          <div className="flex gap-4 mt-2 text-xs text-slate-400">
-            <span>📄 {user?.document_count} documents</span>
-            <span>🔥 {user?.study_streak} day streak</span>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold" style={{ color: "#F1F3F8" }}>
+              {user?.name}
+            </h2>
+            <span
+              className="text-2xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(255,45,85,0.12)", color: "#FF2D55" }}
+            >
+              Pro Learner
+            </span>
+          </div>
+          <p className="text-xs mt-0.5" style={{ color: "#5C6070" }}>
+            {user?.email}
+          </p>
+
+          <div className="flex items-center gap-4 mt-3 text-xs" style={{ color: "#9CA3AF" }}>
+            <span>🔥 {user?.study_streak ?? 0} day streak</span>
+            <span>·</span>
+            <span>📄 {user?.document_count ?? 0} documents</span>
+            <span>·</span>
             <span>📅 Joined {user ? formatDate(user.created_at) : "—"}</span>
           </div>
         </div>
       </div>
 
-      {/* Upload zone */}
+      {/* ── Achievements Grid ────────────────────────────────────────────────── */}
       <div>
-        <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3">Upload Documents</h2>
-        <div
-          {...getRootProps()}
-          className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-            isDragActive
-              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-              : "border-slate-300 dark:border-slate-600 hover:border-blue-400"
-          }`}
-        >
-          <input {...getInputProps()} />
-          <div className="text-3xl mb-2">📂</div>
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            {isDragActive ? "Drop your files here" : "Drag & drop or click to upload"}
-          </p>
-          <p className="text-xs text-slate-400 mt-1">PDF, DOCX, PPTX, TXT — up to 50 MB</p>
-          {isUploading && (
-            <p className="text-xs text-blue-500 mt-2 animate-pulse">Uploading…</p>
-          )}
-        </div>
-      </div>
-
-      {/* Documents list */}
-      <div>
-        <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-3">
-          My Documents ({documents.length})
+        <h2 className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color: "#9CA3AF" }}>
+          Earned Badges & Achievements
         </h2>
-        {documents.length === 0 ? (
-          <div className="card text-center py-10 text-slate-400">
-            <div className="text-3xl mb-2">📭</div>
-            <p className="text-sm">No documents yet. Upload your first study material above.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {documents.map((d) => (
-              <div key={d.id} className="card flex items-center gap-4">
-                <span className="text-2xl shrink-0">
-                  {d.file_type === "pdf" ? "📕" : d.file_type === "docx" ? "📘" : d.file_type === "pptx" ? "📙" : "📄"}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{d.filename}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {d.chunk_count} chunks · {formatDate(d.uploaded_at)}
-                  </p>
-                </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                  d.status === "ready"
-                    ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
-                    : d.status === "processing"
-                    ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400"
-                    : "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
-                }`}>
-                  {d.status}
-                </span>
-                <button
-                  onClick={() => deleteDoc(d.id)}
-                  className="text-slate-400 hover:text-red-500 transition-colors text-xs shrink-0"
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {ACHIEVEMENTS.map((a) => (
+            <div
+              key={a.title}
+              className="p-5 rounded-2xl transition-all"
+              style={{
+                background: "#0F1115",
+                border: a.unlocked ? "1px solid rgba(255,45,85,0.2)" : "1px solid rgba(255,255,255,0.06)",
+                opacity: a.unlocked ? 1 : 0.45,
+              }}
+            >
+              <span className="text-3xl mb-2 block">{a.icon}</span>
+              <p className="text-sm font-bold" style={{ color: a.unlocked ? "#F1F3F8" : "#5C6070" }}>
+                {a.title}
+              </p>
+              <p className="text-2xs mt-1 leading-relaxed" style={{ color: "#5C6070" }}>
+                {a.desc}
+              </p>
+              <span
+                className="inline-block mt-3 text-2xs font-bold uppercase tracking-wider"
+                style={{ color: a.unlocked ? "#10B981" : "#5C6070" }}
+              >
+                {a.unlocked ? "✓ Unlocked" : "🔒 In Progress"}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

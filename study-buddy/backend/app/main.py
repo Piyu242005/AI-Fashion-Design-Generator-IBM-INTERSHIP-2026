@@ -16,6 +16,10 @@ from typing import AsyncGenerator
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 
 from app.config import settings
 from app.core.logging import setup_logging
@@ -26,6 +30,14 @@ from app.exceptions import (
 )
 from app.middleware.request_logger import RequestLoggerMiddleware
 from app.routers import auth, chat, dashboard, documents, flashcards, quiz, summary
+
+# ---------------------------------------------------------------------------
+# Rate limiter — shared singleton; import from here in routers
+# ---------------------------------------------------------------------------
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[f"{settings.RATE_LIMIT_PER_MINUTE}/minute"],
+)
 
 # ---------------------------------------------------------------------------
 # Logging — initialise before anything else
@@ -79,14 +91,19 @@ app = FastAPI(
 # Middleware
 # ---------------------------------------------------------------------------
 
-# CORS — allow Streamlit frontend origins
+# CORS — allow Streamlit frontend origins (wildcard-free, browser-compatible)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=settings.all_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Rate limiter — enforces RATE_LIMIT_PER_MINUTE from config
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Request logger (adds X-Request-ID + timing logs)
 app.add_middleware(RequestLoggerMiddleware)

@@ -3,10 +3,15 @@ Gemini Client — AI-Powered Study Buddy
 ========================================
 LangChain-compatible Google Gemini wrapper.
 Handles safety settings, retry logic, and response extraction.
+
+Two invoke helpers are provided:
+  - invoke_with_retry()       → synchronous, used by agents run in a thread executor
+  - async_invoke_with_retry() → async-native, used by async service methods directly
 """
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from functools import lru_cache
@@ -50,7 +55,11 @@ def invoke_with_retry(
     backoff: float = 2.0,
 ) -> str:
     """
-    Invoke a LangChain chain with exponential backoff retry.
+    Synchronous LangChain chain invocation with exponential backoff retry.
+
+    IMPORTANT: This is intentionally synchronous — call it only from within a
+    thread-pool executor (asyncio.get_event_loop().run_in_executor) so it does
+    not block the async event loop.
 
     Args:
         chain:       LangChain runnable (prompt | llm | parser).
@@ -80,7 +89,56 @@ def invoke_with_retry(
                     "Gemini attempt %d/%d failed (%s) — retrying in %.1fs",
                     attempt, max_retries, type(exc).__name__, wait,
                 )
-                time.sleep(wait)
+                time.sleep(wait)  # OK — running in executor thread, not event loop
+            else:
+                logger.error("All %d Gemini retries failed: %s", max_retries, exc)
+
+    raise AIServiceError(f"AI service failed after {max_retries} attempts: {last_err}")
+
+
+async def async_invoke_with_retry(
+    chain,
+    inputs: dict,
+    max_retries: int = 3,
+    backoff: float = 2.0,
+) -> str:
+    """
+    Async-native LangChain chain invocation with exponential backoff retry.
+
+    Uses asyncio.sleep() so the event loop is never blocked between retries.
+    Offloads the synchronous chain.invoke() call to a thread-pool executor.
+
+    Args:
+        chain:       LangChain runnable (prompt | llm | parser).
+        inputs:      Dict of template variables.
+        max_retries: Maximum retry attempts.
+        backoff:     Base backoff multiplier in seconds.
+
+    Returns:
+        String response from the LLM.
+
+    Raises:
+        AIServiceError: If all retries fail.
+    """
+    loop = asyncio.get_event_loop()
+    last_err: Exception | None = None
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            # Run sync chain.invoke in a thread pool so the event loop is free
+            result = await loop.run_in_executor(None, chain.invoke, inputs)
+            if hasattr(result, "content"):
+                return str(result.content)
+            return str(result)
+        except Exception as exc:
+            last_err = exc
+            if attempt < max_retries:
+                wait = backoff ** attempt
+                logger.warning(
+                    "Gemini attempt %d/%d failed (%s) — retrying in %.1fs",
+                    attempt, max_retries, type(exc).__name__, wait,
+                )
+                await asyncio.sleep(wait)  # Non-blocking sleep — yields event loop
             else:
                 logger.error("All %d Gemini retries failed: %s", max_retries, exc)
 

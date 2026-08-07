@@ -57,7 +57,37 @@ class _SimpleWindowMemory:
 # 1. Session Memory (in-process, per-user dict keyed by user_id)
 # ---------------------------------------------------------------------------
 
-_session_memories: dict[int, _SimpleWindowMemory] = {}
+# Memory eviction constants
+_SESSION_MAX_USERS: int = 500          # max distinct users held in RAM
+_SESSION_TTL_SECONDS: int = 3600       # evict if inactive for 1 hour
+
+# {user_id: (_SimpleWindowMemory, last_access_monotonic_timestamp)}
+_session_memories: dict[int, tuple[_SimpleWindowMemory, float]] = {}
+
+
+def _evict_stale_sessions() -> None:
+    """
+    Evict sessions that have not been accessed for _SESSION_TTL_SECONDS,
+    or prune the oldest entries when _SESSION_MAX_USERS is exceeded.
+    Runs synchronously and is called before every get/set operation.
+    """
+    import time as _time
+    now = _time.monotonic()
+
+    # Remove expired sessions
+    expired = [uid for uid, (_, ts) in _session_memories.items()
+               if now - ts > _SESSION_TTL_SECONDS]
+    for uid in expired:
+        del _session_memories[uid]
+        logger.debug("Evicted stale session memory for user_id=%d", uid)
+
+    # If still over limit, evict oldest by last-access timestamp
+    if len(_session_memories) > _SESSION_MAX_USERS:
+        sorted_by_age = sorted(_session_memories.items(), key=lambda x: x[1][1])
+        overflow = len(_session_memories) - _SESSION_MAX_USERS
+        for uid, _ in sorted_by_age[:overflow]:
+            del _session_memories[uid]
+            logger.debug("Evicted oldest session memory for user_id=%d (LRU overflow)", uid)
 
 
 def get_session_memory(user_id: int, k: int = 10) -> _SimpleWindowMemory:
@@ -65,12 +95,20 @@ def get_session_memory(user_id: int, k: int = 10) -> _SimpleWindowMemory:
     Return (or create) a window memory for *user_id*.
 
     Keeps the last *k* human/AI turn pairs in RAM.
+    Sessions are evicted after _SESSION_TTL_SECONDS of inactivity or when
+    _SESSION_MAX_USERS is exceeded (LRU eviction).
     Automatically cleared on server restart (ephemeral).
     """
+    import time as _time
+    _evict_stale_sessions()
     if user_id not in _session_memories:
-        _session_memories[user_id] = _SimpleWindowMemory(k=k)
+        _session_memories[user_id] = (_SimpleWindowMemory(k=k), _time.monotonic())
         logger.debug("Created session memory for user_id=%d", user_id)
-    return _session_memories[user_id]
+    else:
+        # Refresh last-access timestamp
+        mem_obj, _ = _session_memories[user_id]
+        _session_memories[user_id] = (mem_obj, _time.monotonic())
+    return _session_memories[user_id][0]
 
 
 def save_to_session_memory(user_id: int, question: str, answer: str) -> None:
@@ -83,7 +121,7 @@ def save_to_session_memory(user_id: int, question: str, answer: str) -> None:
 def clear_session_memory(user_id: int) -> None:
     """Clear the in-process session memory for *user_id*."""
     if user_id in _session_memories:
-        _session_memories[user_id].clear()
+        _session_memories[user_id][0].clear()
         logger.info("Session memory cleared for user_id=%d", user_id)
 
 

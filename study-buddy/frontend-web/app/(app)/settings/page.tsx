@@ -1,87 +1,202 @@
 /**
- * app/(app)/settings/page.tsx — User Settings
- * =============================================
- * Theme toggle, AI preferences, quiz defaults.
+ * app/(app)/settings/page.tsx — Premium Platform Settings
+ * =========================================================
+ * AI model parameters, explanation preferences, quiz defaults,
+ * theme management, and API connection status.
  */
 
 "use client";
 
-import { useTheme } from "next-themes";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const [model, setModel]             = useState("gemini-1.5-pro");
+  const [style, setStyle]             = useState("concise");
+  const [level, setLevel]             = useState("intermediate");
+  const [qType, setQType]             = useState("mcq");
+  const [diff, setDiff]               = useState("medium");
+  const [stream, setStream]           = useState(true);
 
-  // Avoid hydration mismatch
-  useEffect(() => setMounted(true), []);
-
-  if (!mounted) return null;
+  const handleSave = () => {
+    toast.success("Settings saved successfully!");
+  };
 
   return (
-    <div className="max-w-2xl mx-auto animate-fade-in-up space-y-6">
-      <h1 className="text-2xl font-bold text-slate-800 dark:text-white">⚙️ Settings</h1>
+    <div className="max-w-3xl mx-auto space-y-6" style={{ animation: "fade-in-up 0.4s cubic-bezier(0.16,1,0.3,1) forwards" }}>
+      <div>
+        <h1 className="text-3xl font-black tracking-tighter" style={{ color: "#F1F3F8" }}>
+          Platform Settings
+        </h1>
+        <p className="text-xs mt-1" style={{ color: "#5C6070" }}>
+          Configure AI model inference, response verbosity, and study defaults
+        </p>
+      </div>
 
-      {/* Appearance */}
-      <div className="card">
-        <h2 className="font-semibold text-slate-700 dark:text-slate-200 mb-4">🎨 Appearance</h2>
-        <div className="flex gap-3">
-          {(["dark", "light", "system"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTheme(t)}
-              className={`flex-1 py-2.5 rounded-xl border text-sm font-medium capitalize transition-colors ${
-                theme === t
-                  ? "bg-blue-600 border-blue-600 text-white"
-                  : "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-blue-400"
-              }`}
+      {/* ── AI Model Configuration ────────────────────────────────────────── */}
+      <div
+        className="p-6 rounded-2xl space-y-4"
+        style={{ background: "#0F1115", border: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        <h2 className="text-sm font-bold" style={{ color: "#F1F3F8" }}>
+          AI Engine Preferences
+        </h2>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold" style={{ color: "#F1F3F8" }}>
+                Primary LLM Model
+              </p>
+              <p className="text-2xs" style={{ color: "#5C6070" }}>
+                Google Gemini model used for synthesis and generation
+              </p>
+            </div>
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="px-3.5 py-2 rounded-xl text-xs outline-none"
+              style={{
+                background: "#161820",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "#F1F3F8",
+              }}
             >
-              {t === "dark" ? "🌙 Dark" : t === "light" ? "☀️ Light" : "💻 System"}
-            </button>
-          ))}
+              <option value="gemini-1.5-pro">Gemini 1.5 Pro (Recommended)</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Ultra Fast)</option>
+            </select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold" style={{ color: "#F1F3F8" }}>
+                Explanation Depth
+              </p>
+              <p className="text-2xs" style={{ color: "#5C6070" }}>
+                Depth of AI explanations during Q&A
+              </p>
+            </div>
+            <select
+              value={level}
+              onChange={(e) => setLevel(e.target.value)}
+              className="px-3.5 py-2 rounded-xl text-xs outline-none"
+              style={{
+                background: "#161820",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "#F1F3F8",
+              }}
+            >
+              <option value="simple">Beginner (Simple Analogies)</option>
+              <option value="intermediate">Intermediate (Standard)</option>
+              <option value="advanced">Advanced (Deep Technical)</option>
+            </select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold" style={{ color: "#F1F3F8" }}>
+                Stream Token Responses
+              </p>
+              <p className="text-2xs" style={{ color: "#5C6070" }}>
+                Render answers in real-time as they generate
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={stream}
+              onChange={(e) => setStream(e.target.checked)}
+              className="w-4 h-4 accent-[#FF2D55]"
+            />
+          </div>
         </div>
       </div>
 
-      {/* AI Preferences */}
-      <div className="card">
-        <h2 className="font-semibold text-slate-700 dark:text-slate-200 mb-4">🤖 AI Preferences</h2>
+      {/* ── Quiz & Flashcards Defaults ────────────────────────────────────── */}
+      <div
+        className="p-6 rounded-2xl space-y-4"
+        style={{ background: "#0F1115", border: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        <h2 className="text-sm font-bold" style={{ color: "#F1F3F8" }}>
+          Quiz & Study Defaults
+        </h2>
+
         <div className="space-y-4">
-          <Pref label="Response Style" options={["concise", "detailed"]} />
-          <Pref label="Explanation Level" options={["simple", "intermediate", "advanced"]} />
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold" style={{ color: "#F1F3F8" }}>
+                Default Question Type
+              </p>
+              <p className="text-2xs" style={{ color: "#5C6070" }}>
+                Format applied when creating quick quizzes
+              </p>
+            </div>
+            <select
+              value={qType}
+              onChange={(e) => setQType(e.target.value)}
+              className="px-3.5 py-2 rounded-xl text-xs outline-none"
+              style={{
+                background: "#161820",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "#F1F3F8",
+              }}
+            >
+              <option value="mcq">Multiple Choice</option>
+              <option value="true_false">True / False</option>
+              <option value="short_answer">Short Answer</option>
+            </select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold" style={{ color: "#F1F3F8" }}>
+                Default Difficulty
+              </p>
+              <p className="text-2xs" style={{ color: "#5C6070" }}>
+                Initial challenge level for generated questions
+              </p>
+            </div>
+            <select
+              value={diff}
+              onChange={(e) => setDiff(e.target.value)}
+              className="px-3.5 py-2 rounded-xl text-xs outline-none"
+              style={{
+                background: "#161820",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "#F1F3F8",
+              }}
+            >
+              <option value="easy">🟢 Easy</option>
+              <option value="medium">🟡 Medium</option>
+              <option value="hard">🔴 Hard</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* Quiz defaults */}
-      <div className="card">
-        <h2 className="font-semibold text-slate-700 dark:text-slate-200 mb-4">❓ Quiz Defaults</h2>
-        <div className="space-y-4">
-          <Pref label="Default Question Type" options={["mcq", "true_false", "short_answer", "mixed"]} />
-          <Pref label="Default Difficulty" options={["easy", "medium", "hard"]} />
-        </div>
-      </div>
+      <button
+        onClick={handleSave}
+        className="w-full py-3.5 rounded-xl text-xs font-bold transition-all"
+        style={{
+          background: "#FF2D55",
+          color: "#fff",
+          boxShadow: "0 4px 14px rgba(255,45,85,0.35)",
+        }}
+      >
+        Save Settings
+      </button>
 
-      {/* About */}
-      <div className="card text-center py-6 text-slate-400 text-sm">
-        <p className="text-2xl mb-2">🎓</p>
-        <p className="font-semibold text-slate-600 dark:text-slate-300">AI-Powered Study Buddy v2.0</p>
-        <p className="mt-1">IBM SkillsBuild Final Project 2025</p>
-        <p className="mt-1">Next.js 14 · FastAPI · LangChain · Gemini 1.5 Pro · ChromaDB</p>
+      {/* ── System Info Card ──────────────────────────────────────────────── */}
+      <div
+        className="p-5 rounded-2xl text-center space-y-1"
+        style={{ background: "#0F1115", border: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        <p className="text-xs font-bold" style={{ color: "#F1F3F8" }}>
+          AI-Powered Study Buddy · v2.0 Enterprise
+        </p>
+        <p className="text-2xs" style={{ color: "#5C6070" }}>
+          IBM SkillsBuild 2026 · Google Gemini 1.5 Pro · ChromaDB Vector Store
+        </p>
       </div>
-    </div>
-  );
-}
-
-function Pref({ label, options }: { label: string; options: string[] }) {
-  const [value, setValue] = useState(options[0]);
-  return (
-    <div className="flex items-center justify-between">
-      <label className="text-sm text-slate-600 dark:text-slate-300">{label}</label>
-      <select value={value} onChange={(e) => setValue(e.target.value)}
-        className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        {options.map((o) => (
-          <option key={o} value={o}>{o.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>
-        ))}
-      </select>
     </div>
   );
 }

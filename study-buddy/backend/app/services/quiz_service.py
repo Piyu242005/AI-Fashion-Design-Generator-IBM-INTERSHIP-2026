@@ -14,7 +14,7 @@ import re
 from langchain_core.output_parsers import StrOutputParser
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.ai.gemini_client import get_gemini_llm, invoke_with_retry
+from app.ai.gemini_client import async_invoke_with_retry, get_gemini_llm
 from app.ai.vector_store import VectorStoreService
 from app.core.constants import QUIZ_DIFFICULTY_MAP
 from app.exceptions import NotFoundError
@@ -95,7 +95,7 @@ class QuizService:
         llm    = get_gemini_llm()
         chain  = prompt | llm | StrOutputParser()
 
-        raw = invoke_with_retry(chain, {
+        raw = await async_invoke_with_retry(chain, {
             "context":       context,
             "num_questions": count,
             "difficulty":    difficulty,
@@ -112,7 +112,7 @@ class QuizService:
             topic=req.topic,
             score_pct=req.score_pct,
             num_questions=req.num_questions,
-            question_type="mcq",
+            question_type=req.question_type,  # FIX: was hardcoded "mcq"
         )
         await self._sess_repo.upsert_topic_score(
             user_id=user_id,

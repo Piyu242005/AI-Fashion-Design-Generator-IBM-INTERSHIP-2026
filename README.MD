@@ -468,12 +468,12 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📫 Contact
 
-**Your Name / Team Name**
+**Piyush RAMTEKE**
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/yourprofile)
-[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yourusername)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/piyu24/)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](h[ttps://github.com/yourusername](https://github.com/Piyu242005))
 [![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:your.email@example.com)
 
 <div align="center">
-  <sub>Built with ❤️ by AI Enthusiasts</sub>
+  <sub>Built with ❤️ by Piyu AI Enthusiasts Love</sub>
 </div>

@@ -43,13 +43,20 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # ── CORS ───────────────────────────────────────────────────────────────
+    # NOTE: Browser CORS does NOT support wildcards — always list exact origins.
+    # Add your deployed URLs to .env:  ALLOWED_ORIGINS=["https://...","https://..."]
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:8501",          # Streamlit dev
-        "https://*.streamlit.app",        # Streamlit Cloud
-        "http://localhost:3000",          # Next.js dev (portfolio frontend)
+        "http://localhost:3000",          # Next.js dev
         "http://localhost:3001",          # Next.js alt port
-        "https://*.vercel.app",           # Vercel deployments
     ]
+    # Extra origins injected at deploy time via CORS_EXTRA_ORIGINS env var
+    CORS_EXTRA_ORIGINS: List[str] = []
+
+    @property
+    def all_cors_origins(self) -> List[str]:
+        """Merged list of all allowed origins (base + deploy-time extras)."""
+        return list(set(self.ALLOWED_ORIGINS + self.CORS_EXTRA_ORIGINS))
 
     # ── Database ───────────────────────────────────────────────────────────
     DATABASE_URL: str = "sqlite+aiosqlite:///./data/study_buddy.db"

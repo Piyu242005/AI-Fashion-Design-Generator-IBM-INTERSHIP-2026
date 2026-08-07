@@ -53,6 +53,7 @@ tiktoken==0.7.0                   # token counting
 # ── Utilities ──────────────────────────────────────────────────────────────
 python-dotenv==1.0.1
 tenacity==8.3.0                   # retry logic
+slowapi==0.1.9                    # rate limiting middleware for FastAPI/Starlette
 
 # ── Testing ────────────────────────────────────────────────────────────────
 pytest==8.2.0

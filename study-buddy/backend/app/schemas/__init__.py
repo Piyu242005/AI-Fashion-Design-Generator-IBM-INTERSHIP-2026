@@ -147,10 +147,11 @@ class QuizResponse(BaseModel):
 
 
 class QuizSubmitRequest(BaseModel):
-    document_id: int
-    topic:       str        = "General"
-    score_pct:   float      = Field(..., ge=0, le=100)
+    document_id:   int
+    topic:         str   = "General"
+    score_pct:     float = Field(..., ge=0, le=100)
     num_questions: int
+    question_type: str   = "mcq"  # Added: allows correct persistence of quiz type
 
 
 # ============================================================================

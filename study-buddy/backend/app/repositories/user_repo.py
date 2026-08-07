@@ -7,7 +7,7 @@ Follows the Repository Pattern — business logic stays in services.
 
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import User
@@ -39,8 +39,9 @@ class UserRepository:
         return user
 
     async def count_documents(self, user_id: int) -> int:
+        """Return document count via SELECT COUNT(*) — avoids full row fetch."""
         from app.models import Document
         result = await self._db.execute(
-            select(Document).where(Document.user_id == user_id)
+            select(func.count()).select_from(Document).where(Document.user_id == user_id)
         )
-        return len(result.scalars().all())
+        return result.scalar_one()

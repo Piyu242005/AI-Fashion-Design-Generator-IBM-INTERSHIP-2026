@@ -1,6 +1,7 @@
 /**
- * app/(auth)/register/page.tsx — Registration Page
- * ==================================================
+ * app/(auth)/register/page.tsx — Premium Account Creation
+ * =========================================================
+ * Full name, email, password registration with instant token setting.
  */
 
 "use client";
@@ -11,72 +12,117 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function RegisterPage() {
   const { register, isRegisterPending } = useAuth();
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
-  const [error, setError] = useState("");
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    if (form.password !== form.confirm) {
-      setError("Passwords do not match.");
-      return;
-    }
-    if (form.password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-    register({ name: form.name, email: form.email, password: form.password });
+    register({
+      username: form.email,
+      email:    form.email,
+      name:     form.name,
+      password: form.password,
+    });
   };
 
   return (
-    <div className="card">
-      <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-6 text-center">
-        Create Account
-      </h2>
-
-      {error && (
-        <div className="mb-4 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
-          {error}
-        </div>
-      )}
+    <div
+      className="p-8 rounded-3xl space-y-6"
+      style={{
+        background: "#0F1115",
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
+      }}
+    >
+      <div>
+        <h1 className="text-2xl font-black tracking-tight" style={{ color: "#F1F3F8" }}>
+          Create an Account
+        </h1>
+        <p className="text-xs mt-1" style={{ color: "#5C6070" }}>
+          Get instant access to AI tutoring, quizzes, and flashcards
+        </p>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {[
-          { label: "Full Name",        key: "name",     type: "text",     placeholder: "Jane Smith" },
-          { label: "Email",            key: "email",    type: "email",    placeholder: "jane@example.com" },
-          { label: "Password",         key: "password", type: "password", placeholder: "Minimum 8 characters" },
-          { label: "Confirm Password", key: "confirm",  type: "password", placeholder: "Repeat password" },
-        ].map(({ label, key, type, placeholder }) => (
-          <div key={key}>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              {label}
-            </label>
-            <input
-              type={type}
-              required
-              value={form[key as keyof typeof form]}
-              onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-              placeholder={placeholder}
-              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        ))}
+        <div>
+          <label className="block text-2xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#9CA3AF" }}>
+            Full Name
+          </label>
+          <input
+            type="text"
+            required
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="Alex Johnson"
+            className="w-full px-4 py-3 rounded-xl text-xs outline-none transition-all"
+            style={{
+              background: "#161820",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#F1F3F8",
+            }}
+          />
+        </div>
+
+        <div>
+          <label className="block text-2xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#9CA3AF" }}>
+            Email Address
+          </label>
+          <input
+            type="email"
+            required
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder="alex@university.edu"
+            className="w-full px-4 py-3 rounded-xl text-xs outline-none transition-all"
+            style={{
+              background: "#161820",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#F1F3F8",
+            }}
+          />
+        </div>
+
+        <div>
+          <label className="block text-2xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#9CA3AF" }}>
+            Create Password
+          </label>
+          <input
+            type="password"
+            required
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            placeholder="••••••••••••"
+            className="w-full px-4 py-3 rounded-xl text-xs outline-none transition-all"
+            style={{
+              background: "#161820",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#F1F3F8",
+            }}
+          />
+        </div>
 
         <button
           type="submit"
           disabled={isRegisterPending}
-          className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold rounded-lg text-sm transition-colors"
+          className="w-full py-3.5 rounded-xl font-bold text-xs transition-all mt-2"
+          style={{
+            background: "#FF2D55",
+            color: "#fff",
+            boxShadow: "0 4px 20px rgba(255,45,85,0.35)",
+          }}
         >
-          {isRegisterPending ? "Creating account…" : "Create Account"}
+          {isRegisterPending ? "Creating Account…" : "Create Free Account →"}
         </button>
       </form>
 
-      <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-5">
+      <div
+        className="pt-4 text-center text-xs"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.06)", color: "#5C6070" }}
+      >
         Already have an account?{" "}
-        <Link href="/login" className="text-blue-500 hover:underline font-medium">
+        <Link href="/login" className="font-bold hover:underline" style={{ color: "#FF2D55" }}>
           Sign In
         </Link>
-      </p>
+      </div>
     </div>
   );
 }

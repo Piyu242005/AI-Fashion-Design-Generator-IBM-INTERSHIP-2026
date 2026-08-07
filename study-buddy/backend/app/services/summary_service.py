@@ -11,7 +11,7 @@ import logging
 from langchain_core.output_parsers import StrOutputParser
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.ai.gemini_client import get_gemini_llm, invoke_with_retry
+from app.ai.gemini_client import async_invoke_with_retry, get_gemini_llm
 from app.ai.vector_store import VectorStoreService
 from app.exceptions import NotFoundError
 from app.guardrails import validate_output
@@ -56,7 +56,7 @@ class SummaryService:
         llm    = get_gemini_llm()
         chain  = prompt | llm | StrOutputParser()
 
-        raw     = invoke_with_retry(chain, {"context": context, "detail": detail_str})
+        raw     = await async_invoke_with_retry(chain, {"context": context, "detail": detail_str})
         summary = validate_output(raw)
 
         logger.info("Summary generated for doc_id=%d user_id=%d", req.document_id, user_id)

@@ -18,17 +18,24 @@ raw score data into actionable learning guidance.
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.ai.gemini_client import get_gemini_llm, invoke_with_retry
+from app.ai.gemini_client import async_invoke_with_retry, get_gemini_llm
 from app.guardrails import validate_output
 from app.repositories.session_repo import SessionRepository
 
 logger = logging.getLogger("study_buddy.recommendation")
+
+# ---------------------------------------------------------------------------
+# In-process TTL cache — prevents repeated Gemini calls on every dashboard load
+# ---------------------------------------------------------------------------
+_REC_CACHE: dict[int, tuple[float, dict[str, Any]]] = {}  # {user_id: (timestamp, result)}
+_REC_CACHE_TTL_SECONDS: int = 300  # 5-minute TTL — refreshes after meaningful activity
 
 # ---------------------------------------------------------------------------
 # Prompt Template
@@ -80,14 +87,19 @@ class RecommendationEngine:
         user_id: int,
         doc_count: int = 0,
         study_streak: int = 0,
+        force_refresh: bool = False,
     ) -> dict[str, Any]:
         """
         Generate personalised recommendations for a user.
 
+        Results are cached for _REC_CACHE_TTL_SECONDS (5 min) per user to avoid
+        calling Gemini on every dashboard page load.
+
         Args:
-            user_id:      Authenticated user ID.
-            doc_count:    Number of documents uploaded (for context).
-            study_streak: Current study streak in days.
+            user_id:       Authenticated user ID.
+            doc_count:     Number of documents uploaded (for context).
+            study_streak:  Current study streak in days.
+            force_refresh: Bypass cache and regenerate immediately.
 
         Returns:
             Dict with keys:
@@ -98,6 +110,13 @@ class RecommendationEngine:
                 avg_score       — Overall average quiz score
                 priority_topics — Top 3 topics to focus on
         """
+        # ── 0. Cache hit — return early if still fresh ─────────────────────
+        if not force_refresh and user_id in _REC_CACHE:
+            cached_ts, cached_result = _REC_CACHE[user_id]
+            if time.monotonic() - cached_ts < _REC_CACHE_TTL_SECONDS:
+                logger.debug("Recommendation cache hit for user_id=%d", user_id)
+                return cached_result
+
         # ── 1. Pull performance data ───────────────────────────────────────
         topic_rows  = await self._repo.all_topic_scores(user_id)
         avg_score   = await self._repo.avg_quiz_score(user_id)
@@ -121,7 +140,7 @@ class RecommendationEngine:
         if topic_scores:  # Only call AI if there's data to analyse
             try:
                 chain   = _REC_PROMPT | get_gemini_llm() | StrOutputParser()
-                raw     = invoke_with_retry(chain, {
+                raw     = await async_invoke_with_retry(chain, {
                     "performance_data": performance_data,
                     "doc_count":        doc_count,
                     "streak":           study_streak,
@@ -147,7 +166,7 @@ class RecommendationEngine:
             user_id, len(weak_topics), len(strong_topics),
         )
 
-        return {
+        result: dict[str, Any] = {
             "ai_text":        ai_text,
             "suggestions":    suggestions,
             "weak_topics":    weak_topics[:5],
@@ -156,6 +175,9 @@ class RecommendationEngine:
             "avg_score":      avg_score,
             "priority_topics": priority_topics,
         }
+        # ── Store in TTL cache ─────────────────────────────────────────────
+        _REC_CACHE[user_id] = (time.monotonic(), result)
+        return result
 
 
 # ---------------------------------------------------------------------------

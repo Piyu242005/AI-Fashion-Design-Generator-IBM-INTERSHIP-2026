@@ -13,7 +13,7 @@ import re
 from langchain_core.output_parsers import StrOutputParser
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.ai.gemini_client import get_gemini_llm, invoke_with_retry
+from app.ai.gemini_client import async_invoke_with_retry, get_gemini_llm
 from app.ai.vector_store import VectorStoreService
 from app.exceptions import NotFoundError
 from app.guardrails import validate_output
@@ -48,7 +48,7 @@ class FlashcardService:
         llm     = get_gemini_llm()
         chain   = FLASHCARD_PROMPT | llm | StrOutputParser()
 
-        raw       = invoke_with_retry(chain, {"context": context, "count": req.count})
+        raw       = await async_invoke_with_retry(chain, {"context": context, "count": req.count})
         validated = validate_output(raw)
         cards     = _parse_flashcards(validated)
 

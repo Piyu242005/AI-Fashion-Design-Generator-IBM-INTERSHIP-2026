@@ -8,6 +8,9 @@ DELETE /chat/history → Clear session memory
 
 from __future__ import annotations
 
+import asyncio
+from functools import partial
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,11 +40,18 @@ async def chat(
     - Returns a grounded, validated answer
     - Persists Q&A to chat history
     """
-    result = _agent_router.route(
-        user_id=current_user.id,
-        message=request.question,
-        doc_ids=request.document_ids,
-        doc_id=request.document_ids[0] if request.document_ids else None,
+    # Run the synchronous agent pipeline in a thread-pool executor so the
+    # async event loop is never blocked (Gemini calls take 1-4 seconds).
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(
+        None,
+        partial(
+            _agent_router.route,
+            user_id=current_user.id,
+            message=request.question,
+            doc_ids=request.document_ids,
+            doc_id=request.document_ids[0] if request.document_ids else None,
+        ),
     )
 
     # Persist to database
