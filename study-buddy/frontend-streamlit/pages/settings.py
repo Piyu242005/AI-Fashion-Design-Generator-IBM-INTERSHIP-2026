@@ -1,18 +1,9 @@
 """
-Settings Page — AI-Powered Study Buddy (Upgraded)
-===================================================
-Full settings panel:
-  - Theme (Dark / Light / Blue / Purple / System)
-  - Language
-  - AI Style (Concise / Standard / Detailed)
-  - Explanation level
-  - Quiz preferences
-  - Summary length
-  - Chat memory depth
-  - Daily goal
-  - Accessibility (High Contrast, Large Fonts)
-  - Export preferences
-  - Delete Account (UI placeholder)
+Settings Page — AI-Powered Study Buddy (Luxury AI SaaS Edition)
+================================================================
+Full settings panel for Appearance, AI settings, Quiz defaults, 
+Accessibility, and Account management.
+Uses Design Tokens from design_system.py.
 """
 
 from __future__ import annotations
@@ -30,9 +21,11 @@ def render() -> None:
 
     st.markdown(
         """
-        <div class="page-header">
-            <h1>⚙️ Settings</h1>
-            <p>Personalise every aspect of your Study Buddy experience.</p>
+        <div class="animate-fade-in-up" style="margin-bottom: 32px;">
+            <h1 style="font-size:32px;font-weight:800;letter-spacing:-0.03em;margin:0;">⚙️ Settings</h1>
+            <p style="color:var(--text-secondary);font-size:14px;margin-top:6px;">
+                Personalise every aspect of your Study Buddy workspace.
+            </p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -44,32 +37,27 @@ def render() -> None:
 
     # ─────────────────────────── Appearance ──────────────────────────────
     with tab_appear:
-        st.markdown("#### 🎨 Theme")
-        theme_cols = st.columns(5)
-        theme_options = list(THEMES.keys())
-        current_theme = prefs.get("theme", "Dark")
+        st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;margin-top:16px;">🎨 Theme</div>', unsafe_allow_html=True)
+        theme_cols = st.columns(3)
+        # Simplify themes since we unified to Luxury Dark token engine
+        theme_options = ["Luxury Dark", "Light (Coming Soon)", "System"]
+        current_theme = prefs.get("theme", "Luxury Dark")
 
         for col, theme_name in zip(theme_cols, theme_options):
             with col:
                 selected = current_theme == theme_name
                 border = "var(--accent)" if selected else "var(--border)"
-                t = THEMES[theme_name]
                 st.markdown(
                     f"""
-                    <div style="background:{t['bg']};border:2px solid {border};
-                                border-radius:10px;padding:12px 8px;text-align:center;
-                                cursor:pointer;transition:.2s;">
-                        <div style="width:24px;height:24px;border-radius:50%;
-                                    background:{t['accent']};margin:0 auto 6px;"></div>
-                        <div style="font-size:11px;color:{t['text']};font-weight:700;">
-                            {theme_name}</div>
-                        {"<div style='font-size:9px;color:#3b82f6;'>✓ Active</div>" if selected else ""}
+                    <div class="content-card" style="border:2px solid {border};padding:16px;text-align:center;cursor:pointer;">
+                        <div style="width:32px;height:32px;border-radius:50%;background:var(--accent);margin:0 auto 12px;box-shadow:var(--shadow);"></div>
+                        <div style="font-size:13px;color:var(--text-primary);font-weight:700;">{theme_name}</div>
+                        {"<div style='font-size:11px;color:var(--accent);margin-top:4px;font-weight:600;'>✓ Active</div>" if selected else ""}
                     </div>
                     """,
                     unsafe_allow_html=True,
                 )
-                if st.button(theme_name, key=f"theme_{theme_name}",
-                             use_container_width=True):
+                if st.button(theme_name, key=f"theme_{theme_name}", use_container_width=True, disabled=theme_name == "Light (Coming Soon)"):
                     prefs["theme"] = theme_name
                     st.session_state["user_preferences"] = prefs
                     inject_theme(theme_name)
@@ -80,7 +68,7 @@ def render() -> None:
 
         col_l, col_r = st.columns(2)
         with col_l:
-            st.markdown("#### 🔤 Typography")
+            st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">🔤 Typography</div>', unsafe_allow_html=True)
             font_size = st.select_slider(
                 "Font size",
                 options=["Small (12px)", "Medium (14px)", "Large (16px)"],
@@ -90,7 +78,7 @@ def render() -> None:
             prefs["font_size"] = font_size
 
         with col_r:
-            st.markdown("#### 📐 Layout")
+            st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">📐 Layout</div>', unsafe_allow_html=True)
             sidebar_default = st.radio(
                 "Default sidebar state",
                 ["Expanded", "Collapsed"],
@@ -102,9 +90,10 @@ def render() -> None:
 
     # ─────────────────────────── AI & Learning ───────────────────────────
     with tab_ai:
+        st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
         col_l, col_r = st.columns(2)
         with col_l:
-            st.markdown("#### 🤖 Response Style")
+            st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">🤖 Response Style</div>', unsafe_allow_html=True)
             ai_style = st.radio(
                 "AI verbosity",
                 ["Concise", "Standard", "Detailed"],
@@ -114,19 +103,19 @@ def render() -> None:
             )
             prefs["ai_style"] = ai_style
 
-            st.markdown("#### 🌐 Language")
+            st.markdown("<div style='height:24px;'></div>", unsafe_allow_html=True)
+            st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">🌐 Language</div>', unsafe_allow_html=True)
             lang = st.selectbox(
                 "Response language",
                 ["English", "Hindi", "Spanish", "French"],
                 index=["English","Hindi","Spanish","French"].index(
                     prefs.get("language", "English")),
                 key="set_lang",
-                help="Multi-language support in v2.0",
             )
             prefs["language"] = lang
 
         with col_r:
-            st.markdown("#### 💡 Explanation Level")
+            st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">💡 Explanation Level</div>', unsafe_allow_html=True)
             explain = st.selectbox(
                 "Concept explanation depth",
                 ["Beginner (ELI5)", "Intermediate", "Advanced"],
@@ -136,7 +125,8 @@ def render() -> None:
             )
             prefs["explain_level"] = explain
 
-            st.markdown("#### 🧠 Chat Memory Depth")
+            st.markdown("<div style='height:24px;'></div>", unsafe_allow_html=True)
+            st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">🧠 Chat Memory Depth</div>', unsafe_allow_html=True)
             memory = st.slider(
                 "Number of previous turns to remember",
                 min_value=2, max_value=20, value=prefs.get("memory_depth", 10),
@@ -144,7 +134,8 @@ def render() -> None:
             )
             prefs["memory_depth"] = memory
 
-        st.markdown("#### 📄 Summary Length")
+        st.markdown("<hr class='custom-divider'>", unsafe_allow_html=True)
+        st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">📄 Summary Length</div>', unsafe_allow_html=True)
         sum_len = st.select_slider(
             "Default summary length",
             options=["Brief (3–5 bullets)", "Standard (5–8 bullets)", "Detailed (8–12 bullets)"],
@@ -155,8 +146,10 @@ def render() -> None:
 
     # ─────────────────────────── Quiz ────────────────────────────────────
     with tab_quiz:
+        st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
         col_l, col_r = st.columns(2)
         with col_l:
+            st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">🎯 Default Difficulty</div>', unsafe_allow_html=True)
             quiz_diff = st.select_slider(
                 "Default difficulty",
                 options=["Easy", "Medium", "Hard"],
@@ -165,6 +158,8 @@ def render() -> None:
             )
             prefs["quiz_diff"] = quiz_diff
 
+            st.markdown("<div style='height:24px;'></div>", unsafe_allow_html=True)
+            st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">📝 Default Format</div>', unsafe_allow_html=True)
             qtype = st.radio(
                 "Default question type",
                 ["MCQ", "True/False", "Short Answer", "Mixed"],
@@ -176,6 +171,7 @@ def render() -> None:
             prefs["qtype"] = qtype
 
         with col_r:
+            st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">🔢 Question Count</div>', unsafe_allow_html=True)
             qcount = st.slider(
                 "Default question count",
                 3, 15, prefs.get("qcount", 5),
@@ -183,6 +179,8 @@ def render() -> None:
             )
             prefs["qcount"] = qcount
 
+            st.markdown("<div style='height:24px;'></div>", unsafe_allow_html=True)
+            st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">⏱️ Study Goal</div>', unsafe_allow_html=True)
             daily_goal = st.slider(
                 "Daily study goal (minutes)",
                 10, 180, prefs.get("daily_goal", 30),
@@ -199,6 +197,7 @@ def render() -> None:
 
     # ─────────────────────────── Accessibility ───────────────────────────
     with tab_access:
+        st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
         col_l, col_r = st.columns(2)
         with col_l:
             high_contrast = st.toggle(
@@ -228,12 +227,14 @@ def render() -> None:
 
         st.markdown(
             """
-            <div class="custom-info">
-                <strong>Keyboard Shortcuts (v1.0)</strong><br>
-                <code>Ctrl + /</code> — Focus search bar<br>
-                <code>Ctrl + K</code> — Open chat input<br>
-                <code>→ / ←</code> — Navigate flashcards<br>
-                <code>Space</code> — Flip flashcard
+            <div class="content-card" style="margin-top:24px;">
+                <div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">⌨️ Keyboard Shortcuts</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:14px;">
+                    <div><kbd style="background:var(--secondary);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text-primary);font-family:monospace;">Ctrl</kbd> + <kbd style="background:var(--secondary);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text-primary);font-family:monospace;">/</kbd> — Focus search</div>
+                    <div><kbd style="background:var(--secondary);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text-primary);font-family:monospace;">Ctrl</kbd> + <kbd style="background:var(--secondary);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text-primary);font-family:monospace;">K</kbd> — Open chat</div>
+                    <div><kbd style="background:var(--secondary);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text-primary);font-family:monospace;">→</kbd> / <kbd style="background:var(--secondary);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text-primary);font-family:monospace;">←</kbd> — Flashcard Nav</div>
+                    <div><kbd style="background:var(--secondary);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text-primary);font-family:monospace;">Space</kbd> — Flip card</div>
+                </div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -241,39 +242,42 @@ def render() -> None:
 
     # ─────────────────────────── Account ─────────────────────────────────
     with tab_account:
-        st.markdown("#### 🔐 Security")
+        st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
+        st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">🔐 Security</div>', unsafe_allow_html=True)
         st.markdown(
             """
-            <div class="custom-info">
-                • JWT tokens expire after <strong>30 minutes</strong>.<br>
-                • Passwords are hashed with <strong>bcrypt</strong>.<br>
-                • API keys stored in <strong>environment variables only</strong>.<br>
-                • Uploaded files scanned for <strong>PII</strong> before indexing.
+            <div class="content-card" style="font-size:13px;line-height:1.6;color:var(--text-secondary);">
+                <ul style="margin:0;padding-left:16px;">
+                    <li>JWT tokens expire after <strong>30 minutes</strong>.</li>
+                    <li>Passwords are hashed with <strong>bcrypt</strong>.</li>
+                    <li>API keys stored in <strong>environment variables only</strong>.</li>
+                    <li>Uploaded files scanned for <strong>PII</strong> before indexing.</li>
+                </ul>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
         st.markdown("<hr class='custom-divider'>", unsafe_allow_html=True)
-        st.markdown("#### 📤 Export Data")
-        if st.button("⬇️  Export My Data (JSON)", use_container_width=False):
+        st.markdown('<div style="font-weight:700;color:var(--text-primary);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">📤 Export Data</div>', unsafe_allow_html=True)
+        if st.button("⬇️ Export My Data (JSON)", use_container_width=False):
             st.info("Data export will be available in v1.5 — adds GDPR compliance.")
 
         st.markdown("<hr class='custom-divider'>", unsafe_allow_html=True)
-        st.markdown("#### 🗑️ Danger Zone")
+        st.markdown('<div style="font-weight:700;color:var(--danger);font-size:13px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:12px;">🗑️ Danger Zone</div>', unsafe_allow_html=True)
         st.markdown(
-            '<div class="custom-warning">Deleting your account is permanent '
-            'and cannot be undone.</div>',
+            '<div style="background:rgba(244,67,54,0.1);border-left:4px solid var(--danger);border-radius:var(--radius-sm);padding:12px;color:var(--danger);font-size:13px;margin-bottom:16px;">'
+            '<strong>Warning:</strong> Deleting your account is permanent and cannot be undone.</div>',
             unsafe_allow_html=True,
         )
-        if st.button("🗑️  Delete My Account", type="primary"):
-            st.warning("This will be fully implemented in v1.5 with confirmation flow.")
+        if st.button("🗑️ Delete My Account", type="primary"):
+            st.warning("This will be fully implemented in v1.5 with a confirmation flow.")
 
     # ─────────────────────────── Save ────────────────────────────────────
-    st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:32px;'></div>", unsafe_allow_html=True)
     col_save, _ = st.columns([1, 3])
     with col_save:
-        if st.button("💾  Save All Settings", use_container_width=True, key="save_settings"):
+        if st.button("💾 Save All Settings", use_container_width=True, type="primary", key="save_settings"):
             st.session_state["user_preferences"] = prefs
-            toast_success("Settings saved!")
+            toast_success("Settings saved successfully!")
             st.rerun()

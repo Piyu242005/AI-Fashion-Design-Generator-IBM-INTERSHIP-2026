@@ -1,13 +1,13 @@
 """
-Sidebar Component — AI-Powered Study Buddy
-===========================================
+Sidebar Component — AI-Powered Study Buddy (Luxury AI SaaS Edition)
+====================================================================
 Renders the persistent left navigation sidebar with:
-- App branding + tagline
-- Navigation links
-- Theme selector (Dark/Light/Blue/Purple/System)
-- Study streak display
-- Logged-in user info
-- Help + Logout
+- Workspace (Branding)
+- Navigation
+- Quick Actions
+- Storage
+- User Profile
+- Settings & Logout
 """
 
 from __future__ import annotations
@@ -15,133 +15,152 @@ from __future__ import annotations
 import streamlit as st
 
 from utils.session_state import is_logged_in, logout
-from themes.design_system import THEMES, inject_theme
 
-
-# ---------------------------------------------------------------------------
-# Navigation items: (label, emoji, page_key)
-# ---------------------------------------------------------------------------
+# Main navigation links
 NAV_ITEMS = [
     ("Dashboard",   "🏠", "dashboard"),
-    ("Chat",        "💬", "chat"),
-    ("Summary",     "📄", "summary"),
+    ("AI Chat",     "💬", "chat"),
+    ("Documents",   "📄", "profile"), # Reusing profile page for documents for now, or could map to upload
+    ("Summary",     "📝", "summary"),
     ("Quiz",        "❓", "quiz"),
     ("Flashcards",  "🃏", "flashcards"),
+]
+
+# Bottom navigation links
+SETTINGS_ITEMS = [
     ("Profile",     "👤", "profile"),
     ("Settings",    "⚙️", "settings"),
-    ("Help",        "❓", "help"),
+    ("Help",        "💡", "help"),
 ]
 
 def render_sidebar() -> str:
-    """
-    Render sidebar navigation. Returns the selected page key.
-    """
+    """Render sidebar navigation. Returns the selected page key."""
     with st.sidebar:
-        # ── Branding ──────────────────────────────────────────────────────
+        
+        # ── 1. Workspace (Branding) ───────────────────────────────────────
         st.markdown(
             """
-            <div style="text-align:center; padding: 16px 0 8px;">
-                <div style="font-size:32px;">🎓</div>
-                <div style="font-size:18px; font-weight:800; color:#3b82f6;
-                            letter-spacing:.02em;">Study Buddy</div>
-                <div style="font-size:11px; color:#475569;
-                            text-transform:uppercase; letter-spacing:.08em;">
-                    AI-Powered Learning
+            <div style="padding: 12px 4px 20px; text-align: left;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="width:32px;height:32px;border-radius:8px;background:var(--accent);
+                                display:flex;align-items:center;justify-content:center;
+                                font-size:16px;box-shadow:0 0 16px rgba(255,0,60,0.5);">
+                        🧠
+                    </div>
+                    <div>
+                        <div style="font-size:15px;font-weight:800;color:var(--text-primary);letter-spacing:-0.02em;line-height:1.2;">
+                            Study Buddy
+                        </div>
+                        <div style="font-size:10px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">
+                            AI Workspace
+                        </div>
+                    </div>
                 </div>
             </div>
-            <hr style="border:none;border-top:1px solid #2d3748;margin:8px 0 16px;">
             """,
             unsafe_allow_html=True,
         )
 
-        # ── Navigation ────────────────────────────────────────────────────
         if is_logged_in():
-            labels = [f"{emoji}  {label}" for label, emoji, _ in NAV_ITEMS]
-            keys   = [key for _, _, key in NAV_ITEMS]
-
-            # Default to current page index
             current = st.session_state.get("current_page", "dashboard")
-            default_idx = keys.index(current) if current in keys else 0
-
+            
+            # ── 2. Navigation ────────────────────────────────────────────────
+            st.markdown('<div style="font-size:11px;font-weight:700;color:var(--text-disabled);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;padding-left:4px;">Main Menu</div>', unsafe_allow_html=True)
+            
+            nav_labels = [f"{emoji}  {label}" for label, emoji, _ in NAV_ITEMS]
+            nav_keys   = [key for _, _, key in NAV_ITEMS]
+            
+            settings_labels = [f"{emoji}  {label}" for label, emoji, _ in SETTINGS_ITEMS]
+            settings_keys   = [key for _, _, key in SETTINGS_ITEMS]
+            
+            all_labels = nav_labels + settings_labels
+            all_keys = nav_keys + settings_keys
+            
+            default_idx = all_keys.index(current) if current in all_keys else 0
+            
+            # Streamlit radio doesn't support grouping well, so we use one radio for all,
+            # or split them if we must. One radio is safer for Streamlit state.
             selected_label = st.radio(
                 "Navigate",
-                labels,
+                all_labels,
                 index=default_idx,
                 label_visibility="collapsed",
                 key="sidebar_nav",
             )
-
-            selected_idx = labels.index(selected_label)
-            selected_page = keys[selected_idx]
+            
+            selected_idx = all_labels.index(selected_label)
+            selected_page = all_keys[selected_idx]
             st.session_state["current_page"] = selected_page
 
-            # ── Theme selector ────────────────────────────────────────────
-            theme_names = list(THEMES.keys())
-            current_theme = (
-                st.session_state.get("user_preferences", {}).get("theme", "Dark")
-            )
-            chosen_theme = st.selectbox(
-                "🎨 Theme",
-                theme_names,
-                index=theme_names.index(current_theme)
-                      if current_theme in theme_names else 0,
-                key="sidebar_theme",
-                label_visibility="visible",
-            )
-            if chosen_theme != current_theme:
-                prefs = st.session_state.get("user_preferences", {})
-                prefs["theme"] = chosen_theme
-                st.session_state["user_preferences"] = prefs
-                inject_theme(chosen_theme)
-                st.rerun()
+            st.markdown("<hr class='custom-divider' style='margin: 16px 0;'>", unsafe_allow_html=True)
 
-            # ── Study streak ──────────────────────────────────────────────
-            streak = st.session_state.get("user", {}).get("study_streak", 0) if st.session_state.get("user") else 0
+            # ── 3. Quick Actions ─────────────────────────────────────────────
+            st.markdown('<div style="font-size:11px;font-weight:700;color:var(--text-disabled);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;padding-left:4px;">Quick Actions</div>', unsafe_allow_html=True)
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("➕ Upload", use_container_width=True, key="qa_upload"):
+                    st.session_state["current_page"] = "profile" # Route to documents/profile
+                    st.rerun()
+            with col2:
+                if st.button("⚡ Quiz", use_container_width=True, key="qa_quiz"):
+                    st.session_state["current_page"] = "quiz"
+                    st.rerun()
+                    
+            st.markdown("<hr class='custom-divider' style='margin: 16px 0;'>", unsafe_allow_html=True)
+
+            # ── 4. Storage ───────────────────────────────────────────────────
+            # Dummy storage calc for UI purposes
+            storage_used = 14.2
+            storage_max = 50.0
+            storage_pct = int((storage_used / storage_max) * 100)
+            
             st.markdown(
                 f"""
-                <div style="background:#1e2130;border:1px solid #2d3748;
-                            border-radius:10px;padding:12px;margin:16px 0;
-                            text-align:center;">
-                    <div style="font-size:22px;">🔥</div>
-                    <div style="font-size:20px;font-weight:800;color:#f97316;">
-                        {streak}</div>
-                    <div style="font-size:11px;color:#64748b;
-                                text-transform:uppercase;letter-spacing:.06em;">
-                        Day Streak</div>
+                <div style="padding: 0 4px;">
+                    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary);margin-bottom:6px;font-weight:500;">
+                        <span>Storage</span>
+                        <span>{storage_used}MB / {storage_max}MB</span>
+                    </div>
+                    <div class="progress-bar-bg" style="height:4px;margin-bottom:4px;">
+                        <div class="progress-bar-fill" style="width:{storage_pct}%;"></div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            
+            st.markdown("<hr class='custom-divider' style='margin: 16px 0;'>", unsafe_allow_html=True)
+
+            # ── 5. User ──────────────────────────────────────────────────────
+            user = st.session_state.get("user", {}) or {}
+            name  = user.get("name", "Student")
+            email = user.get("email", "student@studybuddy.ai")
+            
+            st.markdown(
+                f"""
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 4px;margin-bottom:8px;">
+                    <div style="width:32px;height:32px;border-radius:50%;
+                                background:var(--surface);border:1px solid var(--border);
+                                display:flex;align-items:center;justify-content:center;
+                                font-weight:700;color:var(--text-primary);font-size:13px;flex-shrink:0;">
+                        {name[0].upper()}
+                    </div>
+                    <div style="overflow:hidden;">
+                        <div style="font-weight:600;color:var(--text-primary);font-size:13px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">
+                            {name}
+                        </div>
+                        <div style="color:var(--text-secondary);font-size:11px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;">
+                            {email}
+                        </div>
+                    </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            # ── User info ─────────────────────────────────────────────────
-            user = st.session_state.get("user", {})
-            if user:
-                name  = user.get("name", "Student")
-                email = user.get("email", "")
-                st.markdown(
-                    f"""
-                    <div style="display:flex;align-items:center;gap:10px;
-                                padding:10px;background:#161b27;
-                                border-radius:10px;margin-bottom:12px;">
-                        <div style="width:36px;height:36px;border-radius:50%;
-                                    background:#1d4ed8;display:flex;
-                                    align-items:center;justify-content:center;
-                                    font-weight:800;color:#fff;font-size:14px;">
-                            {name[0].upper()}
-                        </div>
-                        <div>
-                            <div style="font-weight:700;color:#e2e8f0;
-                                        font-size:13px;">{name}</div>
-                            <div style="color:#64748b;font-size:11px;">
-                                {email}</div>
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-
-            # ── Logout ────────────────────────────────────────────────────
-            if st.button("🚪  Logout", use_container_width=True):
+            # ── 6. Logout ────────────────────────────────────────────────────
+            if st.button("🚪 Logout", use_container_width=True, type="secondary"):
                 logout()
                 st.rerun()
 
@@ -149,8 +168,8 @@ def render_sidebar() -> str:
 
         else:
             st.markdown(
-                '<p style="color:#64748b;font-size:13px;text-align:center;">'
-                "Please log in to continue.</p>",
+                '<p style="color:var(--text-disabled);font-size:13px;text-align:left;padding-left:4px;">'
+                "Please sign in to unlock your workspace.</p>",
                 unsafe_allow_html=True,
             )
             return "login"

@@ -82,18 +82,27 @@ class VectorStoreService:
         user_id: int,
         doc_ids: list[int],
         top_k: int | None = None,
+        distance_threshold: float = 0.8,
     ) -> list[dict[str, Any]]:
         """
         Retrieve the most relevant chunks for a question.
 
+        Chunks with cosine distance > distance_threshold are filtered out —
+        they are semantically too far from the query and would hurt answer
+        quality (hallucination risk).
+
         Args:
-            question: User query string.
-            user_id:  Restricts results to this user's documents.
-            doc_ids:  Further restrict to these specific document IDs.
-            top_k:    Number of results (defaults to settings.RAG_TOP_K).
+            question:           User query string.
+            user_id:            Restricts results to this user's documents.
+            doc_ids:            Further restrict to these specific document IDs.
+            top_k:              Number of results (defaults to settings.RAG_TOP_K).
+            distance_threshold: Drop chunks with cosine distance above this value.
+                                0.0 = perfect match only; 1.0 = keep everything.
+                                Default 0.8 gives a good relevance/recall tradeoff.
 
         Returns:
-            List of dicts with 'content', 'filename', 'doc_id', 'distance'.
+            List of dicts with 'content', 'filename', 'doc_id', 'distance',
+            sorted by ascending distance (most relevant first).
         """
         k = top_k or settings.RAG_TOP_K
 
@@ -118,6 +127,13 @@ class VectorStoreService:
                 results["metadatas"][0],
                 results["distances"][0],
             ):
+                # Filter out chunks that are semantically too distant
+                if dist > distance_threshold:
+                    logger.debug(
+                        "Dropped chunk with distance=%.4f > threshold=%.2f for user_id=%d",
+                        dist, distance_threshold, user_id,
+                    )
+                    continue
                 chunks.append({
                     "content":  doc,
                     "filename": meta.get("filename", ""),
@@ -125,7 +141,10 @@ class VectorStoreService:
                     "distance": round(dist, 4),
                 })
 
-        logger.debug("Query returned %d chunks for user_id=%d", len(chunks), user_id)
+        logger.debug(
+            "Query returned %d/%d chunks (threshold=%.2f) for user_id=%d",
+            len(chunks), k, distance_threshold, user_id,
+        )
         return chunks
 
     def delete_chunks(self, chroma_ids: list[str]) -> None:

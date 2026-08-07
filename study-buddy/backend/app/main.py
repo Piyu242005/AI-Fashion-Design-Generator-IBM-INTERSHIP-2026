@@ -122,16 +122,18 @@ async def generic_handler(request: Request, exc: Exception) -> JSONResponse:
 
 
 # ---------------------------------------------------------------------------
-# Routers
+# Routers — all prefixed under /api/v1 for safe future versioning
 # ---------------------------------------------------------------------------
 
-app.include_router(auth.router)
-app.include_router(documents.router)
-app.include_router(chat.router)
-app.include_router(quiz.router)
-app.include_router(summary.router)
-app.include_router(flashcards.router)
-app.include_router(dashboard.router)
+_V1 = "/api/v1"
+
+app.include_router(auth.router,        prefix=_V1)
+app.include_router(documents.router,   prefix=_V1)
+app.include_router(chat.router,        prefix=_V1)
+app.include_router(quiz.router,        prefix=_V1)
+app.include_router(summary.router,     prefix=_V1)
+app.include_router(flashcards.router,  prefix=_V1)
+app.include_router(dashboard.router,   prefix=_V1)
 
 
 # ---------------------------------------------------------------------------

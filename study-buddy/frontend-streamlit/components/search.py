@@ -5,6 +5,7 @@ Reusable search bar and filtering logic for:
   - Documents (by filename)
   - Chat history (by question/answer text)
   - Flashcards (by term/definition)
+Uses Design Tokens from design_system.py.
 """
 
 from __future__ import annotations
@@ -21,10 +22,17 @@ def search_bar(placeholder: str = "Search…", key: str = "search_bar") -> str:
         """
         <style>
         div[data-testid="stTextInput"].search-wrap > div > div > input {
-            background: var(--surface2) !important;
+            background: var(--secondary) !important;
             border: 1px solid var(--border) !important;
             border-radius: 999px !important;
             padding-left: 36px !important;
+            color: var(--text-primary) !important;
+            box-shadow: var(--shadow) !important;
+        }
+        div[data-testid="stTextInput"].search-wrap > div > div > input:focus {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 2px rgba(255,0,60,0.15) !important;
+            background: var(--primary) !important;
         }
         </style>
         """,

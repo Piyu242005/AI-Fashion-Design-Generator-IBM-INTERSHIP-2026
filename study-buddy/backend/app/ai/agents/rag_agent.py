@@ -127,17 +127,34 @@ class RAGAgent:
         answer  = validate_output(raw)
         sources = list({c["filename"] for c in chunks_sorted})
 
-        # ── 8. Update session memory ───────────────────────────────────────
+        # ── 8. Grounding evaluation (lightweight, no extra LLM call) ──────
+        grounding = _evaluate_grounding(answer, context)
+        if not grounding["is_grounded"]:
+            logger.warning(
+                "RAGAgent grounding check FAILED for user_id=%d: "
+                "answer may not be supported by retrieved context. "
+                "overlap_ratio=%.2f overlap_words=%d",
+                user_id,
+                grounding["overlap_ratio"],
+                grounding["overlap_words"],
+            )
+
+        # ── 9. Update session memory ───────────────────────────────────────
         save_to_session_memory(user_id, question, answer)
 
         latency = int((time.perf_counter() - start) * 1000)
-        logger.info("RAGAgent answered in %dms, %d chunks used", latency, len(chunks_sorted))
+        logger.info(
+            "RAGAgent answered in %dms, %d chunks used, grounded=%s",
+            latency, len(chunks_sorted), grounding["is_grounded"],
+        )
 
         return {
-            "answer":      answer,
-            "sources":     sources,
-            "chunks_used": len(chunks_sorted),
-            "latency_ms":  latency,
+            "answer":         answer,
+            "sources":        sources,
+            "chunks_used":    len(chunks_sorted),
+            "latency_ms":     latency,
+            "is_grounded":    grounding["is_grounded"],
+            "grounding_score": grounding["overlap_ratio"],
         }
 
 
@@ -152,3 +169,55 @@ def _build_context(chunks: list[dict[str, Any]]) -> str:
         parts.append(text)
         total += len(text)
     return "\n\n---\n\n".join(parts)
+
+
+def _evaluate_grounding(answer: str, context: str) -> dict:
+    """
+    Lightweight grounding check — measures lexical overlap between the
+    generated answer and the retrieved context.
+
+    This is a fast, zero-cost heuristic (no extra LLM call) that catches
+    obvious hallucinations where the answer shares no vocabulary with the
+    source material.
+
+    Approach:
+      - Tokenise both texts into lowercase word sets (stop words excluded).
+      - Compute overlap ratio = |answer_words ∩ context_words| / |answer_words|
+      - Flag as ungrounded if overlap ratio < 0.15 (15%) and answer is long.
+
+    Production upgrade: Replace with RAGAS faithfulness metric for proper
+    semantic grounding evaluation.
+
+    Returns:
+        Dict with is_grounded (bool), overlap_ratio (float), overlap_words (int).
+    """
+    # Minimal stop-word set — common English words that carry no signal
+    _STOP = {
+        "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
+        "of", "with", "is", "are", "was", "were", "be", "been", "have", "has",
+        "that", "this", "it", "its", "from", "by", "as", "not", "can", "will",
+        "your", "you", "i", "we", "they", "he", "she", "my", "our", "their",
+    }
+
+    def _tokenise(text: str) -> set[str]:
+        import re
+        words = re.findall(r"\b[a-z]{3,}\b", text.lower())
+        return {w for w in words if w not in _STOP}
+
+    answer_words  = _tokenise(answer)
+    context_words = _tokenise(context)
+
+    if not answer_words:
+        return {"is_grounded": True, "overlap_ratio": 1.0, "overlap_words": 0}
+
+    overlap       = answer_words & context_words
+    overlap_ratio = len(overlap) / len(answer_words)
+    # Only flag short answers (< 50 words) as suspicious if ratio is very low
+    min_ratio     = 0.10 if len(answer_words) < 50 else 0.15
+    is_grounded   = overlap_ratio >= min_ratio
+
+    return {
+        "is_grounded":   is_grounded,
+        "overlap_ratio": round(overlap_ratio, 4),
+        "overlap_words": len(overlap),
+    }

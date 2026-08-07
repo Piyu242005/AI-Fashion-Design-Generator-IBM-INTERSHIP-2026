@@ -1,23 +1,23 @@
 # =============================================================================
-# Streamlit Configuration — AI-Powered Study Buddy
+# Streamlit Configuration — AI-Powered Study Buddy (Luxury Red & Dark Edition)
 # Controls theme, server settings, and UI defaults
 # =============================================================================
 
 [theme]
-primaryColor       = "#3b82f6"       # Accent blue
-backgroundColor    = "#0f1117"       # Dark background
-secondaryBackgroundColor = "#1e2130" # Card / sidebar background
-textColor          = "#e2e8f0"       # Primary text
-font               = "sans serif"
+primaryColor               = "#FF003C"       # Luxury Red Accent
+backgroundColor            = "#050505"       # Deep Black Canvas
+secondaryBackgroundColor   = "#111111"       # Sidebar & Card Background
+textColor                  = "#FFFFFF"       # High-contrast Crisp Text
+font                       = "sans serif"
 
 [server]
-headless           = true
-enableCORS         = false
-enableXsrfProtection = true
-maxUploadSize      = 50             # MB
+headless                   = true
+enableCORS                 = false
+enableXsrfProtection       = true
+maxUploadSize              = 50              # MB
 
 [browser]
-gatherUsageStats   = false
+gatherUsageStats           = false
 
 [runner]
-fastReruns         = true
+fastReruns                 = true
