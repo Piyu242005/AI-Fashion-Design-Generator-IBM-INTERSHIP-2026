@@ -1,0 +1,51 @@
+# ============================================================
+#  requirements-stage1.txt
+#  Stage 1 — RealVisXL SDXL-based Fashion Model Generation
+#
+#  Compatible with: Python 3.12, Google Colab (T4/L4)
+#  PyTorch is NOT listed here — use Colab's pre-installed CUDA build.
+#
+#  Install with:
+#      pip install -r requirements-stage1.txt
+#
+#  IMPORTANT — NumPy policy:
+#    Do NOT pin numpy here.  Colab ships numpy 2.x; scipy was compiled
+#    against that ABI.  Pinning numpy==1.26.4 downgrades numpy and breaks
+#    scipy's compiled C extensions, which cascades through:
+#      transformers → loss_for_object_detection → scipy.optimize
+#      → numpy._core._multiarray_umath._blas_supports_fpe  (absent in 1.26)
+#      → CLIPImageProcessor fails → StableDiffusionXLPipeline fails.
+#    Use whatever numpy Colab ships.  Tested with 2.0.2.
+#
+#  IMPORTANT — Pillow policy:
+#    Do NOT cap Pillow at <11.  Colab ships Pillow 11.x which works fine
+#    with all Stage 1 operations.
+#
+#  Do NOT install:
+#    - auto1111sdk         (removed; Python 3.10-only, broken CLIP dep)
+#    - clip                (OpenAI CLIP pip package conflicts with Colab)
+#    - torchdiffeq         (not used by current generate_model.py)
+#    - torchsde            (not used by current generate_model.py)
+#    - k_diffusion         (not used by current generate_model.py)
+#    - cleanfid / clean-fid (not used by Stage 1)
+# ============================================================
+
+# ── Hugging Face ecosystem ────────────────────────────────────────────────
+# No upper bounds — allow Colab's latest installed versions.
+# Tested with: diffusers==0.39.0, transformers==5.14.1, accelerate==1.14.0
+diffusers>=0.29.0
+transformers>=4.40.0
+huggingface_hub>=0.23.0
+accelerate>=0.30.0
+safetensors>=0.4.3
+tokenizers>=0.19.0
+peft>=0.10.0
+
+# ── Image processing ──────────────────────────────────────────────────────
+# No Pillow upper bound — 11.x works fine.  Tested with 11.3.0.
+Pillow>=9.5.0
+opencv-python>=4.9.0
+
+# ── Utilities ─────────────────────────────────────────────────────────────
+tqdm
+python-dotenv>=1.0.0

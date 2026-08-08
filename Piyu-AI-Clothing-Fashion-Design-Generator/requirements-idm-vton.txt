@@ -1,0 +1,50 @@
+# ============================================================
+#  requirements-idm-vton.txt
+#  Stage 2 — IDM-VTON Virtual Try-On
+#
+#  ⚠️  WARNING: IDM-VTON has strict, potentially conflicting deps.
+#  Install ONLY after Stage 1 is verified working.
+#  Install in isolation (separate venv or Colab runtime) when possible.
+#
+#  Compatible with: Python 3.10, Linux (Colab), CUDA 11.8
+#  Python 3.12 support is NOT guaranteed for detectron2 / DensePose.
+#
+#  Install with (in order):
+#      1. pip install -r requirements-stage1.txt
+#      2. pip install -r requirements-idm-vton.txt
+#
+#  Detectron2 / DensePose must be built from source for Python 3.12:
+#      pip install 'git+https://github.com/facebookresearch/detectron2.git'
+#  DensePose:
+#      pip install 'git+https://github.com/facebookresearch/detectron2.git#subdirectory=projects/DensePose'
+# ============================================================
+
+# ── OpenAI CLIP (required by IDM-VTON) ───────────────────────────────────
+# Install from source — the PyPI 'clip' package is a different project:
+#   pip install git+https://github.com/openai/CLIP.git
+# (listed as comment; pip cannot handle bare git URLs in -r files on all platforms)
+
+# ── Open-CLIP ─────────────────────────────────────────────────────────────
+open-clip-torch>=2.20.0
+
+# ── ONNX runtime (human-parsing models) ──────────────────────────────────
+onnxruntime>=1.16.3
+
+# ── IDM-VTON model extras ─────────────────────────────────────────────────
+einops>=0.7.0
+kornia>=0.6.7
+timm>=0.9.16
+omegaconf>=2.2.3
+
+# ── Segment Anything (SAM — for garment masking) ─────────────────────────
+# Install from source:
+#   pip install git+https://github.com/facebookresearch/segment-anything.git
+
+# ── Pose estimation extras ────────────────────────────────────────────────
+scipy>=1.10.0
+
+# ── Utilities ─────────────────────────────────────────────────────────────
+pycocotools
+fvcore
+cloudpickle
+tqdm
