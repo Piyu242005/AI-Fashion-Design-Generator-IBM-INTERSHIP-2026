@@ -1,8 +1,6 @@
 <div align="center">
   <img src="Abstract%20logo%20with%20name%20Piyush%20Ramteke%204k%20quailtty.webp" alt="Piyush Ramteke Logo" width="400" style="border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-
-<div align="center">
-
+  
 # AI Clothing Fashion Design Generator
 
 **Generate realistic AI fashion models and apply garments using image segmentation and virtual try-on.**
