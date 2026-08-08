@@ -35,14 +35,14 @@ import streamlit as st
 from PIL import Image
 
 # ─── Python version guard ─────────────────────────────────────────────────
-# auto1111sdk and several ML deps require Python 3.10 or 3.11.
-# Python 3.12+ breaks binary extensions in torch, basicsr, etc.
+# Requires Python 3.10+.  Python 3.9 and below are not supported.
+# Python 3.10, 3.11, 3.12 all work — auto1111sdk was removed.
 _py = sys.version_info
-if _py >= (3, 12):
+if _py < (3, 10):
     st.error(
         f"⛔ **Python {_py.major}.{_py.minor} is not supported.**\n\n"
-        "This project requires **Python 3.10 or 3.11**.\n\n"
-        "Please create a new virtual environment with Python 3.10 or 3.11:\n"
+        "This project requires **Python 3.10 or newer**.\n\n"
+        "Please upgrade your Python environment and re-run:"
         "```\n"
         "conda create -n fashion python=3.11\n"
         "conda activate fashion\n"
@@ -573,9 +573,39 @@ def _gif_b64(path: Path) -> str | None:
 # ─── Cached model loaders ─────────────────────────────────────────────────
 @st.cache_resource(show_spinner="Loading RealVisXL generation pipeline…")
 def load_generation_pipeline():
+    """Load RealVisXL via Diffusers from_single_file — no auto1111sdk needed."""
+    import gc
+    import torch
+    from diffusers import DPMSolverSinglestepScheduler, StableDiffusionXLPipeline
     from src.model_manager import get_realvisxl_path
-    from auto1111sdk import StableDiffusionPipeline
-    return StableDiffusionPipeline(get_realvisxl_path(), default_command_args="--device-id 0")
+
+    model_path = get_realvisxl_path()
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    dtype  = torch.float16 if device == "cuda" else torch.float32
+
+    pipe = StableDiffusionXLPipeline.from_single_file(
+        model_path,
+        config="stabilityai/stable-diffusion-xl-base-1.0",
+        torch_dtype=dtype,
+        use_safetensors=True,
+        safety_checker=None,
+        ignore_mismatched_sizes=True,
+    )
+    try:
+        pipe.scheduler = DPMSolverSinglestepScheduler.from_config(
+            pipe.scheduler.config,
+            use_karras_sigmas=True,
+        )
+    except Exception:
+        pass
+
+    pipe.enable_vae_slicing()
+    pipe.enable_vae_tiling()
+    if device == "cuda":
+        pipe.enable_model_cpu_offload()
+    else:
+        pipe = pipe.to(device)
+    return pipe
 
 
 @st.cache_resource(show_spinner="Loading SAM ViT-H…")
@@ -616,21 +646,39 @@ def run_sam_headless(predictor, image: Image.Image, points: list) -> Image.Image
 
 
 def generate_human_model(pipe, clothing_description: str) -> Image.Image:
-    images = pipe.generate_txt2img(
+    """Generate a fashion model image using the Diffusers SDXL pipeline."""
+    import gc
+    import torch
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    generator = torch.Generator(device="cpu").manual_seed(42)
+
+    result = pipe(
         prompt=(
             f"centered, portrait photo of a woman, wearing {clothing_description}, "
-            "natural skin, dark shot"
+            "natural skin, photorealistic, high detail clothing, realistic fabric, "
+            "studio fashion photography, neutral background, sharp focus"
         ),
         negative_prompt=(
-            "(octane render, render, drawing, anime, bad photo:1.3), "
-            "(worst quality, low quality, blurry:1.2), (bad teeth, deformed teeth), "
-            "(bad anatomy, bad proportions:1.1), (deformed eyes, bad eyes), "
-            "(deformed face, ugly face), (deformed hands, bad hands, fused fingers), "
-            "morbid, mutilated, mutation, disfigured"
+            "low quality, blurry, deformed, bad anatomy, bad hands, "
+            "extra fingers, fused fingers, distorted face, duplicate, "
+            "cropped head, text, watermark, cartoon, illustration, nsfw"
         ),
-        height=1024, width=768, cfg_scale=2, steps=5, sampler_name="DPM++ SDE",
+        height=1024,
+        width=768,
+        num_inference_steps=4,
+        guidance_scale=0.0,
+        generator=generator,
     )
-    return images[0]
+    image = result.images[0]
+
+    # Free VRAM so SAM can load
+    del result
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+    return image
 
 
 def run_tryon(human_image, mask_image, garment_image, cloth_type, denoise_steps=30, seed=42):
