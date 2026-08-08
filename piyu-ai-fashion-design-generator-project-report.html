@@ -1,0 +1,811 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Piyu AI Fashion Design Generator — Project Report</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--surface:#f7f8fa;--border:#e5e7eb;
+  --accent:#3b82d4;--purple:#7c5cd8;--green:#16a34a;
+  --orange:#d97706;--red:#dc2626;
+  --text:#1f2328;--muted:#57606a;--dim:#8b949e;
+  --r:10px;--mono:'JetBrains Mono','Fira Code',monospace;
+}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;line-height:1.65;color:var(--text);background:#fff;max-width:860px;margin:0 auto;padding:48px 36px 80px}
+
+/* COVER */
+.cover{border:1px solid #2d3748;border-radius:16px;background:#0f172a;padding:52px 48px 44px;margin-bottom:48px;position:relative;overflow:hidden}
+.cover-glow1{position:absolute;top:-80px;right:-80px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,212,0.18) 0%,transparent 70%)}
+.cover-glow2{position:absolute;bottom:-60px;left:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,216,0.14) 0%,transparent 70%)}
+.cover-tag{display:inline-block;background:rgba(59,130,212,0.15);border:1px solid rgba(59,130,212,0.3);border-radius:20px;padding:3px 14px;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#63b3ed;margin-bottom:18px}
+.cover h1{font-size:2rem;font-weight:800;line-height:1.15;letter-spacing:-0.03em;color:#f0f4ff;margin-bottom:12px}
+.cover h1 span{color:#63b3ed}
+.cover-sub{font-size:.92rem;color:#8892a4;line-height:1.6;max-width:500px;margin-bottom:28px}
+.cover-meta{display:flex;gap:28px;flex-wrap:wrap}
+.cmi{font-size:11px;color:#4a5568}
+.cmi strong{color:#8892a4;display:block;font-size:10px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px}
+.badge-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:22px}
+.badge{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:3px 10px;font-size:10px;font-weight:600;color:#8892a4}
+
+/* TOC */
+.toc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px 26px;margin-bottom:48px}
+.toc-title{font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 32px}
+.toc-item{font-size:12.5px;color:var(--accent);text-decoration:none;padding:2px 0;display:flex;align-items:center;gap:6px}
+.toc-item:hover{text-decoration:underline}
+.toc-num{color:var(--dim);font-size:11px;width:18px;flex-shrink:0}
+
+/* SECTIONS */
+section{margin-bottom:52px}
+h2{font-size:1.25rem;font-weight:800;letter-spacing:-.025em;color:var(--text);margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:10px}
+.sec-icon{width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+h3{font-size:.92rem;font-weight:700;color:var(--text);margin:22px 0 10px;letter-spacing:-.01em}
+p{color:var(--muted);margin-bottom:12px;font-size:13.5px}
+p strong{color:var(--text)}
+ul{padding-left:18px;margin-bottom:12px}
+li{font-size:13.5px;color:var(--muted);margin-bottom:4px;line-height:1.6}
+li strong{color:var(--text)}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.card p{margin-bottom:0;font-size:13px}
+.a-card{border-left:3px solid var(--accent);background:rgba(59,130,212,0.04)}
+.p-card{border-left:3px solid var(--purple);background:rgba(124,92,216,0.04)}
+.g-card{border-left:3px solid var(--green);background:rgba(22,163,74,0.04)}
+.o-card{border-left:3px solid var(--orange);background:rgba(217,119,6,0.04)}
+.r-card{border-left:3px solid var(--red);background:rgba(220,38,38,0.04)}
+
+/* PIPELINE STRIP */
+.pipeline{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin:18px 0 22px}
+.ps{flex:1;padding:16px 10px;border-right:1px solid var(--border);background:var(--surface);text-align:center}
+.ps:last-child{border-right:none}
+.ps-num{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin:0 auto 8px;background:var(--accent);color:#fff}
+.ps-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px}
+.ps-model{font-size:10px;color:var(--muted)}
+.ps-out{font-size:9.5px;color:var(--dim);margin-top:5px;font-family:var(--mono)}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:13px}
+th{background:var(--surface);border:1px solid var(--border);padding:9px 12px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+td{border:1px solid var(--border);padding:9px 12px;vertical-align:top;color:var(--muted)}
+td strong{color:var(--text)}
+tr:nth-child(even) td{background:var(--surface)}
+
+/* CODE */
+pre{background:#0d1117;border:1px solid #30363d;border-radius:var(--r);padding:16px 18px;overflow-x:auto;margin:12px 0 18px;font-family:var(--mono);font-size:12px;line-height:1.6;color:#c9d1d9}
+code{font-family:var(--mono);font-size:12px;background:#f0f1f3;border:1px solid var(--border);border-radius:4px;padding:1px 6px;color:#c0392b}
+pre code{background:transparent;border:none;padding:0;color:#c9d1d9;font-size:12px}
+.kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nu{color:#79c0ff}
+
+/* FILE TREE */
+.filetree{background:#0d1117;border:1px solid #30363d;border-radius:var(--r);padding:18px 20px;font-family:var(--mono);font-size:12px;line-height:1.85;color:#c9d1d9;margin:14px 0 20px;white-space:pre}
+.ft-dir{color:#79c0ff}.ft-key{color:#ffa657}.ft-new{color:#3fb950}.ft-skip{color:#8b949e;font-style:italic}
+
+/* TAGS */
+.tag{display:inline-block;border-radius:5px;padding:1px 8px;font-size:10px;font-weight:700;letter-spacing:.3px;vertical-align:middle}
+.t-bl{background:#dbeafe;color:#1d4ed8}.t-pu{background:#ede9fe;color:#6d28d9}
+.t-gr{background:#dcfce7;color:#15803d}.t-or{background:#fff7ed;color:#c2410c}
+.t-re{background:#fee2e2;color:#b91c1c}.t-gy{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+
+/* ARCH GRID */
+.arch-box{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin:18px 0 22px}
+.arch-layer{border:1px solid var(--border);border-radius:var(--r);padding:14px 12px;background:var(--surface);text-align:center}
+.arch-layer-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.arch-layer-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
+.arch-layer-sub{font-size:10.5px;color:var(--dim)}
+
+/* SPEC GRID */
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.spec-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px}
+.spec-icon{font-size:18px;margin-top:1px}
+.spec-label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.spec-value{font-size:13px;font-weight:600;color:var(--text)}
+
+/* ROADMAP */
+.roadmap{margin:14px 0}
+.phase{border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.phase-header{background:var(--surface);padding:10px 16px;font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px}
+.phase-body{padding:12px 16px}
+.phase-item{font-size:13px;color:var(--muted);padding:3px 0;display:flex;align-items:flex-start;gap:8px}
+.phase-item::before{content:'·';color:var(--dim);flex-shrink:0;margin-top:1px}
+
+/* CONCLUSION */
+.conclusion{background:#0f172a;border:1px solid rgba(59,130,212,0.2);border-radius:14px;padding:32px 36px;margin-top:8px}
+.conclusion h3{color:#63b3ed;font-size:.85rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.conclusion p{color:#8892a4;font-size:13.5px;margin-bottom:10px}
+.conclusion p:last-child{margin-bottom:0}
+
+/* FLOW BOX */
+.flow{background:#0d1117;border:1px solid #30363d;border-radius:var(--r);padding:20px 24px;margin:14px 0 20px;font-family:var(--mono);font-size:12px;line-height:2;color:#c9d1d9;white-space:pre}
+.f-in{color:#79c0ff}.f-proc{color:#ffa657}.f-out{color:#3fb950}.f-arr{color:#8b949e}
+
+/* FOOTER */
+.footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.footer-l,.footer-r{font-size:11px;color:var(--dim)}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+hr{border:none;border-top:1px solid var(--border);margin:36px 0}
+</style>
+</head>
+<body>
+
+
+<div class="cover">
+  <div class="cover-glow1"></div>
+  <div class="cover-glow2"></div>
+  <div class="cover-tag">Technical Project Report  ·  2024</div>
+  <h1>AI Clothing <span>Fashion Design</span> Generator</h1>
+  <p class="cover-sub">
+    An end-to-end generative AI pipeline that converts clothing text descriptions into
+    photorealistic virtual try-on results using RealVisXL, Segment Anything, and IDM-VTON —
+    deployable via Streamlit with Hugging Face model storage.
+  </p>
+  <div class="cover-meta">
+    <div class="cmi"><strong>Author</strong>Piyush Ramteke</div>
+    <div class="cmi"><strong>GitHub</strong>Piyu242005</div>
+    <div class="cmi"><strong>Category</strong>Generative AI · Computer Vision</div>
+    <div class="cmi"><strong>Interface</strong>Streamlit Web App + CLI</div>
+  </div>
+  <div class="badge-row">
+    <span class="badge">Python 3.8+</span>
+    <span class="badge">PyTorch 2.1.0</span>
+    <span class="badge">Diffusers 0.25.0</span>
+    <span class="badge">Streamlit UI</span>
+    <span class="badge">Hugging Face Hub</span>
+    <span class="badge">CUDA Required</span>
+    <span class="badge">float16 · 768×1024</span>
+    <span class="badge">MIT License</span>
+  </div>
+</div>
+
+
+<div class="toc">
+  <div class="toc-title">Table of Contents</div>
+  <div class="toc-grid">
+    <a class="toc-item" href="#s1"><span class="toc-num">01</span>Project Overview</a>
+    <a class="toc-item" href="#s7"><span class="toc-num">07</span>File Structure</a>
+    <a class="toc-item" href="#s2"><span class="toc-num">02</span>Problem Statement</a>
+    <a class="toc-item" href="#s8"><span class="toc-num">08</span>Installation Guide</a>
+    <a class="toc-item" href="#s3"><span class="toc-num">03</span>System Architecture</a>
+    <a class="toc-item" href="#s9"><span class="toc-num">09</span>Model Weights Setup</a>
+    <a class="toc-item" href="#s4"><span class="toc-num">04</span>Three-Stage Pipeline</a>
+    <a class="toc-item" href="#s10"><span class="toc-num">10</span>Streamlit UI Design</a>
+    <a class="toc-item" href="#s5"><span class="toc-num">05</span>Technology Stack</a>
+    <a class="toc-item" href="#s11"><span class="toc-num">11</span>Hardware Requirements</a>
+    <a class="toc-item" href="#s6"><span class="toc-num">06</span>Key Features</a>
+    <a class="toc-item" href="#s12"><span class="toc-num">12</span>Limitations &amp; Roadmap</a>
+  </div>
+</div>
+
+
+<section id="s1">
+  <h2><span class="sec-icon" style="background:#dbeafe">📋</span>01 · Project Overview</h2>
+  <p>
+    The <strong>AI Clothing Fashion Design Generator</strong> is a three-stage generative AI pipeline that
+    accepts a plain-English clothing description as input and produces a fully rendered, photorealistic
+    virtual try-on image as output. It integrates three state-of-the-art AI models — RealVisXL, SAM,
+    and IDM-VTON — into a coherent, scriptable, and web-accessible workflow.
+  </p>
+  <p>
+    The project targets fashion designers, AI/ML students, generative AI researchers, and anyone exploring
+    virtual garment prototyping without physical samples. It runs on a GPU server or Google Colab, with
+    all model weights managed centrally through Hugging Face and a dedicated <code>model_manager.py</code>
+    download layer that eliminates any need to commit large binary files to the repository.
+  </p>
+  <div class="spec-grid">
+    <div class="spec-item">
+      <div class="spec-icon">🎯</div>
+      <div><div class="spec-label">Primary Goal</div><div class="spec-value">End-to-end virtual try-on from text</div></div>
+    </div>
+    <div class="spec-item">
+      <div class="spec-icon">🖥️</div>
+      <div><div class="spec-label">Interface</div><div class="spec-value">Streamlit web app + CLI scripts</div></div>
+    </div>
+    <div class="spec-item">
+      <div class="spec-icon">☁️</div>
+      <div><div class="spec-label">Model Storage</div><div class="spec-value">Hugging Face Hub · hf_hub_download</div></div>
+    </div>
+    <div class="spec-item">
+      <div class="spec-icon">⚡</div>
+      <div><div class="spec-label">Inference</div><div class="spec-value">float16 · CUDA · 768 × 1024 px</div></div>
+    </div>
+  </div>
+</section>
+
+
+<section id="s2">
+  <h2><span class="sec-icon" style="background:#ede9fe">❓</span>02 · Problem Statement</h2>
+  <p>
+    Traditional fashion design prototyping is expensive, slow, and requires physical fabric samples and
+    live photoshoots. Online shoppers cannot visualise how a garment will look on a specific body type
+    before purchase. Designers waste weeks iterating on physical prototypes before a concept is validated.
+  </p>
+  <div class="card a-card">
+    <div class="card-title">Core Challenge</div>
+    <p>How can anyone instantly visualise <em>any</em> garment on a photorealistic AI model —
+    without a physical sample, photography session, or specialist 3D software?</p>
+  </div>
+  <p>
+    This project solves the problem through a three-step AI pipeline:
+    <strong>generate</strong> a photorealistic human model from a text prompt,
+    <strong>segment</strong> the clothing region with SAM point-click precision, and
+    <strong>apply</strong> any real garment image onto that region using
+    SDXL-based diffusion inpainting.
+  </p>
+  <h3>Who Can Use It</h3>
+  <table>
+    <thead><tr><th>User</th><th>Use Case</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Fashion Designers</strong></td><td>Rapid concept visualisation without physical samples</td></tr>
+      <tr><td><strong>E-Commerce Teams</strong></td><td>Virtual product try-on for online catalogues</td></tr>
+      <tr><td><strong>AI/ML Students</strong></td><td>End-to-end GenAI pipeline for learning and demonstration</td></tr>
+      <tr><td><strong>Internship Candidates</strong></td><td>Production-quality portfolio project showcasing ML engineering skills</td></tr>
+      <tr><td><strong>Hackathon Teams</strong></td><td>Working prototype combining text-to-image, segmentation, and try-on</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<section id="s3">
+  <h2><span class="sec-icon" style="background:#dcfce7">🏗️</span>03 · System Architecture</h2>
+  <p>
+    The system follows a four-layer production architecture: source code in GitHub, UI served by Streamlit,
+    inference executed on a GPU machine, and model weights stored on and fetched from Hugging Face on demand.
+  </p>
+  <h3>Production Deployment Layers</h3>
+  <div class="arch-box">
+    <div class="arch-layer" style="border-color:#bfdbfe">
+      <div class="arch-layer-title" style="color:#3b82d4">Layer 1</div>
+      <div class="arch-layer-name">GitHub</div>
+      <div class="arch-layer-sub">Source code<br />version control<br />collaboration</div>
+    </div>
+    <div class="arch-layer" style="border-color:#fce7f3">
+      <div class="arch-layer-title" style="color:#db2777">Layer 2</div>
+      <div class="arch-layer-name">Streamlit</div>
+      <div class="arch-layer-sub">Web UI · app.py<br />Two pipeline modes<br />st.cache_resource</div>
+    </div>
+    <div class="arch-layer" style="border-color:#ede9fe">
+      <div class="arch-layer-title" style="color:#7c3aed">Layer 3</div>
+      <div class="arch-layer-name">GPU Server</div>
+      <div class="arch-layer-sub">PyTorch inference<br />RealVisXL · SAM<br />IDM-VTON</div>
+    </div>
+    <div class="arch-layer" style="border-color:#fef3c7">
+      <div class="arch-layer-title" style="color:#d97706">Layer 4</div>
+      <div class="arch-layer-name">Hugging Face</div>
+      <div class="arch-layer-sub">Weight storage<br />hf_hub_download<br />~25 GB total</div>
+    </div>
+  </div>
+
+  <h3>Request Data Flow</h3>
+  <div class="flow"><span class="f-in">User types prompt in Streamlit</span>
+<span class="f-arr">    ↓</span>
+<span class="f-proc">app.py → load_generation_pipeline()  [st.cache_resource]</span>
+<span class="f-arr">    ↓</span>
+<span class="f-proc">model_manager.get_realvisxl_path()   [hf_hub_download → models/ cache]</span>
+<span class="f-arr">    ↓</span>
+<span class="f-proc">generate_model.py → StableDiffusionPipeline → txt2img inference</span>
+<span class="f-arr">    ↓</span>
+<span class="f-out">768×1024 reference image displayed in browser</span>
+<span class="f-arr">    ↓</span>
+<span class="f-in">User notes pixel coordinates on clothing region</span>
+<span class="f-arr">    ↓</span>
+<span class="f-proc">app.py → run_sam_headless()  [load_sam_predictor · st.cache_resource]</span>
+<span class="f-arr">    ↓</span>
+<span class="f-proc">segment.py → SAM ViT-H two-pass prediction</span>
+<span class="f-arr">    ↓</span>
+<span class="f-out">Binary clothing mask</span>
+<span class="f-arr">    ↓</span>
+<span class="f-proc">app.py → run_tryon()  [IDM-VTON + DensePose + Human Parsing]</span>
+<span class="f-arr">    ↓</span>
+<span class="f-out">Final 768×1024 virtual try-on PNG returned to browser</span></div>
+
+  <h3>Key Design Decisions</h3>
+  <table>
+    <thead><tr><th>Decision</th><th>Choice Made</th><th>Rationale</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Model storage</strong></td><td>Hugging Face Hub</td><td>Zero weights in repo; resumable, cached downloads via hf_hub_download()</td></tr>
+      <tr><td><strong>Model caching</strong></td><td>@st.cache_resource</td><td>25 GB of models loaded once per server process — not per user click</td></tr>
+      <tr><td><strong>Segmentation input</strong></td><td>--points coordinate flag</td><td>Matplotlib GUI cannot run inside Streamlit or headless servers</td></tr>
+      <tr><td><strong>Inference precision</strong></td><td>float16 + CUDA</td><td>Halves VRAM vs float32; sufficient quality for SDXL diffusion</td></tr>
+      <tr><td><strong>Output resolution</strong></td><td>768 × 1024</td><td>IDM-VTON and RealVisXL both optimised for this SDXL aspect ratio</td></tr>
+      <tr><td><strong>Secrets management</strong></td><td>.env + python-dotenv</td><td>HF_TOKEN never hardcoded; .env excluded by .gitignore</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<section id="s4">
+  <h2><span class="sec-icon" style="background:#fff7ed">⚙️</span>04 · Three-Stage AI Pipeline</h2>
+
+  <div class="pipeline">
+    <div class="ps">
+      <div class="ps-num">1</div>
+      <div class="ps-title">Generation</div>
+      <div class="ps-model">RealVisXL V4.0</div>
+      <div class="ps-out">768×1024 PNG</div>
+    </div>
+    <div class="ps">
+      <div class="ps-num">2</div>
+      <div class="ps-title">Segmentation</div>
+      <div class="ps-model">SAM ViT-H</div>
+      <div class="ps-out">Binary mask JPG</div>
+    </div>
+    <div class="ps">
+      <div class="ps-num">3</div>
+      <div class="ps-title">Virtual Try-On</div>
+      <div class="ps-model">IDM-VTON SDXL</div>
+      <div class="ps-out">Final result PNG</div>
+    </div>
+  </div>
+
+  <h3>Stage 1 — Human Model Generation · generate_model.py</h3>
+  <div class="card a-card">
+    <p>Uses <strong>RealVisXL V4.0 Lightning</strong> via the <code>auto1111sdk</code> library.
+    The user's clothing description is wrapped in a standardised portrait prompt template and passed to
+    <code>generate_txt2img()</code>. Resolution: 768×1024 · Sampler: DPM++ SDE · Steps: 5 · CFG scale: 2.0.
+    Model weight resolved via <code>model_manager.get_realvisxl_path()</code> — downloaded from Hugging Face on first use.</p>
+  </div>
+  <pre><code><span class="cm"># Core generation call</span>
+MODEL_PATH = <span class="fn">get_realvisxl_path</span>()   <span class="cm"># downloads from HF if not cached</span>
+pipe = <span class="fn">StableDiffusionPipeline</span>(MODEL_PATH, default_command_args=<span class="st">'--device-id 0'</span>)
+
+image = pipe.<span class="fn">generate_txt2img</span>(
+    prompt   = <span class="st">f"portrait photo of a woman, wearing {clothing_type}, natural skin, dark shot"</span>,
+    negative_prompt = <span class="st">"(worst quality, low quality, blurry:1.2), (bad anatomy:1.1) ..."</span>,
+    height=<span class="nu">1024</span>, width=<span class="nu">768</span>, cfg_scale=<span class="nu">2</span>, steps=<span class="nu">5</span>, sampler_name=<span class="st">'DPM++ SDE'</span>
+)</code></pre>
+
+  <h3>Stage 2 — Clothing Segmentation · segment.py</h3>
+  <div class="card p-card">
+    <p>Loads <strong>SAM ViT-H</strong> onto CUDA. Accepts three positive point prompts identifying the
+    clothing region. Runs a <strong>two-pass prediction</strong>: Pass 1 — multimask_output=True to select
+    the best logit by confidence score; Pass 2 — multimask_output=False with that logit as mask_input for
+    a refined single mask. Saved as <code>*_mask.jpg</code>. Supports interactive GUI (local) and
+    headless <code>--points x1,y1,x2,y2,x3,y3</code> (Streamlit / Colab / server).</p>
+  </div>
+  <pre><code><span class="cm"># Two-pass SAM prediction</span>
+predictor.<span class="fn">set_image</span>(image_rgb)
+masks, scores, logits = predictor.<span class="fn">predict</span>(
+    point_coords=input_point, point_labels=input_label, multimask_output=<span class="kw">True</span>
+)
+mask_input = logits[np.<span class="fn">argmax</span>(scores), :, :]   <span class="cm"># best logit</span>
+
+masks, _, _ = predictor.<span class="fn">predict</span>(
+    point_coords=input_point, point_labels=input_label,
+    mask_input=mask_input[<span class="kw">None</span>, :, :], multimask_output=<span class="kw">False</span>
+)                                                   <span class="cm"># refined single mask</span></code></pre>
+
+  <h3>Stage 3 — Virtual Try-On · try_on.py</h3>
+  <div class="card g-card">
+    <p>Loads the full <strong>IDM-VTON pipeline</strong> from <code>yisol/idm_vton</code> on Hugging Face.
+    Dual-UNet architecture: a main denoising UNet + a dedicated garment-encoder UNet. Also loads two CLIP
+    text encoders, one CLIP vision encoder, SDXL VAE, DDPMScheduler. Supporting models: DensePose R-50 FPN
+    (Detectron2) for body pose estimation; ATR and LIP ONNX models for human parsing. Inference:
+    <strong>30 DDPM steps</strong>, guidance_scale=2.0, strength=1.0, float16, seed-controlled.</p>
+  </div>
+  <pre><code><span class="cm"># Simplified IDM-VTON inference call</span>
+images = pipe(
+    prompt_embeds             = prompt_embeds.<span class="fn">to</span>(device, torch.float16),
+    negative_prompt_embeds    = neg_embeds.<span class="fn">to</span>(device, torch.float16),
+    num_inference_steps       = <span class="nu">30</span>,
+    strength                  = <span class="nu">1.0</span>,
+    pose_img                  = pose_tensor,       <span class="cm"># DensePose output</span>
+    text_embeds_cloth         = prompt_embeds_c,   <span class="cm"># garment description</span>
+    cloth                     = garm_tensor,        <span class="cm"># garment image tensor</span>
+    mask_image                = mask,               <span class="cm"># SAM Stage 2 mask</span>
+    image                     = human_img,          <span class="cm"># Stage 1 reference image</span>
+    height=<span class="nu">1024</span>, width=<span class="nu">768</span>, guidance_scale=<span class="nu">2.0</span>,
+    ip_adapter_image          = garm_img,           <span class="cm"># IP-Adapter garment conditioning</span>
+)[<span class="nu">0</span>]</code></pre>
+</section>
+
+
+<section id="s5">
+  <h2><span class="sec-icon" style="background:#fce7f3">🧰</span>05 · Technology Stack</h2>
+
+  <h3>AI Models</h3>
+  <table>
+    <thead><tr><th>Model</th><th>Variant</th><th>Role</th><th>License</th></tr></thead>
+    <tbody>
+      <tr><td><strong>RealVisXL</strong></td><td>V4.0 Lightning Baked VAE</td><td>Text-to-image human fashion model generation</td><td><span class="tag t-or">CivitAI / SDXL Community</span></td></tr>
+      <tr><td><strong>Segment Anything</strong></td><td>SAM ViT-H (2.5 GB)</td><td>Point-prompted clothing region segmentation</td><td><span class="tag t-gr">Apache 2.0</span></td></tr>
+      <tr><td><strong>IDM-VTON</strong></td><td>yisol/idm_vton SDXL</td><td>Dual-UNet diffusion virtual garment try-on</td><td><span class="tag t-re">CC BY-NC-SA 4.0</span></td></tr>
+      <tr><td><strong>DensePose</strong></td><td>R-50 FPN S1x</td><td>3D body surface pose estimation</td><td><span class="tag t-gr">Apache 2.0</span></td></tr>
+      <tr><td><strong>Human Parsing</strong></td><td>ATR + LIP ONNX</td><td>Body region parsing for garment compositing</td><td><span class="tag t-gy">Research</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Python Libraries</h3>
+  <table>
+    <thead><tr><th>Library</th><th>Version</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><strong>PyTorch</strong></td><td>2.1.0</td><td>Core deep learning framework; all model inference</td></tr>
+      <tr><td><strong>Diffusers</strong></td><td>0.25.0</td><td>SDXL pipeline, DDPMScheduler, AutoencoderKL</td></tr>
+      <tr><td><strong>Transformers</strong></td><td>4.30.2</td><td>CLIP text/vision encoders, AutoTokenizer</td></tr>
+      <tr><td><strong>huggingface_hub</strong></td><td>≥0.20.0</td><td>hf_hub_download — model weight management</td></tr>
+      <tr><td><strong>Streamlit</strong></td><td>≥1.32.0</td><td>Web UI, @st.cache_resource, session_state</td></tr>
+      <tr><td><strong>segment-anything</strong></td><td>source</td><td>SAM predictor and model registry</td></tr>
+      <tr><td><strong>Detectron2</strong></td><td>source</td><td>DensePose body estimation</td></tr>
+      <tr><td><strong>onnxruntime</strong></td><td>1.16.2</td><td>Human parsing ONNX inference</td></tr>
+      <tr><td><strong>auto1111sdk</strong></td><td>latest</td><td>Stable Diffusion inference SDK wrapper</td></tr>
+      <tr><td><strong>safetensors</strong></td><td>0.3.1</td><td>Loading .safetensors model checkpoints</td></tr>
+      <tr><td><strong>bitsandbytes</strong></td><td>0.39.0</td><td>Memory-efficient quantisation utilities</td></tr>
+      <tr><td><strong>OpenCV</strong></td><td>—</td><td>Image I/O, colour space conversion</td></tr>
+      <tr><td><strong>Pillow</strong></td><td>9.5.0</td><td>Image loading, saving, resizing</td></tr>
+      <tr><td><strong>NumPy</strong></td><td>1.23.5</td><td>Array operations, mask processing</td></tr>
+      <tr><td><strong>python-dotenv</strong></td><td>≥1.0.0</td><td>.env file support for HF_TOKEN</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<section id="s6">
+  <h2><span class="sec-icon" style="background:#ecfdf5">✨</span>06 · Key Features</h2>
+  <div class="card a-card">
+    <div class="card-title">Text-to-Fashion-Model Generation</div>
+    <p>RealVisXL V4.0 Lightning generates a 768×1024 photorealistic portrait from a plain-English clothing description in just 5 DPM++ SDE denoising steps — fast enough for interactive iteration.</p>
+  </div>
+  <div class="card p-card">
+    <div class="card-title">Dual-Mode Segmentation (Interactive + Headless)</div>
+    <p>Interactive Matplotlib GUI for local desktop use. Headless <code>--points x1,y1,x2,y2,x3,y3</code> CLI flag for Streamlit, Colab, and servers. Both paths use identical SAM ViT-H two-pass logic.</p>
+  </div>
+  <div class="card g-card">
+    <div class="card-title">SDXL Virtual Try-On with DensePose + IP-Adapter Conditioning</div>
+    <p>IDM-VTON composites a garment image into the masked clothing region over 30 DDPM denoising steps, conditioned on DensePose body geometry, dual CLIP text embeddings, and IP-Adapter garment features.</p>
+  </div>
+  <div class="card o-card">
+    <div class="card-title">Hugging Face Model Manager (model_manager.py)</div>
+    <p>Clean download-and-cache layer via <code>hf_hub_download()</code>. All ~25 GB of weights cached in <code>models/</code> after first download. Zero weights committed to the repository. Configurable via <code>HF_REPO_ID</code> and <code>MODEL_DIR</code> env vars.</p>
+  </div>
+  <div class="card a-card">
+    <div class="card-title">Streamlit Web UI — Two Pipeline Modes</div>
+    <p><strong>Generate &amp; Try-On:</strong> Full pipeline from text prompt to result with six-step pipeline progress strip. <strong>Try-On Only:</strong> Upload person photo + garment, skip generation stage. All models cached with <code>@st.cache_resource</code> — loaded once per server process.</p>
+  </div>
+  <div class="card p-card">
+    <div class="card-title">Premium Dark-Tech UI Design System</div>
+    <p>Full CSS design system injected via <code>st.markdown(unsafe_allow_html=True)</code>: Inter font, dark palette (#0a0d14 base), glassmorphism section cards with coloured step badges, animated GIF hero, blue-to-indigo gradient action buttons, sticky output panel with empty-state illustration.</p>
+  </div>
+</section>
+
+
+<section id="s7">
+  <h2><span class="sec-icon" style="background:#f0fdf4">📁</span>07 · Project File Structure</h2>
+  <div class="filetree"><span class="ft-dir">Piyu-AI-Clothing-Fashion-Design-Generator/</span>
+│
+├── <span class="ft-new">app.py</span>               Streamlit web UI — dark-tech design system + two pipeline modes
+├── <span class="ft-new">model_manager.py</span>     HF download/cache layer — hf_hub_download, ModelPaths dataclass
+├── <span class="ft-key">generate_model.py</span>    Stage 1 — RealVisXL text-to-image via auto1111sdk
+├── <span class="ft-key">segment.py</span>           Stage 2 — SAM ViT-H clothing segmentation (interactive + headless)
+├── <span class="ft-key">try_on.py</span>            Stage 3 — IDM-VTON SDXL virtual try-on
+│
+├── requirements.txt     Python deps (streamlit, huggingface_hub, torch, diffusers …)
+├── <span class="ft-new">.env.example</span>         HF_TOKEN, HF_REPO_ID, MODEL_DIR template
+├── LICENSE              MIT License
+├── .gitignore           Excludes weights/, models/, .env, idm_vton/, images
+├── README.md            Full production-grade documentation
+│
+├── <span class="ft-dir">assets/</span>
+│   └── <span class="ft-new">hero.gif</span>         Animated GIF displayed in Streamlit hero section
+│
+├── <span class="ft-dir">reference_images/</span>    Generated human model images + SAM masks
+│   ├── crop_top.png / crop_top_mask.jpg
+│   ├── dress.png / dress_mask.jpg
+│   └── jumpsuit.png / jumpsuit_mask.jpg
+│
+├── <span class="ft-dir">samples/</span>             Input garment images for try-on
+│   ├── garment.png
+│   └── sample_image.jpg
+│
+└── <span class="ft-dir">results/</span>             Final virtual try-on outputs
+    ├── result_crop_top.png
+    ├── result_dress.png
+    └── result_jumpsuit.png
+
+<span class="ft-skip">── NOT in repository (excluded by .gitignore) ──────────────────</span>
+<span class="ft-skip">weights/      RealVisXL .safetensors, SAM .pth</span>
+<span class="ft-skip">models/       HF download cache managed by model_manager.py</span>
+<span class="ft-skip">idm_vton/     Cloned from github.com/yisol/IDM-VTON</span>
+<span class="ft-skip">.env          HF_TOKEN — NEVER commit this file</span></div>
+
+  <h3>Files Added or Updated in This Project Iteration</h3>
+  <table>
+    <thead><tr><th>File</th><th>Change</th><th>What It Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>app.py</code></td><td><span class="tag t-bl">New</span></td><td>Complete Streamlit UI rewrite: CSS design system, GIF hero, pipeline strip, glassmorphism cards, two modes, @st.cache_resource model loading, sticky output panel</td></tr>
+      <tr><td><code>model_manager.py</code></td><td><span class="tag t-bl">New</span></td><td>HF weight download layer; exposes get_realvisxl_path(), get_sam_path(), get_densepose_paths(), download_all_models(); ModelPaths dataclass; env-var configurable</td></tr>
+      <tr><td><code>.env.example</code></td><td><span class="tag t-bl">New</span></td><td>Template for HF_TOKEN, HF_REPO_ID, MODEL_DIR — copy to .env, never commit</td></tr>
+      <tr><td><code>assets/hero.gif</code></td><td><span class="tag t-bl">New</span></td><td>3D animated GIF embedded as base64 in Streamlit hero section</td></tr>
+      <tr><td><code>generate_model.py</code></td><td><span class="tag t-gr">Updated</span></td><td>Hardcoded weights/ path replaced with get_realvisxl_path(); improved docstring and logging</td></tr>
+      <tr><td><code>segment.py</code></td><td><span class="tag t-gr">Updated</span></td><td>Hardcoded SAM path replaced with get_sam_path(); --points headless mode added; plt.savefig() for headless mask export; None-check on click events</td></tr>
+      <tr><td><code>try_on.py</code></td><td><span class="tag t-gr">Updated</span></td><td>Hardcoded DensePose/parsing paths replaced with get_densepose_paths(); --denoise_steps and --seed named CLI args added; cleaned apply_net path reference</td></tr>
+      <tr><td><code>requirements.txt</code></td><td><span class="tag t-gr">Updated</span></td><td>Added streamlit≥1.32.0, huggingface_hub≥0.20.0, python-dotenv≥1.0.0, opencv-python; organised into categories with comments</td></tr>
+      <tr><td><code>README.md</code></td><td><span class="tag t-gr">Updated</span></td><td>Full rewrite: production architecture, HF model setup, Streamlit usage, Colab guide, model license table, security section, contributing guide</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<section id="s8">
+  <h2><span class="sec-icon" style="background:#fef3c7">⚙️</span>08 · Installation Guide</h2>
+
+  <h3>Step 1 — Clone the repository</h3>
+  <pre><code>git clone https://github.com/Piyu242005/Piyu-AI-clothing-fashion-design-generator.git
+cd Piyu-AI-clothing-fashion-design-generator</code></pre>
+
+  <h3>Step 2 — Create a virtual environment</h3>
+  <pre><code><span class="cm"># Linux / macOS</span>
+python3 -m venv venv &amp;&amp; source venv/bin/activate
+<span class="cm"># Windows PowerShell</span>
+python -m venv venv; .\venv\Scripts\activate</code></pre>
+
+  <h3>Step 3 — Install PyTorch with CUDA wheel</h3>
+  <pre><code>pip install torch==2.1.0 torchvision --index-url https://download.pytorch.org/whl/cu118</code></pre>
+
+  <h3>Step 4 — Install all Python dependencies</h3>
+  <pre><code>pip install --upgrade pip
+pip install -r requirements.txt</code></pre>
+
+  <h3>Step 5 — Install source-only dependencies</h3>
+  <pre><code>pip install <span class="st">'git+https://github.com/facebookresearch/detectron2.git'</span>
+pip install <span class="st">'git+https://github.com/facebookresearch/segment-anything.git'</span></code></pre>
+
+  <h3>Step 6 — Clone IDM-VTON and place try_on.py</h3>
+  <pre><code>git clone https://github.com/yisol/IDM-VTON.git idm_vton
+cp try_on.py idm_vton/
+<span class="cm"># try_on.py uses relative imports (src/, utils_mask, apply_net)
+# and must run from inside idm_vton/</span></code></pre>
+
+  <h3>Step 7 — Set up environment variables</h3>
+  <pre><code>cp .env.example .env
+<span class="cm"># Open .env and set:</span>
+<span class="cm"># HF_TOKEN=hf_your_token_here</span>
+<span class="cm"># HF_REPO_ID=Piyu242005/piyu-fashion-models</span></code></pre>
+
+  <h3>Step 8 — Launch the Streamlit app</h3>
+  <pre><code>streamlit run app.py
+<span class="cm"># On first run: model_manager.py downloads ~25 GB of weights from HF
+# Subsequent runs use the cached models/ directory</span></code></pre>
+
+  <div class="card o-card">
+    <div class="card-title">First-Run Download Notice</div>
+    <p><code>model_manager.py</code> downloads all required weights from Hugging Face on first run (~25 GB total).
+    Ensure sufficient disk space and a stable internet connection. Subsequent runs skip the download and load
+    from the local <code>models/</code> cache.</p>
+  </div>
+</section>
+
+
+<section id="s9">
+  <h2><span class="sec-icon" style="background:#fce7f3">🤗</span>09 · Model Weights Setup</h2>
+  <p>
+    All weights are stored in the Hugging Face repository <strong>Piyu242005/piyu-fashion-models</strong>
+    and downloaded automatically by <code>model_manager.py</code> on first run.
+    No weight files are committed to the GitHub repository.
+  </p>
+
+  <table>
+    <thead><tr><th>Weight File</th><th>HF Repository Path</th><th>Size</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>realvisxl.safetensors</code></td><td><code>realvisxl/realvisxl.safetensors</code></td><td>~6 GB</td><td>RealVisXL V4.0 Lightning — human generation</td></tr>
+      <tr><td><code>sam_vit_h_4b8939.pth</code></td><td><code>sam/sam_vit_h_4b8939.pth</code></td><td>~2.5 GB</td><td>SAM ViT-H — clothing segmentation</td></tr>
+      <tr><td><code>model_final_162be9.pkl</code></td><td><code>idm_vton/densepose/…</code></td><td>~245 MB</td><td>DensePose R-50 FPN — body pose</td></tr>
+      <tr><td><code>parsing_atr.onnx</code></td><td><code>idm_vton/humanparsing/…</code></td><td>~80 MB</td><td>ATR human parsing model</td></tr>
+      <tr><td><code>parsing_lip.onnx</code></td><td><code>idm_vton/humanparsing/…</code></td><td>~80 MB</td><td>LIP human parsing model</td></tr>
+      <tr><td><code>body_pose_model.pth</code></td><td><code>idm_vton/openpose/…</code></td><td>~200 MB</td><td>OpenPose body keypoints</td></tr>
+      <tr><td><em>IDM-VTON SDXL pipeline</em></td><td><code>yisol/idm_vton</code> (HF Hub)</td><td>~8–10 GB</td><td>Dual-UNet inpaint + CLIP + VAE</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Uploading Weights to Hugging Face (from Colab)</h3>
+  <pre><code><span class="kw">from</span> huggingface_hub <span class="kw">import</span> HfApi, login
+<span class="fn">login</span>()   <span class="cm"># token prompted interactively — never hardcode</span>
+
+api = <span class="fn">HfApi</span>()
+api.<span class="fn">upload_file</span>(
+    path_or_fileobj = <span class="st">"/content/weights/realvisxl.safetensors"</span>,
+    path_in_repo    = <span class="st">"realvisxl/realvisxl.safetensors"</span>,
+    repo_id         = <span class="st">"Piyu242005/piyu-fashion-models"</span>,
+    repo_type       = <span class="st">"model"</span>,
+)</code></pre>
+
+  <h3>Model License Summary</h3>
+  <table>
+    <thead><tr><th>Model</th><th>License</th><th>Commercial Use</th><th>Attribution Required</th></tr></thead>
+    <tbody>
+      <tr><td><strong>IDM-VTON</strong></td><td><span class="tag t-re">CC BY-NC-SA 4.0</span></td><td>❌ Not permitted</td><td>✅ Required</td></tr>
+      <tr><td><strong>RealVisXL</strong></td><td><span class="tag t-or">CivitAI / SDXL Community</span></td><td>⚠ Review terms</td><td>✅ Required</td></tr>
+      <tr><td><strong>SAM (Meta AI)</strong></td><td><span class="tag t-gr">Apache 2.0</span></td><td>✅ Permitted</td><td>✅ Required</td></tr>
+      <tr><td><strong>Detectron2</strong></td><td><span class="tag t-gr">Apache 2.0</span></td><td>✅ Permitted</td><td>✅ Required</td></tr>
+      <tr><td><strong>Diffusers</strong></td><td><span class="tag t-gr">Apache 2.0</span></td><td>✅ Permitted</td><td>✅ Required</td></tr>
+    </tbody>
+  </table>
+</section>
+
+
+<section id="s10">
+  <h2><span class="sec-icon" style="background:#ede9fe">🖥️</span>10 · Streamlit UI Design</h2>
+
+  <h3>Design System</h3>
+  <table>
+    <thead><tr><th>Token</th><th>Value</th><th>Applied To</th></tr></thead>
+    <tbody>
+      <tr><td><code>--bg-base</code></td><td>#0a0d14</td><td>App background</td></tr>
+      <tr><td><code>--bg-card</code></td><td>#151929</td><td>Section input cards</td></tr>
+      <tr><td><code>--bg-surface</code></td><td>#111520</td><td>Pipeline strip, sidebar</td></tr>
+      <tr><td><code>--accent-blue</code></td><td>#63b3ed</td><td>Active pipeline step, glow borders, links</td></tr>
+      <tr><td><code>--accent-purple</code></td><td>#9f7aea</td><td>Step 2 badge</td></tr>
+      <tr><td><code>--accent-pink</code></td><td>#f687b3</td><td>Step 3 badge</td></tr>
+      <tr><td><code>--accent-green</code></td><td>#68d391</td><td>Completed pipeline steps, download button</td></tr>
+      <tr><td>Button gradient</td><td>#3b82f6 → #6366f1</td><td>Primary action buttons with lift hover</td></tr>
+    </tbody>
+  </table>
+
+  <h3>UI Component Inventory</h3>
+  <table>
+    <thead><tr><th>Component</th><th>Implementation Detail</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Hero section</strong></td><td>Animated GIF loaded via @st.cache_data base64 encoding, gradient title with blue span, six tech-stack badge pills</td></tr>
+      <tr><td><strong>Pipeline strip</strong></td><td>Six horizontal steps; active = blue filled circle, done = green ✓; driven by session_state["_pipeline_step"]</td></tr>
+      <tr><td><strong>Section cards</strong></td><td>.section-card divs with coloured numbered step badges (blue/purple/pink/green), title, hint line; hover glow via border-color transition</td></tr>
+      <tr><td><strong>Output panel</strong></td><td>Right-column sticky panel; empty-state with icon + text until result exists; switches to image + download button</td></tr>
+      <tr><td><strong>Buttons</strong></td><td>Two-column layout: ⚡ Generate Model / ✨ Apply Garment; gradient fill; box-shadow + translateY(-1px) hover</td></tr>
+      <tr><td><strong>Sidebar</strong></td><td>Model tech chips (RealVisXL v4.0, SAM ViT-H, IDM-VTON SDXL), mode radio, denoising steps slider, seed input, license notice</td></tr>
+      <tr><td><strong>Alerts</strong></td><td>Colour-matched to design system: green/blue/red with transparent backgrounds, no border, rounded</td></tr>
+      <tr><td><strong>File uploader</strong></td><td>Dashed border; hover glow; immediate 160px garment preview after upload</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Two Pipeline Modes</h3>
+  <div class="card a-card">
+    <div class="card-title">Mode 1 — Generate &amp; Try-On</div>
+    <p>Text prompt → click ⚡ Generate Model → RealVisXL creates figure (pipeline step 2 set) →
+    inspect image, note pixel coords → upload garment → click ✨ Apply Garment →
+    SAM segments (step 3) + IDM-VTON composites (step 5) → result displayed + ⬇ Download PNG button.</p>
+  </div>
+  <div class="card p-card">
+    <div class="card-title">Mode 2 — Try-On Only</div>
+    <p>Upload person photo + garment image (inline previews shown) → enter cloth type description +
+    three pixel coordinates → click ✨ Apply Garment →
+    SAM + IDM-VTON → result displayed + ⬇ Download PNG button.</p>
+  </div>
+</section>
+
+
+<section id="s11">
+  <h2><span class="sec-icon" style="background:#fff7ed">💻</span>11 · Hardware Requirements</h2>
+  <table>
+    <thead><tr><th>Component</th><th>Minimum</th><th>Recommended</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><strong>GPU</strong></td><td>NVIDIA T4 (16 GB)</td><td>RTX 3090 / A100 (24+ GB)</td><td>CUDA required; no CPU fallback in practice</td></tr>
+      <tr><td><strong>VRAM</strong></td><td>16 GB</td><td>24 GB</td><td>IDM-VTON dual-UNet at float16 is the bottleneck</td></tr>
+      <tr><td><strong>System RAM</strong></td><td>16 GB</td><td>32 GB</td><td>Model loading + image processing overhead</td></tr>
+      <tr><td><strong>Disk</strong></td><td>30 GB free</td><td>50 GB free</td><td>~25 GB weights + Python env + generated images</td></tr>
+      <tr><td><strong>CUDA</strong></td><td>11.8</td><td>12.1</td><td>Must match PyTorch 2.1.0 wheel</td></tr>
+      <tr><td><strong>Python</strong></td><td>3.8</td><td>3.10</td><td>Type annotations in some files use 3.10 syntax</td></tr>
+      <tr><td><strong>OS</strong></td><td>Ubuntu 20.04</td><td>Ubuntu 22.04</td><td>Windows/macOS supported; Linux recommended</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card g-card">
+    <div class="card-title">Google Colab Setup</div>
+    <p>Run on a free T4 GPU runtime. Enable GPU: Runtime → Change runtime type → T4 GPU.
+    Use <code>--points</code> flag for headless segmentation (no Matplotlib GUI).
+    Expose Streamlit via pyngrok. Note: ~25 GB weights must be re-downloaded each session unless stored on Google Drive.</p>
+  </div>
+  <pre><code><span class="cm"># Verify GPU in Colab</span>
+!nvidia-smi
+
+<span class="cm"># Expose Streamlit publicly</span>
+!pip install pyngrok
+<span class="kw">from</span> pyngrok <span class="kw">import</span> ngrok
+!streamlit run app.py --server.port <span class="nu">8501</span> &amp;
+url = ngrok.<span class="fn">connect</span>(<span class="nu">8501</span>)
+<span class="fn">print</span>(url)</code></pre>
+</section>
+
+
+<section id="s12">
+  <h2><span class="sec-icon" style="background:#fee2e2">🗺️</span>12 · Limitations &amp; Future Roadmap</h2>
+
+  <h3>Known Limitations</h3>
+  <table>
+    <thead><tr><th>Limitation</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td><strong>GPU required</strong></td><td>All three stages run on CUDA. CPU fallback exists in code but is not practical for these model sizes.</td></tr>
+      <tr><td><strong>VRAM pressure</strong></td><td>IDM-VTON dual-UNet SDXL at float16 requires ~16 GB VRAM. Run stages as separate processes to avoid accumulation.</td></tr>
+      <tr><td><strong>Manual segmentation</strong></td><td>Coordinate-based input requires visual inspection of the image. Incorrect coordinates yield poor masks and degrade try-on quality.</td></tr>
+      <tr><td><strong>Fixed resolution</strong></td><td>Pipeline is hardcoded to 768×1024. Other resolutions require script modification.</td></tr>
+      <tr><td><strong>IDM-VTON directory dependency</strong></td><td>try_on.py uses relative imports (src/, utils_mask, apply_net) and must run from inside idm_vton/, complicating Streamlit integration.</td></tr>
+      <tr><td><strong>Non-commercial license</strong></td><td>IDM-VTON checkpoints are CC BY-NC-SA 4.0. Commercial deployment is not permitted without contacting the original authors.</td></tr>
+      <tr><td><strong>Colab session limits</strong></td><td>~25 GB of weights are lost on session disconnect. Re-download required unless weights are stored on Google Drive.</td></tr>
+      <tr><td><strong>Single garment per run</strong></td><td>The pipeline applies one garment at a time. Multi-garment workflows require multiple sequential runs.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Future Roadmap</h3>
+  <div class="roadmap">
+    <div class="phase">
+      <div class="phase-header"><span class="tag t-bl">Phase 1</span> Core Robustness</div>
+      <div class="phase-body">
+        <div class="phase-item">Automatic clothing region segmentation — no manual coordinate input</div>
+        <div class="phase-item">Structured input validation and error handling across all scripts</div>
+        <div class="phase-item">Central configuration file for model paths and inference parameters</div>
+        <div class="phase-item">Unit tests for model_manager download and cache logic</div>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-header"><span class="tag t-pu">Phase 2</span> Interface Improvements</div>
+      <div class="phase-body">
+        <div class="phase-item">In-browser image-click segmentation — replace coordinate text input</div>
+        <div class="phase-item">Support for upper body, lower body, and full-body garment categories</div>
+        <div class="phase-item">Batch processing — multiple garments or models in one run</div>
+        <div class="phase-item">Real-time progress bar using Streamlit status elements</div>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-header"><span class="tag t-gr">Phase 3</span> Capability Expansion</div>
+      <div class="phase-body">
+        <div class="phase-item">Text-guided garment generation — design from description, then apply</div>
+        <div class="phase-item">Style and colour transfer controls on the try-on result</div>
+        <div class="phase-item">Multiple garment try-on in a single pipeline pass</div>
+        <div class="phase-item">Support for user-uploaded person photos in Generate mode</div>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-header"><span class="tag t-or">Phase 4</span> Production Deployment</div>
+      <div class="phase-body">
+        <div class="phase-item">Separate Streamlit frontend from GPU inference backend via REST API</div>
+        <div class="phase-item">Persistent GPU backend on RunPod, Modal, or cloud GPU provider</div>
+        <div class="phase-item">User accounts, project history, and virtual wardrobe management</div>
+        <div class="phase-item">Export pipeline for social media and e-commerce aspect ratios</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <div class="conclusion">
+    <h3>Project Summary &amp; Conclusion</h3>
+    <p>
+      The Piyu AI Clothing Fashion Design Generator demonstrates a complete, deployable, end-to-end
+      generative AI pipeline for virtual fashion prototyping. It integrates three leading open-source AI
+      models — RealVisXL V4.0 Lightning, Segment Anything ViT-H, and IDM-VTON SDXL — into a coherent system
+      with a professional Streamlit web interface, cloud model storage via Hugging Face Hub, and a clean
+      Python codebase designed for reproducibility and extensibility.
+    </p>
+    <p>
+      The project demonstrates practical skills across the full ML engineering stack: multi-model integration,
+      weight management via hf_hub_download, GPU inference optimisation (float16, VRAM-aware staged loading),
+      headless/server-compatible pipeline design, premium web UI development with custom CSS design systems,
+      cloud deployment architecture, and open-source best practices including license compliance,
+      .gitignore hygiene, and .env secrets management.
+    </p>
+    <p>
+      It is production-ready for non-commercial demonstration, portfolio presentation, and internship
+      evaluation — and provides a solid technical foundation for the planned roadmap toward a fully automatic,
+      commercially-viable virtual try-on product.
+    </p>
+  </div>
+</section>
+
+
+<div class="footer">
+  <div class="footer-l">
+    <strong>Piyu AI Clothing Fashion Design Generator</strong>  · 
+    MIT License (code)  ·  IDM-VTON: CC BY-NC-SA 4.0 (non-commercial)
+  </div>
+  <div class="footer-r">
+    Author: <strong>Piyush Ramteke</strong>  · 
+    <a href="https://github.com/Piyu242005">github.com/Piyu242005</a>
+  </div>
+</div>
+<div style="text-align:center;margin-top:24px;padding-top:12px;border-top:1px solid #e5e7eb;font-size:11px;color:#8b949e">
+  Made with IBM Bob
+</div>
+
+</body>
+</html>
