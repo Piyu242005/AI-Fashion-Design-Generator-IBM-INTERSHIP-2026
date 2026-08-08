@@ -1,0 +1,31 @@
+# ============================================================
+#  docker-compose.override.yml
+#  Local development overrides — NOT committed to git
+# ============================================================
+#  This file is automatically merged with docker-compose.yml
+#  by Docker Compose when present. Use it to override settings
+#  for your local environment without touching the main file.
+# ============================================================
+
+version: "3.9"
+
+services:
+  fashion-gpu:
+    # Mount source code for live-reload during development
+    volumes:
+      - ./app.py:/app/app.py:ro
+      - ./src:/app/src:ro
+      - ./assets:/app/assets:ro
+    environment:
+      # Enable Streamlit auto-reload for development
+      STREAMLIT_SERVER_FILE_WATCHER_TYPE: "watchdog"
+      STREAMLIT_SERVER_RUN_ON_SAVE: "true"
+
+  fashion-cpu:
+    volumes:
+      - ./app.py:/app/app.py:ro
+      - ./src:/app/src:ro
+      - ./assets:/app/assets:ro
+    environment:
+      STREAMLIT_SERVER_FILE_WATCHER_TYPE: "watchdog"
+      STREAMLIT_SERVER_RUN_ON_SAVE: "true"

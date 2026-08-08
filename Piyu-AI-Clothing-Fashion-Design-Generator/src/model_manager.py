@@ -6,7 +6,7 @@ model repository.
 
 Hugging Face repository
 -----------------------
-    Piyu2420/AI-Fashion-Design-Generator-IBM-INTERNSHIP-2026
+    Piyu2420/AI-Fashion-Design-Generator-IBM-INTERSHIP-2026
 
 Repository structure expected on Hugging Face
 ---------------------------------------------
@@ -58,7 +58,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
 
 REPO_ID: str = os.getenv(
     "HF_REPO_ID",
-    "Piyu2420/AI-Fashion-Design-Generator-IBM-INTERNSHIP-2026",
+    "Piyu2420/AI-Fashion-Design-Generator-IBM-INTERSHIP-2026",
 )
 HF_TOKEN: str | None = os.getenv("HF_TOKEN")  # None → public repo
 

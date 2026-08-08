@@ -6,7 +6,7 @@ model repository.
 
 Hugging Face repository
 -----------------------
-    Piyu2420/AI-Fashion-Design-Generator-IBM-INTERNSHIP-2026
+    Piyu2420/AI-Fashion-Design-Generator-IBM-INTERSHIP-2026
 
 Repository structure expected on Hugging Face
 ---------------------------------------------
@@ -54,7 +54,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 
 REPO_ID = os.getenv(
     "HF_REPO_ID",
-    "Piyu2420/AI-Fashion-Design-Generator-IBM-INTERNSHIP-2026",
+    "Piyu2420/AI-Fashion-Design-Generator-IBM-INTERSHIP-2026",
 )
 
 # Set this ONLY if the HF repository is private.

@@ -17,7 +17,7 @@ Secrets (Streamlit Cloud / .streamlit/secrets.toml)
 Environment variables (local / Colab fallback)
 ----------------------------------------------
     HF_TOKEN     Falls back to os.environ if not in st.secrets
-    HF_REPO_ID   Override model repo (default: Piyu2420/AI-Fashion-Design-Generator-IBM-INTERNSHIP-2026)
+    HF_REPO_ID   Override model repo (default: Piyu2420/AI-Fashion-Design-Generator-IBM-INTERSHIP-2026)
     MODEL_DIR    Local weight cache root (default: project root)
 """
 
@@ -27,11 +27,30 @@ import base64
 import io
 import logging
 import os
+import sys
 from pathlib import Path
 
 import numpy as np
 import streamlit as st
 from PIL import Image
+
+# ─── Python version guard ─────────────────────────────────────────────────
+# auto1111sdk and several ML deps require Python 3.10 or 3.11.
+# Python 3.12+ breaks binary extensions in torch, basicsr, etc.
+_py = sys.version_info
+if _py >= (3, 12):
+    st.error(
+        f"⛔ **Python {_py.major}.{_py.minor} is not supported.**\n\n"
+        "This project requires **Python 3.10 or 3.11**.\n\n"
+        "Please create a new virtual environment with Python 3.10 or 3.11:\n"
+        "```\n"
+        "conda create -n fashion python=3.11\n"
+        "conda activate fashion\n"
+        "pip install -r requirements.txt\n"
+        "streamlit run app.py\n"
+        "```"
+    )
+    st.stop()
 
 # ─── Inject HF_TOKEN from Streamlit secrets into os.environ so that
 #     src/model_manager.py (which reads os.getenv) picks it up regardless
