@@ -5,6 +5,8 @@
 
 **Generate realistic AI fashion models and apply garments using image segmentation and virtual try-on.**
 
+![Web Interface / Dashboard](DASHBOARD.png)
+
 Generate photorealistic human fashion models from text prompts, isolate clothing regions with precision segmentation, and transfer new garments onto the generated figure — end-to-end, in three steps.
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
