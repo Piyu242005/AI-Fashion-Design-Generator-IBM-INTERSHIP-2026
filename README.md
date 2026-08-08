@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="Abstract%20logo%20with%20name%20Piyush%20Ramteke%204k%20quailtty.webp" alt="Piyush Ramteke Logo" width="100%" style="border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  <img src="Abstract%20logo%20with%20name%20Piyush%20Ramteke%204k%20quailtty.webp" alt="Piyush Ramteke Logo" width="400" style="border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
 
   # 👗 AI Fashion Design Generator
   
