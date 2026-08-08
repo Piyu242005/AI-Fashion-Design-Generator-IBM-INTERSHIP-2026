@@ -1,5 +1,5 @@
 """
-Datasets module for OpenTryOn.
+Datasets module for Piyu.
 
 This module provides easy-to-use interfaces for downloading and loading
 datasets commonly used in fashion and virtual try-on applications.

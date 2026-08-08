@@ -16,7 +16,7 @@ This page provides a quick overview of **24+ AI agent ideas** we're sharing with
 :::info Community-Driven Initiative
 These are **ideas we're sharing with the community**. We're inviting you to build these agents, contribute existing agents, or propose new ones. Together, let's create an open-source ecosystem for Fashion AI Agents!
 
-**OpenTryOn** is an open-source library for fashion developers. **TryOn AI** is our cloud-hosted platform for fashion brands, designers, and e-commerce marketplaces.
+**Piyu** is an open-source library for fashion developers. **TryOn AI** is our cloud-hosted platform for fashion brands, designers, and e-commerce marketplaces.
 :::
 
 :::tip Quick Navigation
@@ -57,9 +57,9 @@ These agents provide immediate value and are essential for core functionality:
 - **Integration**: Works with Look Analyzer for complete fit analysis
 
 #### Outfit Compatibility Agent
-- **Value**: Leverages existing OpenTryOn's outfit generation
+- **Value**: Leverages existing Piyu's outfit generation
 - **Key Feature**: Evaluates how garments work together
-- **Integration**: Perfect integration with OpenTryOn's outfit generation
+- **Integration**: Perfect integration with Piyu's outfit generation
 
 #### Image Quality Analyzer Agent
 - **Value**: Essential for try-on quality control
@@ -67,17 +67,17 @@ These agents provide immediate value and are essential for core functionality:
 - **Integration**: Validates API inputs, improves results
 
 #### Fashion Image Generator Agent
-- **Value**: Direct use of OpenTryOn's image generation APIs
+- **Value**: Direct use of Piyu's image generation APIs
 - **Key Feature**: Generates, edits, and composes fashion images
 - **Integration**: Uses Nano Banana, Nano Banana Pro, FLUX.2 PRO, FLUX.2 FLEX
 
 #### Virtual Try-On Generator Agent
-- **Value**: Direct use of OpenTryOn's virtual try-on SDK
+- **Value**: Direct use of Piyu's virtual try-on SDK
 - **Key Feature**: Generates realistic try-on images from person + garment
 - **Integration**: Uses Amazon Nova Canvas, Kling AI
 
 :::info Phase 1 Focus
-Start with these agents to establish a solid foundation. Image generation and virtual try-on agents leverage OpenTryOn's powerful SDK for creating fashion visuals and realistic try-on experiences.
+Start with these agents to establish a solid foundation. Image generation and virtual try-on agents leverage Piyu's powerful SDK for creating fashion visuals and realistic try-on experiences.
 :::
 
 ### Phase 2: Medium Priority
@@ -142,7 +142,7 @@ Follow this order to maximize value and minimize complexity:
    - User-friendly feature
 
 3. **Outfit Compatibility** (leverages existing features)
-   - Works with OpenTryOn's outfit generation
+   - Works with Piyu's outfit generation
    - Quick to implement
    - High impact
 
@@ -170,7 +170,7 @@ Follow this order to maximize value and minimize complexity:
 
 ## Key Integration Points
 
-### OpenTryOn Library Integration
+### Piyu Library Integration
 - **Image Generation APIs**: Nano Banana, Nano Banana Pro, FLUX.2 PRO, FLUX.2 FLEX
 - **Virtual Try-On APIs**: Amazon Nova Canvas, Kling AI
 - **Virtual Try-On Models**: TryOnDiffusion (open-source)
@@ -244,7 +244,7 @@ We're building an open-source ecosystem together, and we need your help!
 1. **Explore Ideas**: Review all 24+ agent ideas
 2. **Choose Your Agent**: Pick an agent to build or contribute
 3. **Join Discussions**: Participate in GitHub Discussions
-4. **Start Building**: Begin implementation using OpenTryOn's SDK
+4. **Start Building**: Begin implementation using Piyu's SDK
 5. **Share Progress**: Keep the community updated
 6. **Contribute**: Submit your agent to the repository
 
@@ -257,7 +257,7 @@ We're building an open-source ecosystem together, and we need your help!
 5. **Foster Community**: Encourage collaboration and sharing
 
 :::info Need Help?
-- **GitHub Discussions**: [Ask questions](https://github.com/tryonlabs/opentryon/discussions)
+- **GitHub Discussions**: [Ask questions](https://github.com/piyu/piyu/discussions)
 - **Discord**: [Join the conversation](https://discord.gg/T5mPpZHxkY)
 - **Contributing Guide**: [Learn how to contribute](/community/contributing)
 :::
@@ -275,7 +275,7 @@ We're building an open-source ecosystem together, and we need your help!
 **Total**: 24+ agents across 5 categories
 
 :::info API Capabilities
-Agents can leverage OpenTryOn SDK:
+Agents can leverage Piyu SDK:
 
 **Image Generation APIs:**
 - **Nano Banana**: Fast, efficient (1024px)

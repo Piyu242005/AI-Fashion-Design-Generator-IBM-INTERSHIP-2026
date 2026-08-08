@@ -1,10 +1,10 @@
 # Configuration
 
-Learn how to configure OpenTryOn for your specific needs. OpenTryOn supports three main categories: **Preprocessing**, **API Integrations**, and **Datasets**.
+Learn how to configure Piyu for your specific needs. Piyu supports three main categories: **Preprocessing**, **API Integrations**, and **Datasets**.
 
 ## Environment Variables
 
-OpenTryOn uses environment variables for configuration. Create a `.env` file in your project root:
+Piyu uses environment variables for configuration. Create a `.env` file in your project root:
 
 ### Preprocessing (Required for Local Preprocessing)
 
@@ -62,13 +62,13 @@ HF_DATASETS_CACHE=path/to/cache
 
 ## Loading Environment Variables
 
-Always load environment variables before using OpenTryOn:
+Always load environment variables before using Piyu:
 
 ```python
 from dotenv import load_dotenv
 load_dotenv()
 
-# Now import and use OpenTryOn modules
+# Now import and use Piyu modules
 from tryon.preprocessing import segment_garment
 from tryon.api import SegmindVTONAdapter
 from tryon.datasets import FashionMNIST
@@ -153,7 +153,7 @@ logging.basicConfig(level=logging.INFO)
 
 ## Default Settings
 
-OpenTryOn uses sensible defaults:
+Piyu uses sensible defaults:
 
 - **Image Size**: Automatically resized based on model requirements
 - **Batch Size**: 1 (can be adjusted for batch processing)
@@ -224,7 +224,7 @@ AMAZON_NOVA_REGION=us-east-1
 ## Best Practices
 
 1. **Always use `.env` file**: Never commit API keys or paths to version control
-2. **Load environment variables first**: Before importing any OpenTryOn modules
+2. **Load environment variables first**: Before importing any Piyu modules
 3. **Use absolute paths**: For checkpoint paths to avoid issues
 4. **Check GPU availability**: Verify CUDA before running intensive operations
 5. **Only configure what you need**: Don't add API keys for services you won't use

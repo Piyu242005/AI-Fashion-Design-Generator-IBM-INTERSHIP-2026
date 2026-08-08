@@ -41,14 +41,14 @@ export XAI_API_KEY=...
 ## CLI
 
 ```bash
-opentryon generate --model grok-imagine-image \
+piyu generate --model grok-imagine-image \
   --prompt "Collage of London landmarks, stencil street-art style" \
   --aspect-ratio 16:9 --resolution 2k
 
-opentryon video-generate --model grok-imagine-video \
+piyu video-generate --model grok-imagine-video \
   --prompt "Slow cinematic push-in across a battlefield helmet" \
   --duration 6 --resolution 720p
 
-opentryon video-generate --model grok-imagine-video \
+piyu video-generate --model grok-imagine-video \
   --image still.png --prompt "Make the water crash and pan out" --duration 12
 ```

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Example: talk to the OpenTryOn MCP server programmatically with the
+"""Example: talk to the Piyu MCP server programmatically with the
 FastMCP client, without going through Claude Desktop / Cursor.
 
 Run from the ``mcp-server`` directory:
@@ -26,8 +26,8 @@ async def main() -> None:
 
     async with Client(str(server_path)) as client:
         # 1. Discover what's available and what's configured.
-        status = await client.call_tool("opentryon_status", {})
-        print("=== opentryon_status ===")
+        status = await client.call_tool("piyu_status", {})
+        print("=== piyu_status ===")
         print(status.data)
 
         tools = await client.list_tools()

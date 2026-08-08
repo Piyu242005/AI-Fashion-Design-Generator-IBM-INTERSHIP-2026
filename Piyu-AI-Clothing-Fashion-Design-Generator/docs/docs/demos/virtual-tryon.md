@@ -4,7 +4,7 @@ A modern, full-stack virtual try-on web application featuring a Next.js frontend
 
 ## Overview
 
-The Virtual Try-On Demo is a production-ready web application that showcases OpenTryOn's capabilities with a beautiful, user-friendly interface. Unlike the Gradio demos, this is a complete full-stack application suitable for production deployment.
+The Virtual Try-On Demo is a production-ready web application that showcases Piyu's capabilities with a beautiful, user-friendly interface. Unlike the Gradio demos, this is a complete full-stack application suitable for production deployment.
 
 ### Key Features
 
@@ -30,7 +30,7 @@ The Virtual Try-On Demo is a production-ready web application that showcases Ope
 
 ### Backend (FastAPI)
 - RESTful API server
-- Uses OpenTryOn SDK (`tryon.api`)
+- Uses Piyu SDK (`tryon.api`)
 - Supports 4 model providers
 - Automatic image processing and storage
 - Located in project root: `api_server.py`
@@ -43,7 +43,7 @@ The Virtual Try-On Demo is a production-ready web application that showcases Ope
 - Python 3.10+
 - FastAPI 0.124.0
 - Uvicorn 0.38.0
-- OpenTryOn installed
+- Piyu installed
 
 **Frontend Requirements**:
 - Node.js 18+
@@ -71,7 +71,7 @@ From the project root:
 
 ```bash
 # Activate your environment
-conda activate opentryon
+conda activate piyu
 
 # Start the FastAPI server
 python api_server.py
@@ -221,7 +221,7 @@ if result['success']:
 
 **Error**: `ModuleNotFoundError: No module named 'tryon'`
 
-**Solution**: Install OpenTryOn in development mode:
+**Solution**: Install Piyu in development mode:
 ```bash
 pip install -e .
 ```
@@ -306,7 +306,7 @@ app.add_middleware(
 
 ## Learn More
 
-- **[API Reference](../api-reference/overview)** - OpenTryOn API adapters
+- **[API Reference](../api-reference/overview)** - Piyu API adapters
 - **[Nano Banana](../api-reference/nano-banana)** - Nano Banana documentation
 
 ## Related Demos

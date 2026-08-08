@@ -14,5 +14,5 @@ Files in `static/img/logo.png` will be accessible at `/img/logo.png` in the fina
 
 - `img/logo.png` - Main logo
 - `img/favicon.ico` - Site favicon
-- `img/opentryon-social-card.jpg` - Social media preview image
+- `img/piyu-social-card.jpg` - Social media preview image
 

@@ -1,6 +1,6 @@
 # Dataset Usage Examples
 
-Complete examples demonstrating how to use the OpenTryOn datasets module with Fashion-MNIST, VITON-HD, and Subjects200K.
+Complete examples demonstrating how to use the Piyu datasets module with Fashion-MNIST, VITON-HD, and Subjects200K.
 
 ## Fashion-MNIST Examples
 

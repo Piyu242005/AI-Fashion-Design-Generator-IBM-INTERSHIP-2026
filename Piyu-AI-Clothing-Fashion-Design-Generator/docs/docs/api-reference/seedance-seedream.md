@@ -53,20 +53,20 @@ export ARK_API_KEY=...
 
 ```bash
 # Seedance 2.5 text-to-video
-opentryon video-generate --model seedance \
+piyu video-generate --model seedance \
   --prompt "A 10-second runway walk in soft studio light" \
   --duration 10 --resolution 1080p --ratio 16:9
 
 # Image-to-video
-opentryon video-generate --model seedance \
+piyu video-generate --model seedance \
   --image person.jpg --prompt "Slow cinematic push-in" --duration 5
 
 # Seedream 5.0 Pro text-to-image
-opentryon generate --model seedream \
+piyu generate --model seedream \
   --prompt "Editorial product shot of matte black sneakers" --size 2K
 
 # Multi-reference edit / fusion
-opentryon edit --model seedream \
+piyu edit --model seedream \
   --images person.jpg garment.jpg \
   --prompt "Dress the person in the garment, catalogue lighting"
 ```

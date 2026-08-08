@@ -1,7 +1,7 @@
 ---
 sidebar_position: 12
 title: Kimi K2.6 / K2.7 Code / K3 Understanding
-description: Multimodal text, image, and video understanding using Moonshot AI's Kimi K2.6, K2.7 Code, and K3 models via the opentryon KimiUnderstandAdapter.
+description: Multimodal text, image, and video understanding using Moonshot AI's Kimi K2.6, K2.7 Code, and K3 models via the piyu KimiUnderstandAdapter.
 keywords:
   - Kimi
   - Kimi K2.6
@@ -17,7 +17,7 @@ keywords:
 # Kimi K2.6 / K2.7 Code / K3 Understanding
 
 [Kimi](https://platform.kimi.ai/docs/overview) is Moonshot AI's family of
-natively multimodal models. OpenTryOn integrates two variants via a single
+natively multimodal models. Piyu integrates two variants via a single
 adapter, `KimiUnderstandAdapter`, for **image and video understanding**:
 
 - **Kimi K2.6** (`kimi-k2.6`): General-purpose multimodal model with
@@ -51,7 +51,7 @@ MOONSHOT_API_KEY=your_moonshot_api_key
 ## Installation
 
 The Kimi adapter reuses the `openai` package (already a core dependency of
-`opentryon`, since the Kimi API is fully OpenAI-SDK compatible). No
+`piyu`, since the Kimi API is fully OpenAI-SDK compatible). No
 additional installation is required.
 
 ## Quick Start
@@ -136,7 +136,7 @@ Understand video content.
 #### `understand(image=None, video=None, prompt=..., model=None, thinking=None, max_tokens=None, reasoning_effort=None)`
 
 Single entry point that accepts `image` and/or `video` (at least one
-required) -- this is what the `opentryon understand --model kimi-k2.6`
+required) -- this is what the `piyu understand --model kimi-k2.6`
 CLI command calls.
 
 #### `chat(messages, model=None, thinking=None, max_tokens=None, reasoning_effort=None, tools=None, tool_choice=None)`
@@ -159,26 +159,26 @@ values raise an API error, so this adapter doesn't expose those knobs. Only
 | `max_tokens` | K2.x default 32768. K3 default 131072. |
 | `temperature` / `top_p` / `n` / `presence_penalty` / `frequency_penalty` | Fixed by the API; not exposed. |
 
-## Using the `opentryon` CLI
+## Using the `piyu` CLI
 
 ```bash
 # Kimi K2.6 -- image understanding
-opentryon understand --model kimi-k2.6 --image garment.jpg \
+piyu understand --model kimi-k2.6 --image garment.jpg \
   --prompt "Describe this outfit."
 
 # Kimi K2.6 -- video understanding, disable thinking mode
-opentryon understand --model kimi-k2.6 --video runway_clip.mp4 --no-thinking
+piyu understand --model kimi-k2.6 --video runway_clip.mp4 --no-thinking
 
 # Kimi K2.7 Code -- coding-focused multimodal understanding
-opentryon understand --model kimi-k2.7-code --image ui_mockup.png \
+piyu understand --model kimi-k2.7-code --image ui_mockup.png \
   --prompt "Write the HTML/CSS for this design."
 
 # High-speed K2.7 Code variant
-opentryon understand --model kimi-k2.7-code --kimi-model kimi-k2.7-code-highspeed \
+piyu understand --model kimi-k2.7-code --kimi-model kimi-k2.7-code-highspeed \
   --image garment.jpg
 
 # Kimi K3 -- flagship multimodal reasoning model
-opentryon understand --model kimi-k3 --image garment.jpg \
+piyu understand --model kimi-k3 --image garment.jpg \
   --prompt "Describe this outfit for a product listing." \
   --reasoning-effort high
 ```

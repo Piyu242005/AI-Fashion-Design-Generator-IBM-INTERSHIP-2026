@@ -2,7 +2,7 @@
 
 ## Basic Usage
 
-Simple example of using OpenTryOn for garment preprocessing.
+Simple example of using Piyu for garment preprocessing.
 
 ```python
 from dotenv import load_dotenv

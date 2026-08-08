@@ -19,13 +19,13 @@ This document shares **24+ AI agent ideas** for the fashion industry. We're invi
 
 ## Our Vision
 
-We envision an **open-source ecosystem of Fashion AI Agents** that works seamlessly with **OpenTryOn** (our open-source library) and integrates with **TryOn AI** (our cloud-hosted platform for fashion brands, designers, and e-commerce marketplaces). This ecosystem will:
+We envision an **open-source ecosystem of Fashion AI Agents** that works seamlessly with **Piyu** (our open-source library) and integrates with **TryOn AI** (our cloud-hosted platform for fashion brands, designers, and e-commerce marketplaces). This ecosystem will:
 
 - **Democratize Fashion AI**: Make advanced fashion technology accessible to everyone
 - **Foster Innovation**: Enable developers, researchers, and fashion enthusiasts to contribute
 - **Build Together**: Create a collaborative community around fashion AI agents
 - **Share Knowledge**: Document best practices, patterns, and implementations
-- **Integrate Seamlessly**: Design agents that work with OpenTryOn library and TryOn AI platform
+- **Integrate Seamlessly**: Design agents that work with Piyu library and TryOn AI platform
 
 :::tip Join the Movement
 Are you building fashion AI agents? Have ideas for new agents? Want to contribute to open-source? **We'd love to have you!** See our [Call to Action](#call-to-action) section below.
@@ -46,7 +46,7 @@ We've identified **24+ AI agent ideas** organized into five categories that can 
 These agents can work individually or together to create powerful fashion technology applications.
 
 :::info Image Generation Capabilities
-**OpenTryOn** includes powerful image generation APIs that agents can leverage:
+**Piyu** includes powerful image generation APIs that agents can leverage:
 - **Nano Banana** (Gemini 2.5 Flash): Fast, efficient image generation (1024px)
 - **Nano Banana Pro** (Gemini 3 Pro): Advanced generation with 4K support
 - **FLUX.2 [PRO]**: High-quality image generation with standard controls
@@ -56,7 +56,7 @@ These APIs support **text-to-image**, **image editing**, **multi-image compositi
 :::
 
 :::info Virtual Try-On Capabilities
-**OpenTryOn** includes virtual try-on APIs that agents can leverage to create realistic try-on experiences:
+**Piyu** includes virtual try-on APIs that agents can leverage to create realistic try-on experiences:
 - **Amazon Nova Canvas**: AWS Bedrock-based virtual try-on with automatic garment detection, multiple garment classes (Upper body, Lower body, Full body, Footwear), and custom mask support (max 4.1M pixels)
 - **Kling AI**: Asynchronous virtual try-on processing with automatic polling, multiple model versions, webhook support, and high-resolution support (max 16M pixels)
 
@@ -73,7 +73,7 @@ Below are 24+ agent ideas we're sharing with the community. Each agent includes:
 - **Priority** for implementation
 
 :::tip API-Powered Agents
-Many agents can leverage OpenTryOn's APIs:
+Many agents can leverage Piyu's APIs:
 - **Image Generation**: Nano Banana, Nano Banana Pro, FLUX.2 PRO, FLUX.2 FLEX for creating, editing, and composing fashion images
 - **Virtual Try-On**: Amazon Nova Canvas, Kling AI for generating realistic try-on results
 
@@ -202,7 +202,7 @@ Evaluates how well multiple garments work together as an outfit.
 - Styling recommendations
 - Complete look generation
 
-**Integration**: Works seamlessly with OpenTryOn's outfit generation features. Can leverage image generation APIs (Nano Banana, FLUX.2) to create outfit visualizations.
+**Integration**: Works seamlessly with Piyu's outfit generation features. Can leverage image generation APIs (Nano Banana, FLUX.2) to create outfit visualizations.
 
 ---
 
@@ -380,7 +380,7 @@ Analyzes garment image quality for optimal virtual try-on results.
 - Dataset curation
 - API input validation
 
-**Integration**: Essential for OpenTryOn's virtual try-on pipeline.
+**Integration**: Essential for Piyu's virtual try-on pipeline.
 
 ---
 
@@ -405,7 +405,7 @@ Detects and analyzes poses in fashion images for better try-on results.
 - Pose normalization
 - Dataset preparation
 
-**Integration**: Complements OpenTryOn's pose estimation preprocessing.
+**Integration**: Complements Piyu's pose estimation preprocessing.
 
 ---
 
@@ -506,7 +506,7 @@ Applies different styles to garments while maintaining fit and structure.
 - Design inspiration
 - Virtual customization
 
-**Integration**: Extends OpenTryOn's virtual try-on capabilities. Uses image generation APIs (Nano Banana, FLUX.2) to apply style transformations while maintaining garment structure.
+**Integration**: Extends Piyu's virtual try-on capabilities. Uses image generation APIs (Nano Banana, FLUX.2) to apply style transformations while maintaining garment structure.
 
 ---
 
@@ -592,7 +592,7 @@ Orchestrates multiple agents for comprehensive virtual try-on experience.
 **Category**: Utility  
 **Priority**: Medium
 
-Generates fashion images using OpenTryOn's image generation APIs.
+Generates fashion images using Piyu's image generation APIs.
 
 **Capabilities**:
 - **Text-to-Fashion**: Generates fashion images from text descriptions
@@ -609,7 +609,7 @@ Generates fashion images using OpenTryOn's image generation APIs.
 - Design exploration
 - E-commerce image generation
 
-**Integration**: Directly uses OpenTryOn's image generation APIs. Can be deployed on TryOn AI platform.
+**Integration**: Directly uses Piyu's image generation APIs. Can be deployed on TryOn AI platform.
 
 ---
 
@@ -634,7 +634,7 @@ Enhances product images using image generation and editing capabilities.
 - Brand consistency maintenance
 - Marketing asset creation
 
-**Integration**: Uses OpenTryOn's image generation APIs (FLUX.2 for high quality, Nano Banana for speed). Can integrate with Garment Scraper Agent for bulk processing.
+**Integration**: Uses Piyu's image generation APIs (FLUX.2 for high quality, Nano Banana for speed). Can integrate with Garment Scraper Agent for bulk processing.
 
 ---
 
@@ -643,7 +643,7 @@ Enhances product images using image generation and editing capabilities.
 **Category**: Utility  
 **Priority**: High
 
-Generates virtual try-on images using OpenTryOn's virtual try-on APIs.
+Generates virtual try-on images using Piyu's virtual try-on APIs.
 
 **Capabilities**:
 - **Person + Garment Try-On**: Combines person images with garment images
@@ -660,7 +660,7 @@ Generates virtual try-on images using OpenTryOn's virtual try-on APIs.
 - Fashion catalog generation
 - Customer engagement tools
 
-**Integration**: Directly uses OpenTryOn's virtual try-on APIs (Amazon Nova Canvas, Kling AI). Can be deployed on TryOn AI platform. Works with Garment Scraper Agent to get product images.
+**Integration**: Directly uses Piyu's virtual try-on APIs (Amazon Nova Canvas, Kling AI). Can be deployed on TryOn AI platform. Works with Garment Scraper Agent to get product images.
 
 ---
 
@@ -743,7 +743,7 @@ Add specialized agents for advanced use cases:
 
 ### Integration Points
 
-#### OpenTryOn Preprocessing
+#### Piyu Preprocessing
 - Image Quality Analyzer
 - Pose Detection & Analysis
 - Fabric & Material Analyzer
@@ -783,7 +783,7 @@ We're building an open-source ecosystem of Fashion AI Agents, and we need your h
 - **Contribute Your Agent**: Share your existing agent with the community
 - **Open Source It**: Make it available under an open-source license
 - **Document It**: Help others understand and use your agent
-- **Integrate**: Connect your agent with OpenTryOn and other platforms
+- **Integrate**: Connect your agent with Piyu and other platforms
 
 **How to Contribute**:
 1. Open an issue or discussion on GitHub describing your agent
@@ -835,17 +835,17 @@ We're building an open-source ecosystem of Fashion AI Agents, and we need your h
 - **API Design**: RESTful APIs for each agent with unified orchestration API
 :::
 
-### Integration with OpenTryOn Library
+### Integration with Piyu Library
 
-All agents should be designed to integrate seamlessly with **OpenTryOn** (the open-source library):
+All agents should be designed to integrate seamlessly with **Piyu** (the open-source library):
 
-- **Use OpenTryOn SDK**: Leverage existing virtual try-on and image generation capabilities
+- **Use Piyu SDK**: Leverage existing virtual try-on and image generation capabilities
 - **Virtual Try-On**: Utilize Amazon Nova Canvas and Kling AI for generating realistic try-on results
 - **Image Generation**: Utilize Nano Banana, Nano Banana Pro, FLUX.2 PRO, and FLUX.2 FLEX for generating, editing, and composing fashion images
 - **API Selection**: Choose appropriate APIs based on requirements (Nova Canvas for AWS integration, Kling AI for async/high-res)
-- **Follow Standards**: Adhere to OpenTryOn's code style and architecture
+- **Follow Standards**: Adhere to Piyu's code style and architecture
 - **Document Integration**: Provide clear integration examples
-- **Test Compatibility**: Ensure agents work with OpenTryOn's pipeline
+- **Test Compatibility**: Ensure agents work with Piyu's pipeline
 
 ### TryOn AI Platform Integration
 
@@ -854,7 +854,7 @@ Agents can also integrate with **TryOn AI**, our cloud-hosted platform for:
 - **Fashion Designers**: Use agents for design workflows
 - **E-Commerce Marketplaces**: Integrate agents into shopping experiences
 
-Agents built with OpenTryOn can be deployed on TryOn AI platform for production use.
+Agents built with Piyu can be deployed on TryOn AI platform for production use.
 
 ### Data Requirements
 
@@ -869,10 +869,10 @@ Agents built with OpenTryOn can be deployed on TryOn AI platform for production 
 
 ### Get Involved
 
-- **GitHub**: [github.com/tryonlabs/opentryon](https://github.com/tryonlabs/opentryon)
+- **GitHub**: [github.com/piyu/piyu](https://github.com/piyu/piyu)
 - **Discord**: [Join our community](https://discord.gg/T5mPpZHxkY)
-- **Documentation**: [Full documentation](https://tryonlabs.github.io/opentryon)
-- **Issues**: [Report bugs or request features](https://github.com/tryonlabs/opentryon/issues)
+- **Documentation**: [Full documentation](https://piyu.github.io/piyu)
+- **Issues**: [Report bugs or request features](https://github.com/piyu/piyu/issues)
 
 ### Share Your Work
 
@@ -890,7 +890,7 @@ Agents built with OpenTryOn can be deployed on TryOn AI platform for production 
 1. **Explore Ideas**: Review all 24+ agent ideas above
 2. **Choose Your Agent**: Pick an agent to build or contribute
 3. **Join Discussions**: Participate in GitHub Discussions
-4. **Start Building**: Begin implementation using OpenTryOn SDK
+4. **Start Building**: Begin implementation using Piyu SDK
 5. **Share Progress**: Keep the community updated
 6. **Contribute**: Submit your agent to the repository
 
@@ -920,7 +920,7 @@ Agents built with OpenTryOn can be deployed on TryOn AI platform for production 
 - **Open Source License**: Use a compatible open-source license
 - **Documentation**: Include README, API docs, and examples
 - **Tests**: Provide unit tests and integration tests
-- **Integration**: Show how it integrates with OpenTryOn
+- **Integration**: Show how it integrates with Piyu
 - **Examples**: Include usage examples and demos
 
 ### Recognition
@@ -938,7 +938,7 @@ Contributors will be:
 We envision a future where:
 
 - **Every fashion technology need** has an open-source agent solution
-- **Developers worldwide** collaborate on fashion AI agents using OpenTryOn library
+- **Developers worldwide** collaborate on fashion AI agents using Piyu library
 - **Fashion brands, designers, and e-commerce marketplaces** can deploy agents via TryOn AI platform
 - **Researchers** can build upon existing agent implementations
 - **The community** drives innovation in fashion technology
@@ -946,8 +946,8 @@ We envision a future where:
 
 **Together, we can build the most comprehensive open-source Fashion AI Agents ecosystem.**
 
-:::info OpenTryOn vs TryOn AI
-- **OpenTryOn**: Open-source Python library for fashion developers (what you're contributing to)
+:::info Piyu vs TryOn AI
+- **Piyu**: Open-source Python library for fashion developers (what you're contributing to)
 - **TryOn AI**: Cloud-hosted platform for fashion brands, designers, and e-commerce marketplaces (production deployment)
 :::
 
@@ -959,7 +959,7 @@ Share this vision on LinkedIn, Twitter, Discord, Telegram, and other platforms. 
 
 ## Questions?
 
-- **GitHub Discussions**: [Ask questions](https://github.com/tryonlabs/opentryon/discussions)
+- **GitHub Discussions**: [Ask questions](https://github.com/piyu/piyu/discussions)
 - **Discord**: [Join the conversation](https://discord.gg/T5mPpZHxkY)
 - **Email**: Contact us through GitHub
 

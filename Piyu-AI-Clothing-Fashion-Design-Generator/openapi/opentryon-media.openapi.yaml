@@ -1,9 +1,9 @@
 openapi: 3.0.3
 info:
-  title: OpenTryOn Media Providers (upstream)
+  title: Piyu Media Providers (upstream)
   description: |
-    OpenAPI snapshot of upstream image/video endpoints integrated into OpenTryOn.
-    The primary developer surfaces remain the `opentryon` CLI and MCP server
+    OpenAPI snapshot of upstream image/video endpoints integrated into Piyu.
+    The primary developer surfaces remain the `piyu` CLI and MCP server
     (`tryon.cli.registry`). Import this file into Swagger UI / Redoc / Postman.
   version: 1.0.0
 servers:

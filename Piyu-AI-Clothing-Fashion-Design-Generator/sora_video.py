@@ -2,7 +2,7 @@
 DEPRECATED legacy entrypoint.
 
 Moved to `examples/legacy/sora_video.py`. Prefer:
-  opentryon video-generate --model sora ...
+  piyu video-generate --model sora ...
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ _ROOT = pathlib.Path(__file__).resolve().parent
 _TARGET = _ROOT / "examples" / "legacy" / "sora_video.py"
 
 print(
-    "[opentryon] WARNING: `sora_video.py` is legacy; use `opentryon video-generate --model sora` instead.",
+    "[piyu] WARNING: `sora_video.py` is legacy; use `piyu video-generate --model sora` instead.",
     file=sys.stderr,
 )
 

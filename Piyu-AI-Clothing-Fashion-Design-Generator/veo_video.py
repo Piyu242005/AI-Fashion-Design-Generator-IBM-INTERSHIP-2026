@@ -2,7 +2,7 @@
 DEPRECATED legacy entrypoint.
 
 Moved to `examples/legacy/veo_video.py`. Prefer:
-  opentryon video-generate --model veo ...
+  piyu video-generate --model veo ...
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ _ROOT = pathlib.Path(__file__).resolve().parent
 _TARGET = _ROOT / "examples" / "legacy" / "veo_video.py"
 
 print(
-    "[opentryon] WARNING: `veo_video.py` is legacy; use `opentryon video-generate --model veo` instead.",
+    "[piyu] WARNING: `veo_video.py` is legacy; use `piyu video-generate --model veo` instead.",
     file=sys.stderr,
 )
 

@@ -27,7 +27,7 @@ scale to the hosted `kimi-k2.6`/`kimi-k2.7-code` APIs.
 ## Installation
 
 ```bash
-pip install opentryon[local]   # torch, transformers, etc.
+pip install piyu[local]   # torch, transformers, etc.
 pip install decord             # only needed for understand_video()
 ```
 
@@ -125,22 +125,22 @@ def understand(
 ```
 
 Single entry point that accepts `image` and/or `video` (at least one
-required) -- this is what the `opentryon understand --model kimi-vl` CLI
+required) -- this is what the `piyu understand --model kimi-vl` CLI
 command calls.
 
-## Using the `opentryon` CLI
+## Using the `piyu` CLI
 
 ```bash
 # Image understanding (downloads the model on first run)
-opentryon understand --model kimi-vl --image garment.jpg \
+piyu understand --model kimi-vl --image garment.jpg \
   --prompt "Describe this outfit."
 
 # Video understanding, sampling 12 frames
-opentryon understand --model kimi-vl --video runway_clip.mp4 --num-frames 12
+piyu understand --model kimi-vl --video runway_clip.mp4 --num-frames 12
 ```
 
 The CLI checks that `torch` is installed before attempting to load the
-model, and will print an install hint (`pip install opentryon[local]`) if
+model, and will print an install hint (`pip install piyu[local]`) if
 it's missing.
 
 ## Choosing a Model Variant

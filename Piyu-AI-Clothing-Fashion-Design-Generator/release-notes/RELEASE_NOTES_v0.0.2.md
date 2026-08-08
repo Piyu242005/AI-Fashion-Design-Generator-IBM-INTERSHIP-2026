@@ -1,17 +1,17 @@
-# OpenTryOn v0.0.2 Release Notes
+# Piyu v0.0.2 Release Notes
 
 ## 🚀 OpenAI Integration & AI Agents - Enhanced Capabilities for Fashion AI
 
 **Release Date**: 27 December 2025
 
-We're excited to announce the release of OpenTryOn v0.0.2! This release introduces significant new features including OpenAI integrations for image and video generation, Google Veo 3 video generation, and two powerful AI agents for virtual try-on and model swapping.
+We're excited to announce the release of Piyu v0.0.2! This release introduces significant new features including OpenAI integrations for image and video generation, Google Veo 3 video generation, and two powerful AI agents for virtual try-on and model swapping.
 
 ## 🎉 What's New
 
 ### OpenAI Integration
 
 #### Image Generation - GPT-Image Models
-We've added full support for OpenAI's GPT-Image models, bringing professional-grade image generation capabilities to OpenTryOn:
+We've added full support for OpenAI's GPT-Image models, bringing professional-grade image generation capabilities to Piyu:
 
 - **GPT-Image-1.5** (Default): The latest model with enhanced quality, better prompt understanding, and improved consistency
 - **GPT-Image-1**: High-quality image generation and editing
@@ -45,10 +45,10 @@ images = adapter.generate_image_edit(
 )
 ```
 
-**Documentation**: [GPT-Image API Reference](https://tryonlabs.github.io/opentryon/api-reference/gpt-image)
+**Documentation**: [GPT-Image API Reference](https://piyu.github.io/piyu/api-reference/gpt-image)
 
 #### Video Generation - Sora Models
-OpenTryOn now supports OpenAI's Sora video generation models for creating high-quality videos:
+Piyu now supports OpenAI's Sora video generation models for creating high-quality videos:
 
 - **Sora 2** (Default): Fast, high-quality video generation
 - **Sora 2 Pro**: Enhanced quality with superior temporal consistency
@@ -83,7 +83,7 @@ video_bytes = adapter.generate_image_to_video(
 )
 ```
 
-**Documentation**: [Sora Video API Reference](https://tryonlabs.github.io/opentryon/api-reference/sora-video)
+**Documentation**: [Sora Video API Reference](https://piyu.github.io/piyu/api-reference/sora-video)
 
 ### Google Veo 3 Video Generation
 
@@ -105,7 +105,7 @@ video_bytes = adapter.generate_text_to_video(
 )
 ```
 
-**Documentation**: [Veo Video Documentation](https://tryonlabs.github.io/opentryon/api-reference/veo-video)
+**Documentation**: [Veo Video Documentation](https://piyu.github.io/piyu/api-reference/veo-video)
 
 ### AI Agents
 
@@ -133,7 +133,7 @@ result = agent.generate(
 )
 ```
 
-**Documentation**: [VTOn Agent Documentation](https://tryonlabs.github.io/opentryon/agents/vton-agent)
+**Documentation**: [VTOn Agent Documentation](https://piyu.github.io/piyu/agents/vton-agent)
 
 #### Model Swap Agent (ModelSwapAgent)
 An AI agent that replaces models in images while preserving outfit consistency:
@@ -158,21 +158,21 @@ result = agent.generate(
 )
 ```
 
-**Documentation**: [Model Swap Agent Documentation](https://tryonlabs.github.io/opentryon/agents/model-swap-agent)
+**Documentation**: [Model Swap Agent Documentation](https://piyu.github.io/piyu/agents/model-swap-agent)
 
 ## 📦 Installation
 
 Upgrade to v0.0.2 using pip:
 
 ```bash
-pip install --upgrade opentryon
+pip install --upgrade piyu
 ```
 
 Or install from source:
 
 ```bash
-git clone https://github.com/tryonlabs/opentryon.git
-cd opentryon
+git clone https://github.com/piyu/piyu.git
+cd piyu
 git checkout v0.0.2
 pip install -e .
 ```
@@ -236,10 +236,10 @@ For a complete list of changes, see [CHANGELOG.md](CHANGELOG.md).
 
 ## 🔗 Links
 
-- **Documentation**: https://tryonlabs.github.io/opentryon/
-- **GitHub Repository**: https://github.com/tryonlabs/opentryon
+- **Documentation**: https://piyu.github.io/piyu/
+- **GitHub Repository**: https://github.com/piyu/piyu
 - **Discord Community**: https://discord.gg/T5mPpZHxkY
-- **Issues**: https://github.com/tryonlabs/opentryon/issues
+- **Issues**: https://github.com/piyu/piyu/issues
 
 ## 📄 License
 

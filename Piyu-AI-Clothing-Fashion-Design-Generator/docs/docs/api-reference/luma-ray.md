@@ -13,7 +13,7 @@ keywords:
 
 [Ray 3.2](https://lumalabs.ai/news/introducing-ray-3-2) via the [Luma Agents API](https://docs.agents.lumalabs.ai/guides/videos/).
 
-Legacy Dream Machine Ray 2 models remain under `opentryon video-generate --model luma-video`.
+Legacy Dream Machine Ray 2 models remain under `piyu video-generate --model luma-video`.
 
 ## Environment
 
@@ -33,11 +33,11 @@ Resolutions: `360p`, `540p`, `720p`, `1080p`. Durations: `5s`, `10s`.
 ## CLI
 
 ```bash
-opentryon video-generate --model luma-ray-3.2 \
+piyu video-generate --model luma-ray-3.2 \
   --prompt "Slow dolly through a misty greenhouse" \
   --resolution 720p --duration 5s --aspect-ratio 16:9
 
-opentryon video-generate --model luma-ray-3.2 \
+piyu video-generate --model luma-ray-3.2 \
   --image start.jpg --end-image end.jpg \
   --prompt "Character turns toward camera" --hdr
 ```

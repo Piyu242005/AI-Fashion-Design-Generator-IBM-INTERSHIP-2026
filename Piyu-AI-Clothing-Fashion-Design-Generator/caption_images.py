@@ -14,7 +14,7 @@ import sys
 _ROOT = pathlib.Path(__file__).resolve().parent
 _TARGET = _ROOT / "examples" / "legacy" / "caption_images.py"
 
-print("[opentryon] WARNING: `caption_images.py` is legacy; moved to examples/legacy.", file=sys.stderr)
+print("[piyu] WARNING: `caption_images.py` is legacy; moved to examples/legacy.", file=sys.stderr)
 
 runpy.run_path(str(_TARGET), run_name="__main__")
 

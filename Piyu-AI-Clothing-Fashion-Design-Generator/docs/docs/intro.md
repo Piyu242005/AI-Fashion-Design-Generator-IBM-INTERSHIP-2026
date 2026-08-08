@@ -1,7 +1,7 @@
 ---
 slug: /
-title: OpenTryOn
-description: OpenTryOn is an open-source AI toolkit for fashion technology and virtual try-on. v0.0.3 adds a unified CLI, FastMCP server, OpenAPI/Postman media snapshots, and a wide set of cloud try-on, image, video, and understanding models (Pruna, Seedance, Seedream, Kling 3, Luma Ray 3.2, Grok, Ideogram, FASHN, Kimi, and more).
+title: Piyu
+description: Piyu is an open-source AI toolkit for fashion technology and virtual try-on. v0.0.3 adds a unified CLI, FastMCP server, OpenAPI/Postman media snapshots, and a wide set of cloud try-on, image, video, and understanding models (Pruna, Seedance, Seedream, Kling 3, Luma Ray 3.2, Grok, Ideogram, FASHN, Kimi, and more).
 keywords:
   - virtual try-on
   - fashion AI
@@ -36,7 +36,7 @@ keywords:
   - Kimi K3
   - Moonshot AI
   - multimodal understanding
-  - opentryon CLI
+  - piyu CLI
   - MCP
   - Model Context Protocol
   - Pruna
@@ -47,19 +47,19 @@ keywords:
   - FASHN
   - OpenAPI
   - Swagger
-image: /img/opentryon-social-card.jpg
+image: /img/piyu-social-card.jpg
 ---
 
-# Welcome to OpenTryOn
+# Welcome to Piyu
 
-OpenTryOn is an open-source AI toolkit for fashion technology and virtual try-on. **Current release: [v0.0.3](https://pypi.org/project/opentryon/0.0.3/)** on PyPI.
+Piyu is an open-source AI toolkit for fashion technology and virtual try-on. **Current release: [v0.0.3](https://pypi.org/project/piyu/0.0.3/)** on PyPI.
 
-## 🎯 What is OpenTryOn?
+## 🎯 What is Piyu?
 
-OpenTryOn gives you three ways to run fashion AI models:
+Piyu gives you three ways to run fashion AI models:
 
-1. **CLI** — `opentryon <service> --model <model> …`
-2. **MCP server** — tools for Cursor, Claude, and [tryon-studio](https://github.com/tryonlabs/tryon-studio)
+1. **CLI** — `piyu <service> --model <model> …`
+2. **MCP server** — tools for Cursor, Claude, and [tryon-studio](https://github.com/piyu/tryon-studio)
 3. **Python APIs** — `tryon.api` adapters + `invoke_model()`
 
 Plus preprocessing, datasets, Gradio demos, and TryOnDiffusion research code.
@@ -84,13 +84,13 @@ Veo, Sora, Luma Ray 2 + **Ray 3.2**, **Seedance 2.5**, **Kling 3.0 / Omni / Turb
 **Kimi K2.6 / K2.7 Code / K3** (API), Kimi-VL & LLaVA-NeXT (local), BEN2 bg-remove, fashion datasets, garment/pose preprocessing.
 
 ### Interactive demos
-Gradio apps in-repo; the Next.js playground/studio UI lives in **tryon-studio** and talks to OpenTryOn over MCP.
+Gradio apps in-repo; the Next.js playground/studio UI lives in **tryon-studio** and talks to Piyu over MCP.
 
 ## 📚 What You'll Learn
 
 In this documentation, you'll find:
 
-- **[Installation Guide](getting-started/installation)**: Get OpenTryOn up and running (`pip install opentryon`)
+- **[Installation Guide](getting-started/installation)**: Get Piyu up and running (`pip install piyu`)
 - **[Quick Start](getting-started/quickstart)**: First successful runs
 - **[Configuration](getting-started/configuration)**: API keys and `.env`
 - **[Unified CLI](getting-started/cli)**: Service → model → params
@@ -182,9 +182,9 @@ extract_garment(
 
 ## 🤝 Get Involved
 
-OpenTryOn is an open-source project, and we welcome contributions!
+Piyu is an open-source project, and we welcome contributions!
 
-- **GitHub**: [github.com/tryonlabs/opentryon](https://github.com/tryonlabs/opentryon)
+- **GitHub**: [github.com/piyu/piyu](https://github.com/piyu/piyu)
 - **Discord**: [Join our community](https://discord.gg/T5mPpZHxkY)
 - **Contributing**: See our [Contributing Guide](community/contributing)
 
@@ -200,7 +200,7 @@ Check out our [Roadmap](community/roadmap) to see what's coming next!
 
 - Check our [Troubleshooting Guide](advanced/troubleshooting)
 - Join our [Discord community](https://discord.gg/T5mPpZHxkY)
-- Open an issue on [GitHub](https://github.com/tryonlabs/opentryon/issues)
+- Open an issue on [GitHub](https://github.com/piyu/piyu/issues)
 
 ---
 

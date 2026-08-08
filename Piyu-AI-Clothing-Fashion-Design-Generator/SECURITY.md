@@ -16,8 +16,8 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 ### How to Report
 
 1. **DO NOT** create a public GitHub issue for security vulnerabilities
-2. Email us at: **security@tryonlabs.ai** (or contact maintainers directly)
-3. Alternatively, use [GitHub's private vulnerability reporting](https://github.com/tryonlabs/opentryon/security/advisories/new)
+2. Email us at: **security@piyu.ai** (or contact maintainers directly)
+3. Alternatively, use [GitHub's private vulnerability reporting](https://github.com/piyu/piyu/security/advisories/new)
 
 ### What to Include
 
@@ -40,7 +40,7 @@ Please provide as much information as possible:
 
 ### API Key Management
 
-This project integrates with multiple AI service providers. When using OpenTryOn:
+This project integrates with multiple AI service providers. When using Piyu:
 
 1. **Never commit API keys** to version control
 2. **Use environment variables** or `.env` files (add `.env` to `.gitignore`)
@@ -99,10 +99,10 @@ pip install --upgrade -r requirements.txt
 
 ## Acknowledgments
 
-We appreciate security researchers who help keep OpenTryOn safe. Contributors who responsibly disclose vulnerabilities will be acknowledged here (with their permission).
+We appreciate security researchers who help keep Piyu safe. Contributors who responsibly disclose vulnerabilities will be acknowledged here (with their permission).
 
 ## Contact
 
-- **Security Issues**: contact@tryonlabs.ai
+- **Security Issues**: contact@piyu.ai
 - **General Questions**: [Discord Community](https://discord.gg/T5mPpZHxkY)
-- **Bug Reports**: [GitHub Issues](https://github.com/tryonlabs/opentryon/issues)
+- **Bug Reports**: [GitHub Issues](https://github.com/piyu/piyu/issues)

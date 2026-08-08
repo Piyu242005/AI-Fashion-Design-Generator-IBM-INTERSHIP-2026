@@ -11,7 +11,7 @@ from diffusers import FluxPipeline
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 PRE_TRAINED_MODEL = "black-forest-labs/FLUX.1-dev"
-FINE_TUNED_MODEL = "tryonlabs/FLUX.1-dev-LoRA-Outfit-Generator"
+FINE_TUNED_MODEL = "piyu/FLUX.1-dev-LoRA-Outfit-Generator"
 RESULTS_DIR = "~/results"
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
@@ -82,7 +82,7 @@ with gr.Blocks(css=css) as demo:
     with gr.Column(elem_id="col-container"):
         gr.Markdown(f"""
         # FLUX.1-dev LoRA Outfit Generator 
-        ## by TryOn Labs (https://www.tryonlabs.ai)
+        ## by TryOn Labs (https://www.piyu.ai)
         Generate an outfit by describing the color, pattern, fit, style, material, type, etc.
         """)
         with gr.Row():

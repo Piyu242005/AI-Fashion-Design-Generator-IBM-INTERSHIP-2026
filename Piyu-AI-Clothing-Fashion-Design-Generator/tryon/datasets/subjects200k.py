@@ -212,7 +212,7 @@ class Subjects200K(Dataset):
     
     def _get_default_data_dir(self) -> Path:
         """Get the default data directory for Subjects200K."""
-        data_dir = Path.home() / '.opentryon' / 'datasets' / 'subjects200k'
+        data_dir = Path.home() / '.piyu' / 'datasets' / 'subjects200k'
         data_dir.mkdir(parents=True, exist_ok=True)
         return data_dir
     

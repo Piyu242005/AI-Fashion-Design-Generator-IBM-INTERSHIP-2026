@@ -117,7 +117,7 @@ VITONHD(
 ```
 
 **Parameters:**
-- `data_dir` (str or Path, optional): Directory containing the dataset. Defaults to `~/.opentryon/datasets/viton_hd`
+- `data_dir` (str or Path, optional): Directory containing the dataset. Defaults to `~/.piyu/datasets/viton_hd`
 - `download` (bool): If `True`, attempt to download the dataset. Default: `False` (manual download required)
 - `train_pairs_file` (str): Name of training pairs file. Default: `"train_pairs.txt"`
 - `test_pairs_file` (str): Name of test pairs file. Default: `"test_pairs.txt"`

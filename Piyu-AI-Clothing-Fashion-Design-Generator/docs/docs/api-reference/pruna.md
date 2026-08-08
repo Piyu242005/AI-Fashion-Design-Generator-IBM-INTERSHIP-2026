@@ -17,7 +17,7 @@ keywords:
 
 # Pruna AI
 
-OpenTryOn integrates Pruna's unified predictions API (`POST /v1/predictions` with a `Model` header) through a shared client in `tryon.api.pruna.client.PrunaClient`.
+Piyu integrates Pruna's unified predictions API (`POST /v1/predictions` with a `Model` header) through a shared client in `tryon.api.pruna.client.PrunaClient`.
 
 | Model | CLI | Adapter | Role |
 |---|---|---|---|
@@ -34,7 +34,7 @@ OpenTryOn integrates Pruna's unified predictions API (`POST /v1/predictions` wit
 
 **Docs:** [Pruna model guides](https://docs.api.pruna.ai/guides/models)
 
-Ideogram-via-Pruna is skipped — use `opentryon generate --model ideogram` instead.
+Ideogram-via-Pruna is skipped — use `piyu generate --model ideogram` instead.
 
 ## Shared client
 
@@ -52,51 +52,51 @@ export PRUNA_API_KEY="your_api_key"
 
 ```bash
 # Text-to-image
-opentryon generate --model p-image \
+piyu generate --model p-image \
   --prompt "editorial fashion still, soft window light" \
   --aspect-ratio 3:4
 
 # Multi-image edit
-opentryon edit --model p-image-edit \
+piyu edit --model p-image-edit \
   --images person.jpg garment.jpg \
   --prompt "Dress the person in the garment, studio lighting"
 
 # Upscale
-opentryon edit --model p-image-upscale \
+piyu edit --model p-image-upscale \
   --image result.jpg --target 8 --enhance-details
 
 # Multi-garment try-on
-opentryon vton --model p-image-tryon \
+piyu vton --model p-image-tryon \
   --person-image person.jpg \
   --garment-image top.jpg --garment-image bottoms.jpg
 
 # Text / image to video
-opentryon video-generate --model p-video \
+piyu video-generate --model p-video \
   --prompt "model walks toward camera, soft breeze" \
   --duration 5 --resolution 720p
 
-opentryon video-generate --model p-video \
+piyu video-generate --model p-video \
   --prompt "gentle head turn and smile" \
   --image still.jpg --duration 5
 
 # Identity replace in video
-opentryon video-generate --model p-video-replace \
+piyu video-generate --model p-video-replace \
   --video source.mp4 \
   --images identity.jpg \
   --instruction-prompt "Place the reference person into the video"
 
 # Talking-head avatar (script or audio)
-opentryon video-generate --model p-video-avatar \
+piyu video-generate --model p-video-avatar \
   --image portrait.jpg \
   --voice-script "Welcome to our spring collection." \
   --voice "Zephyr (Female)"
 
-opentryon video-generate --model p-video-avatar \
+piyu video-generate --model p-video-avatar \
   --image portrait.jpg \
   --audio speech.mp3
 
 # Animate subject with source motion
-opentryon video-generate --model p-video-animate \
+piyu video-generate --model p-video-animate \
   --video driver.mp4 \
   --image subject.jpg \
   --instruction-prompt "Keep the subject’s outfit and lighting"

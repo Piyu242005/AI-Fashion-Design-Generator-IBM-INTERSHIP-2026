@@ -2,7 +2,7 @@
 DEPRECATED legacy entrypoint.
 
 Moved to `examples/legacy/image_gen.py`. Use the registry-driven CLI instead:
-`opentryon generate ...` or `opentryon edit ...`.
+`piyu generate ...` or `piyu edit ...`.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ _ROOT = pathlib.Path(__file__).resolve().parent
 _TARGET = _ROOT / "examples" / "legacy" / "image_gen.py"
 
 print(
-    "[opentryon] WARNING: `image_gen.py` is a legacy wrapper; use `opentryon generate|edit ...` instead.",
+    "[piyu] WARNING: `image_gen.py` is a legacy wrapper; use `piyu generate|edit ...` instead.",
     file=sys.stderr,
 )
 

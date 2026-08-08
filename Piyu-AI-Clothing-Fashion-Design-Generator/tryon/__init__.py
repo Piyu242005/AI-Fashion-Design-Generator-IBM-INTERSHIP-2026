@@ -1,5 +1,5 @@
 """
-OpenTryOn - Open-source AI toolkit for fashion tech and virtual try-on
+Piyu - Open-source AI toolkit for fashion tech and virtual try-on
 
 This package provides tools for:
 - Virtual Try-On (via cloud APIs and local models)
@@ -27,8 +27,8 @@ Example:
     >>> adapter = Flux2TurboAdapter()
     >>> images = adapter.generate_text_to_image("A fashion model wearing a dress")
 
-Documentation: https://tryonlabs.github.io/opentryon/
-GitHub: https://github.com/tryonlabs/opentryon
+Documentation: https://piyu.github.io/piyu/
+GitHub: https://github.com/piyu/piyu
 """
 
 __version__ = "0.0.3"

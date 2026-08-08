@@ -1,16 +1,16 @@
 # Quick Start
 
-Get started with OpenTryOn in minutes! This guide will walk you through the key features: **API integrations**, **datasets**, and **preprocessing**.
+Get started with Piyu in minutes! This guide will walk you through the key features: **API integrations**, **datasets**, and **preprocessing**.
 
 ## Prerequisites
 
-- OpenTryOn installed (see [Installation Guide](installation.md))
+- Piyu installed (see [Installation Guide](installation.md))
 - Environment variables configured (see [Configuration Guide](configuration.md))
 - API keys for cloud services (optional, for API integrations)
 
 ## What You Can Do
 
-OpenTryOn provides three main capabilities:
+Piyu provides three main capabilities:
 
 1. **🔌 API Integrations**: Use cloud-based virtual try-on and image generation APIs
 2. **📊 Datasets**: Load and work with fashion datasets (Fashion-MNIST, VITON-HD, Subjects200K)
@@ -410,7 +410,7 @@ python main.py --dataset data --action segment_human
 
 ## Running Demos
 
-OpenTryOn includes interactive Gradio demos:
+Piyu includes interactive Gradio demos:
 
 ```bash
 # Extract garment demo

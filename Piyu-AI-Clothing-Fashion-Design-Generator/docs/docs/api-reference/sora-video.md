@@ -589,5 +589,5 @@ except Exception as e:
 
 For issues and questions:
 - OpenAI API Support: [OpenAI Help Center](https://help.openai.com/)
-- OpenTryOn Issues: [GitHub Issues](https://github.com/tryonlabs/opentryon/issues)
+- Piyu Issues: [GitHub Issues](https://github.com/piyu/piyu/issues)
 

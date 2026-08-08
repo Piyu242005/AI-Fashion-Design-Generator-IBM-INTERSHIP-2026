@@ -27,5 +27,5 @@ diffusion.prepare(args)
 diffusion.fit(args)
 ```
 
-See [TryOnDiffusion README](https://github.com/tryonlabs/opentryon/tree/main/tryondiffusion/README.md) for detailed training guide.
+See [TryOnDiffusion README](https://github.com/piyu/piyu/tree/main/tryondiffusion/README.md) for detailed training guide.
 

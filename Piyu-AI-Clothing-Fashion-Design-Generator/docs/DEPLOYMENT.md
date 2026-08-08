@@ -4,7 +4,7 @@ This guide explains how to deploy the Docusaurus documentation site to GitHub Pa
 
 ## Prerequisites
 
-- GitHub repository: `tryonlabs/opentryon`
+- GitHub repository: `piyu/piyu`
 - GitHub Pages enabled in repository settings
 - GitHub Actions enabled
 
@@ -12,7 +12,7 @@ This guide explains how to deploy the Docusaurus documentation site to GitHub Pa
 
 ### 1. Enable GitHub Pages
 
-1. Go to your repository on GitHub: `https://github.com/tryonlabs/opentryon`
+1. Go to your repository on GitHub: `https://github.com/piyu/piyu`
 2. Navigate to **Settings** → **Pages**
 3. Under **Source**, select **GitHub Actions**
 4. Save the settings
@@ -27,9 +27,9 @@ The GitHub Actions workflow (`.github/workflows/deploy-docs.yml`) is already set
 ### 3. Deployment Configuration
 
 The site is configured to deploy to:
-- **URL**: `https://tryonlabs.github.io`
-- **Base URL**: `/opentryon/`
-- **Full URL**: `https://tryonlabs.github.io/opentryon/`
+- **URL**: `https://piyu.github.io`
+- **Base URL**: `/piyu/`
+- **Full URL**: `https://piyu.github.io/piyu/`
 
 ### 4. Manual Deployment (Optional)
 
@@ -89,5 +89,5 @@ cd docs
 npm start
 ```
 
-The site will be available at `http://localhost:3000/opentryon/`
+The site will be available at `http://localhost:3000/piyu/`
 

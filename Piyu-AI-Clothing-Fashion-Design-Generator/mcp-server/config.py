@@ -1,6 +1,6 @@
-"""Environment configuration for the OpenTryOn MCP server.
+"""Environment configuration for the Piyu MCP server.
 
-Loads the parent repo's ``.env`` (same file the ``opentryon`` CLI and the
+Loads the parent repo's ``.env`` (same file the ``piyu`` CLI and the
 adapters themselves read via ``python-dotenv``/``os.getenv``) and derives a
 readiness report straight from :data:`tryon.cli.registry.SERVICES`, so this
 never drifts out of sync with which models actually need which keys.
@@ -50,10 +50,10 @@ def status_report() -> Dict[str, Any]:
 
 def status_message() -> str:
     """Human-readable configuration summary, printed to stderr on server
-    startup and returned by the ``opentryon_status`` MCP tool."""
+    startup and returned by the ``piyu_status`` MCP tool."""
     report = status_report()
 
-    lines = ["OpenTryOn MCP Server Configuration Status:", ""]
+    lines = ["Piyu MCP Server Configuration Status:", ""]
     ready = 0
     total_api = 0
     local_count = 0
@@ -75,7 +75,7 @@ def status_message() -> str:
         lines.append("")
 
     lines.append(f"API-backed models ready: {ready}/{total_api}")
-    lines.append(f"Local models available (need `pip install opentryon[local]` + GPU): {local_count}")
+    lines.append(f"Local models available (need `pip install piyu[local]` + GPU): {local_count}")
     if ready == 0:
         lines.append("")
         lines.append("\u26a0\ufe0f  No API keys configured yet.")

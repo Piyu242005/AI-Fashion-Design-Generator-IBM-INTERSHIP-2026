@@ -1,6 +1,6 @@
 # Training Guide
 
-Comprehensive guide to training models with OpenTryOn.
+Comprehensive guide to training models with Piyu.
 
 See [TryOnDiffusion Training](../tryondiffusion/training.md) for detailed training instructions.
 

@@ -15,5 +15,5 @@ We are committed to providing a welcoming and inclusive environment for all cont
 
 ## Reporting
 
-Report violations to [contact@tryonlabs.ai](mailto:contact@tryonlabs.ai)
+Report violations to [contact@piyu.ai](mailto:contact@piyu.ai)
 

@@ -1,6 +1,6 @@
-# OpenTryOn Roadmap
+# Piyu Roadmap
 
-> **Last Updated**: 3 August 2026 · **Current release**: [v0.0.3](https://pypi.org/project/opentryon/0.0.3/) · **Next milestone**: **v0.1.0 — Fashion ML Toolkit Core**  
+> **Last Updated**: 3 August 2026 · **Current release**: [v0.0.3](https://pypi.org/project/piyu/0.0.3/) · **Next milestone**: **v0.1.0 — Fashion ML Toolkit Core**  
 > **Horizon**: Aug 2026 – early 2027 · Fashion-first; other domains later
 
 This roadmap tracks what shipped and what comes next. Product strategy: [`VISION.md`](VISION.md).
@@ -17,7 +17,7 @@ This roadmap tracks what shipped and what comes next. Product strategy: [`VISION
 ┌─────────────────────────────────────────────────────────────────────────┐
 │ SHIPPED — v0.0.3 (August 2026)  ·  Phase 0: invoke layer                │
 ├─────────────────────────────────────────────────────────────────────────┤
-│ ✓ Unified `opentryon` CLI + FastMCP (same registry / invoke_model)      │
+│ ✓ Unified `piyu` CLI + FastMCP (same registry / invoke_model)      │
 │ ✓ Broad cloud adapters: VTON / generate / edit / video / understand     │
 │ ✓ OpenAPI + Postman snapshots · docs · Gradio · tryon-studio via MCP    │
 │ ✓ Local extras: FLUX.2-dev Turbo, Kimi-VL, LLaVA-NeXT, BEN2             │
@@ -27,8 +27,8 @@ This roadmap tracks what shipped and what comes next. Product strategy: [`VISION
 │ NEXT — v0.1.0 Fashion ML Toolkit Core (near term)                       │
 ├─────────────────────────────────────────────────────────────────────────┤
 │ • Fashion prompt packs + train-pack schema / datasets                   │
-│ • Train / LoRA recipes (`opentryon train`) + notebooks                  │
-│ • Eval + Fashion Bench v0 (`opentryon eval`)                            │
+│ • Train / LoRA recipes (`piyu train`) + notebooks                  │
+│ • Eval + Fashion Bench v0 (`piyu eval`)                            │
 │ • One productized local OSS VTON path (CatVTON / IDM / OOT — pick one)  │
 │ • Fashion agentic workflows via MCP (Try-On QA or Fine-Tune Coach)      │
 │ • Efficiency card for that local path (VRAM / latency table)            │
@@ -49,13 +49,13 @@ This roadmap tracks what shipped and what comes next. Product strategy: [`VISION
 ## Completed (through v0.0.3) — Phase 0
 
 ### Developer surfaces
-- [x] **`opentryon` CLI** — `vton`, `generate`, `edit`, `understand`, `video-generate`, `bg-remove`
+- [x] **`piyu` CLI** — `vton`, `generate`, `edit`, `understand`, `video-generate`, `bg-remove`
 - [x] **MCP server** (`mcp-server/`) on FastMCP 3.x — one tool per registry model
 - [x] **Shared runner** — `tryon.cli.runner.invoke_model()` for CLI + MCP
 - [x] **Registry** — `tryon/cli/registry.py` as source of truth
-- [x] **OpenAPI / Swagger** — `openapi/opentryon-media.openapi.yaml`
-- [x] **Postman** — `postman/opentryon-media.postman_collection.json`
-- [x] **Docs** — Docusaurus site; PyPI `opentryon==0.0.3`
+- [x] **OpenAPI / Swagger** — `openapi/piyu-media.openapi.yaml`
+- [x] **Postman** — `postman/piyu-media.postman_collection.json`
+- [x] **Docs** — Docusaurus site; PyPI `piyu==0.0.3`
 - [x] **tryon-studio** — separate UI repo over MCP
 
 ### Fashion cloud / local (invoke)
@@ -79,23 +79,23 @@ CLI/MCP remain the distribution spine; new capabilities register the same way.
 - [ ] Versioned **prompt packs** (try-on, PDP/catalog, lookbook, video, model-swap, QA rubrics)
 - [ ] **Train-pack schema** (`images/`, captions, splits, `license.md`, `cards.yaml`)
 - [ ] Fashion train packs on top of existing loaders (+ DressCode / brand-folder recipes)
-- [ ] CLI: `opentryon data validate|split|stats` (names TBD)
+- [ ] CLI: `piyu data validate|split|stats` (names TBD)
 
 ### Slice B — Train / finetune
 - [ ] `tryon/train/` (or equivalent) + config-driven YAML recipes
 - [ ] **Brand-style image LoRA** (FLUX / SD family) end-to-end
 - [ ] **One VTON/local LoRA path** (prefer CatVTON-FLUX or FLUX-fill) 
-- [ ] Notebook + CLI: `opentryon train --config …`
+- [ ] Notebook + CLI: `piyu train --config …`
 - [ ] Artifact layout: `runs/<id>/adapter`, metrics, sample grids
 
 ### Slice C — Eval & Fashion Bench v0
 - [ ] Garment fidelity / identity / pose / artifact checklist (+ automated proxies where possible)
 - [ ] Side-by-side runner: cloud baseline vs local vs finetuned
 - [ ] Public **Fashion Bench v0** (fixed prompts + image pairs)
-- [ ] CLI: `opentryon eval run|report`
+- [ ] CLI: `piyu eval run|report`
 
 ### Slice D — Local OSS VTON (productize one)
-- [ ] Ship **one** of CatVTON / IDM-VTON / OOTDiffusion under `tryon.models` + `opentryon[local]`
+- [ ] Ship **one** of CatVTON / IDM-VTON / OOTDiffusion under `tryon.models` + `piyu[local]`
 - [ ] Same invoke path as cloud adapters (agents don’t care where it runs)
 - [ ] Docs: install, VRAM, dry-run, known limits
 
@@ -180,4 +180,4 @@ See [Contributing](CONTRIBUTING.md), [new-model checklist](docs/docs/advanced/ne
 
 ---
 
-**Links:** [PyPI](https://pypi.org/project/opentryon/) · [Release v0.0.3](https://github.com/tryonlabs/opentryon/releases/tag/v0.0.3) · [Docs](https://tryonlabs.github.io/opentryon/) · [Discord](https://discord.gg/T5mPpZHxkY)
+**Links:** [PyPI](https://pypi.org/project/piyu/) · [Release v0.0.3](https://github.com/piyu/piyu/releases/tag/v0.0.3) · [Docs](https://piyu.github.io/piyu/) · [Discord](https://discord.gg/T5mPpZHxkY)

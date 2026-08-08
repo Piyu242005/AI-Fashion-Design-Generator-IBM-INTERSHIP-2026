@@ -3,11 +3,11 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "opentryon-mcp-server"
+name = "piyu-mcp-server"
 version = "0.1.0"
-description = "MCP server exposing OpenTryOn's models (virtual try-on, image/video generation & editing, multimodal understanding, background removal) as tools for LLM agents"
+description = "MCP server exposing Piyu's models (virtual try-on, image/video generation & editing, multimodal understanding, background removal) as tools for LLM agents"
 authors = [
-    {name = "TryOn Labs", email = "contact@tryonlabs.ai"}
+    {name = "TryOn Labs", email = "contact@piyu.ai"}
 ]
 readme = "README.md"
 requires-python = ">=3.10"
@@ -28,13 +28,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-local = ["opentryon[local]"]
+local = ["piyu[local]"]
 
 [project.urls]
-Homepage = "https://github.com/tryonlabs/opentryon"
-Documentation = "https://tryonlabs.github.io/opentryon/"
-Repository = "https://github.com/tryonlabs/opentryon"
-Issues = "https://github.com/tryonlabs/opentryon/issues"
+Homepage = "https://github.com/piyu/piyu"
+Documentation = "https://piyu.github.io/piyu/"
+Repository = "https://github.com/piyu/piyu"
+Issues = "https://github.com/piyu/piyu/issues"
 
 [project.scripts]
-opentryon-mcp = "server:main"
+piyu-mcp = "server:main"

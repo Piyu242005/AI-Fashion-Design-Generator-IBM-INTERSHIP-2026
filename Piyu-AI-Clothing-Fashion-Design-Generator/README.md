@@ -1,15 +1,15 @@
-# OpenTryOn
+# Piyu
 
-[![Documentation](https://img.shields.io/badge/Documentation-Read%20Docs-teal?style=flat-square)](https://tryonlabs.github.io/opentryon/)
-[![PyPI](https://img.shields.io/pypi/v/opentryon?style=flat-square)](https://pypi.org/project/opentryon/)
+[![Documentation](https://img.shields.io/badge/Documentation-Read%20Docs-teal?style=flat-square)](https://piyu.github.io/piyu/)
+[![PyPI](https://img.shields.io/pypi/v/piyu?style=flat-square)](https://pypi.org/project/piyu/)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Chat-blue?style=flat-square&logo=discord)](https://discord.gg/T5mPpZHxkY)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=flat-square)](https://creativecommons.org/licenses/by-nc/4.0/)
 
 Open-source AI toolkit for fashion technology: virtual try-on, image/video generation & editing, multimodal understanding, background removal, preprocessing, datasets, and TryOnDiffusion research code.
 
-**Current release: [v0.0.3](https://github.com/tryonlabs/opentryon/releases/tag/v0.0.3)** — unified CLI, FastMCP server, expanded media providers (Pruna, Seedance/Seedream, Kling 3, Luma Ray 3.2, Grok, Ideogram, …).
+**Current release: [v0.0.3](https://github.com/piyu/piyu/releases/tag/v0.0.3)** — unified CLI, FastMCP server, expanded media providers (Pruna, Seedance/Seedream, Kling 3, Luma Ray 3.2, Grok, Ideogram, …).
 
-📚 **Full documentation:** [https://tryonlabs.github.io/opentryon/](https://tryonlabs.github.io/opentryon/)  
+📚 **Full documentation:** [https://piyu.github.io/piyu/](https://piyu.github.io/piyu/)  
 API tutorials, configuration, examples, and agent guides live there — not in this README.
 
 ## What you get
@@ -24,19 +24,19 @@ API tutorials, configuration, examples, and agent guides live there — not in t
 
 ## Three ways to use it
 
-1. **CLI** — `opentryon <service> --model <model> [params...]`
-2. **MCP server** — expose every registry model as tools for Claude, Cursor, or [tryon-studio](https://github.com/tryonlabs/tryon-studio)
+1. **CLI** — `piyu <service> --model <model> [params...]`
+2. **MCP server** — expose every registry model as tools for Claude, Cursor, or [tryon-studio](https://github.com/piyu/tryon-studio)
 3. **Python** — `from tryon.api import ...` (and `tryon.cli.runner.invoke_model`)
 
-The unified Next.js + Tailwind web UI is **not** in this repo — it lives in [`tryon-studio`](https://github.com/tryonlabs/tryon-studio) and talks to OpenTryOn over MCP.
+The unified Next.js + Tailwind web UI is **not** in this repo — it lives in [`tryon-studio`](https://github.com/piyu/tryon-studio) and talks to Piyu over MCP.
 
 ## Install
 
 ```bash
-git clone https://github.com/tryonlabs/opentryon.git
-cd opentryon
+git clone https://github.com/piyu/piyu.git
+cd piyu
 conda env create -f environment.yml
-conda activate opentryon
+conda activate piyu
 pip install -e .
 # Optional local/GPU models: pip install -e ".[local]"
 ```
@@ -47,22 +47,22 @@ Or with pip: `pip install -r requirements.txt && pip install -e .`
 cp env.template .env   # add the API keys you need
 ```
 
-Details: [Installation](https://tryonlabs.github.io/opentryon/docs/getting-started/installation) · [Configuration](https://tryonlabs.github.io/opentryon/docs/getting-started/configuration)
+Details: [Installation](https://piyu.github.io/piyu/docs/getting-started/installation) · [Configuration](https://piyu.github.io/piyu/docs/getting-started/configuration)
 
 ## Quick start
 
 ```bash
 # Dry-run (no API call) — verifies CLI + registry wiring
-opentryon vton --model flux-vto \
+piyu vton --model flux-vto \
   --person-image data/model-1.jpg --garment-image data/garment.png --dry-run
 
 # Real call (needs BFL_API_KEY in .env)
-opentryon vton --model flux-vto \
+piyu vton --model flux-vto \
   --person-image data/model-1.jpg --garment-image data/garment.png \
   --garment-description "olive green bomber jacket"
 
 # Multimodal understanding (needs MOONSHOT_API_KEY)
-opentryon understand --model kimi-k3 --image data/model-1.jpg \
+piyu understand --model kimi-k3 --image data/model-1.jpg \
   --prompt "Describe this outfit for a product listing." --reasoning-effort high
 ```
 
@@ -78,14 +78,14 @@ result = adapter.understand_image(
 print(result["text"])
 ```
 
-More examples: [Quickstart](https://tryonlabs.github.io/opentryon/docs/getting-started/quickstart) · [CLI](https://tryonlabs.github.io/opentryon/docs/getting-started/cli) · [API Reference](https://tryonlabs.github.io/opentryon/docs/api-reference/overview)
+More examples: [Quickstart](https://piyu.github.io/piyu/docs/getting-started/quickstart) · [CLI](https://piyu.github.io/piyu/docs/getting-started/cli) · [API Reference](https://piyu.github.io/piyu/docs/api-reference/overview)
 
 ## CLI services
 
 ```bash
-opentryon <service> --model <model> [params...]
-opentryon understand --help                    # list models
-opentryon understand --model kimi-k3 --help    # list that model's flags
+piyu <service> --model <model> [params...]
+piyu understand --help                    # list models
+piyu understand --model kimi-k3 --help    # list that model's flags
 ```
 
 | Service | Purpose | Example models |
@@ -97,7 +97,7 @@ opentryon understand --model kimi-k3 --help    # list that model's flags
 | `video-generate` | Text/image-to-video | `veo`, `sora`, `gemini-omni`, … |
 | `bg-remove` | Background removal | `ben2` |
 
-Models marked local need `pip install opentryon[local]`. Full table and flags: [Unified CLI](https://tryonlabs.github.io/opentryon/docs/getting-started/cli).
+Models marked local need `pip install piyu[local]`. Full table and flags: [Unified CLI](https://piyu.github.io/piyu/docs/getting-started/cli).
 
 ## MCP server
 
@@ -118,12 +118,12 @@ This package ships **Gradio** demos and **Jupyter** notebooks only:
 python run_demo.py --name extract_garment   # also: model_swap, outfit_generator
 ```
 
-Notebooks: [`notebooks/`](notebooks/). Web UI: [tryon-studio](https://github.com/tryonlabs/tryon-studio).
+Notebooks: [`notebooks/`](notebooks/). Web UI: [tryon-studio](https://github.com/piyu/tryon-studio).
 
 ## Layout
 
 ```
-opentryon/
+piyu/
 ├── tryon/           # Package: api/, cli/, models/, agents/, datasets/, preprocessing/
 ├── tryondiffusion/  # Research diffusion training / inference
 ├── mcp-server/      # FastMCP server (registry → tools)
@@ -140,16 +140,16 @@ opentryon/
 
 | Topic | Where |
 |---|---|
-| Install & config | [Getting Started](https://tryonlabs.github.io/opentryon/docs/getting-started/installation) |
-| CLI | [CLI guide](https://tryonlabs.github.io/opentryon/docs/getting-started/cli) |
-| MCP | [MCP server](https://tryonlabs.github.io/opentryon/docs/getting-started/mcp) · [`mcp-server/README.md`](mcp-server/README.md) |
-| OpenAPI / Postman | [Swagger guide](https://tryonlabs.github.io/opentryon/docs/getting-started/openapi-swagger) · [`openapi/`](openapi/) · [`postman/`](postman/) |
-| Per-provider APIs | [API Reference](https://tryonlabs.github.io/opentryon/docs/api-reference/overview) |
-| Local / GPU models | [Local Models](https://tryonlabs.github.io/opentryon/docs/local-models/overview) |
-| Agents | [Agents](https://tryonlabs.github.io/opentryon/docs/agents/vton-agent) |
-| Roadmap | [Roadmap](https://tryonlabs.github.io/opentryon/docs/community/roadmap) · [`ROADMAP.md`](ROADMAP.md) |
-| Add a new model | [New model checklist](https://tryonlabs.github.io/opentryon/docs/advanced/new-model-checklist) |
-| TryOnDiffusion | [Overview](https://tryonlabs.github.io/opentryon/docs/tryondiffusion/overview) · [paper](https://arxiv.org/abs/2306.08276) |
+| Install & config | [Getting Started](https://piyu.github.io/piyu/docs/getting-started/installation) |
+| CLI | [CLI guide](https://piyu.github.io/piyu/docs/getting-started/cli) |
+| MCP | [MCP server](https://piyu.github.io/piyu/docs/getting-started/mcp) · [`mcp-server/README.md`](mcp-server/README.md) |
+| OpenAPI / Postman | [Swagger guide](https://piyu.github.io/piyu/docs/getting-started/openapi-swagger) · [`openapi/`](openapi/) · [`postman/`](postman/) |
+| Per-provider APIs | [API Reference](https://piyu.github.io/piyu/docs/api-reference/overview) |
+| Local / GPU models | [Local Models](https://piyu.github.io/piyu/docs/local-models/overview) |
+| Agents | [Agents](https://piyu.github.io/piyu/docs/agents/vton-agent) |
+| Roadmap | [Roadmap](https://piyu.github.io/piyu/docs/community/roadmap) · [`ROADMAP.md`](ROADMAP.md) |
+| Add a new model | [New model checklist](https://piyu.github.io/piyu/docs/advanced/new-model-checklist) |
+| TryOnDiffusion | [Overview](https://piyu.github.io/piyu/docs/tryondiffusion/overview) · [paper](https://arxiv.org/abs/2306.08276) |
 
 When contributing docs or APIs: put long tutorials in `docs/`, not this README. Keep README as the project front door only.
 
@@ -159,12 +159,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Open an issue before large changes; pref
 
 ## License
 
-[Creative Commons BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Non-commercial use with attribution to [this repository](https://github.com/tryonlabs/opentryon); indicate any changes you make.
+[Creative Commons BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Non-commercial use with attribution to [this repository](https://github.com/piyu/piyu); indicate any changes you make.
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=tryonlabs/opentryon&type=date&legend=top-left)](https://www.star-history.com/#tryonlabs/opentryon&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=piyu/piyu&type=date&legend=top-left)](https://www.star-history.com/#piyu/piyu&type=date&legend=top-left)
 
 ---
 
-Made with ❤️ by [TryOn Labs](https://www.tryonlabs.ai) · [Discord](https://discord.gg/T5mPpZHxkY)
+Made with ❤️ by [TryOn Labs](https://www.piyu.ai) · [Discord](https://discord.gg/T5mPpZHxkY)

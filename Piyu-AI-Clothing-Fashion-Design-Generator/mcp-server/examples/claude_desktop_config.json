@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "opentryon": {
+    "piyu": {
       "command": "python",
-      "args": ["/absolute/path/to/opentryon/mcp-server/server.py"],
+      "args": ["/absolute/path/to/piyu/mcp-server/server.py"],
       "env": {
         "PYTHONUNBUFFERED": "1"
       }

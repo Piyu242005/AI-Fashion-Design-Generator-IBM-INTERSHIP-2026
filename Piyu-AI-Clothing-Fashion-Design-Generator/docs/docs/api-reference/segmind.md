@@ -12,7 +12,7 @@ Segmind's Try-On Diffusion API combines a model image (person) with a cloth imag
 
 ## Installation
 
-No additional installation required. The adapter uses the `requests` library which is included with OpenTryOn.
+No additional installation required. The adapter uses the `requests` library which is included with Piyu.
 
 ## Authentication
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""OpenTryOn MCP Server.
+"""Piyu MCP Server.
 
-Exposes every ``opentryon <service> --model <model>`` combination as an MCP
+Exposes every ``piyu <service> --model <model>`` combination as an MCP
 tool, built on `FastMCP <https://gofastmcp.com>`_ (>= 3.4).
 
 Tools are generated **dynamically** from :data:`tryon.cli.registry.SERVICES`
--- the same data-driven registry that powers the ``opentryon`` CLI -- rather
+-- the same data-driven registry that powers the ``piyu`` CLI -- rather
 than hand-written one at a time. That means every model reachable via
-``opentryon <service> --model <model> ...`` (virtual try-on, image
+``piyu <service> --model <model> ...`` (virtual try-on, image
 generation/editing, image & video understanding, video generation,
 background removal -- including Kimi, FLUX VTO/2, GPT Image, Sora, Veo,
 Nano Banana, BEN2, etc.) is automatically exposed here too, and any new
@@ -50,16 +50,16 @@ __version__ = "0.1.0"
 
 
 mcp = FastMCP(
-    name="opentryon",
+    name="piyu",
     version=__version__,
     instructions=(
-        "OpenTryOn is an open-source AI toolkit for fashion tech, virtual "
+        "Piyu is an open-source AI toolkit for fashion tech, virtual "
         "try-on, and general multimodal understanding. Every tool here maps "
-        "1:1 to `opentryon <service> --model <model>` from the opentryon "
+        "1:1 to `piyu <service> --model <model>` from the piyu "
         "CLI and is named '<service>_<model>' (dashes/dots become "
         "underscores), e.g. 'vton_flux_vto', 'understand_kimi_k2_6', "
         "'generate_nano_banana_pro', 'video_generate_veo'. "
-        "Call `list_opentryon_tools` first to discover every available "
+        "Call `list_piyu_tools` first to discover every available "
         "service/model combination, which environment variable(s) each one "
         "needs, and whether it is already configured in this environment. "
         "Every generated tool accepts a `dry_run` boolean to preview the "
@@ -119,7 +119,7 @@ def _build_docstring(spec: ModelSpec) -> str:
     if spec.extra == "local":
         lines.append(
             "Runs locally on this machine's GPU/CPU; requires "
-            "`pip install opentryon[local]`."
+            "`pip install piyu[local]`."
         )
     lines.append("")
     for arg in spec.args:
@@ -196,8 +196,8 @@ def register_model_tools(app: FastMCP) -> int:
 # --------------------------------------------------------------------------
 
 @mcp.tool
-def list_opentryon_tools(service: Optional[str] = None) -> Dict[str, Any]:
-    """List every OpenTryOn service/model combination available as an MCP
+def list_piyu_tools(service: Optional[str] = None) -> Dict[str, Any]:
+    """List every Piyu service/model combination available as an MCP
     tool, along with which environment variable(s) each one needs and
     whether it is currently configured in this server's environment.
 
@@ -234,7 +234,7 @@ def list_opentryon_tools(service: Optional[str] = None) -> Dict[str, Any]:
 
 
 @mcp.tool
-def opentryon_status() -> str:
+def piyu_status() -> str:
     """Human-readable configuration status: which API keys are set, which
     services/models are ready to use, and setup hints for anything missing.
     """
@@ -245,7 +245,7 @@ TOOL_COUNT = register_model_tools(mcp)
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="OpenTryOn MCP server")
+    parser = argparse.ArgumentParser(description="Piyu MCP server")
     parser.add_argument(
         "--transport",
         choices=["stdio", "http", "sse"],
@@ -261,7 +261,7 @@ def main() -> None:
     args = _build_arg_parser().parse_args()
 
     print(config.status_message(), file=sys.stderr)
-    print(f"\nStarting OpenTryOn MCP Server ({TOOL_COUNT} model tools + 2 discovery tools)...", file=sys.stderr)
+    print(f"\nStarting Piyu MCP Server ({TOOL_COUNT} model tools + 2 discovery tools)...", file=sys.stderr)
 
     if args.transport == "stdio":
         mcp.run()

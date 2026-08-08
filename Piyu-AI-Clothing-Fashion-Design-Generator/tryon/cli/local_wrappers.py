@@ -16,7 +16,7 @@ class LlavaNextUnderstandAdapter:
     LLaVA-NeXT pipeline for image understanding / captioning.
 
     Requires a CUDA GPU (the underlying pipeline hard-codes ``cuda:0``)
-    and the ``local`` extra (``pip install opentryon[local]``).
+    and the ``local`` extra (``pip install piyu[local]``).
     """
 
     def __init__(self):

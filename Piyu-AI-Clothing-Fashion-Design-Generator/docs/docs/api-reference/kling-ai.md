@@ -12,7 +12,7 @@ Kling AI's Kolors Virtual Try-On API combines a source image (person/model) with
 
 ## Installation
 
-No additional installation required. The adapter uses the `requests` and `PyJWT` libraries which are included with OpenTryOn.
+No additional installation required. The adapter uses the `requests` and `PyJWT` libraries which are included with Piyu.
 
 ## Authentication
 

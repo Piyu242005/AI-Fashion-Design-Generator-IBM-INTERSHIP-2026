@@ -1,6 +1,6 @@
 # Contributing
 
-We welcome contributions to OpenTryOn! This guide will help you get started.
+We welcome contributions to Piyu! This guide will help you get started.
 
 ## How to Contribute
 
@@ -15,8 +15,8 @@ Before making changes, we recommend:
 
 ```bash
 # Fork the repository on GitHub
-git clone https://github.com/YOUR_USERNAME/opentryon.git
-cd opentryon
+git clone https://github.com/YOUR_USERNAME/piyu.git
+cd piyu
 ```
 
 ### 3. Create a Branch
@@ -53,12 +53,12 @@ flake8 .
 
 ```bash
 # Clone repository
-git clone https://github.com/tryonlabs/opentryon.git
-cd opentryon
+git clone https://github.com/piyu/piyu.git
+cd piyu
 
 # Create development environment
 conda env create -f environment.yml
-conda activate opentryon
+conda activate piyu
 
 # Install in development mode
 pip install -e ".[dev]"
@@ -83,7 +83,7 @@ pip install -e ".[dev]"
 ## Questions?
 
 - Join our [Discord](https://discord.gg/T5mPpZHxkY)
-- Open an issue on [GitHub](https://github.com/tryonlabs/opentryon/issues)
+- Open an issue on [GitHub](https://github.com/piyu/piyu/issues)
 
 Thank you for contributing! 🎉
 

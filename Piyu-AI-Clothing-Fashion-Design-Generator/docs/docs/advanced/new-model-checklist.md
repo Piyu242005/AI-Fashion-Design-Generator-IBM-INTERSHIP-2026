@@ -1,19 +1,19 @@
 ---
 sidebar_position: 5
 title: Adding a New Model Integration
-description: Checklist of every code change required to add a new cloud API or open-weight local model to OpenTryOn, including the opentryon CLI.
+description: Checklist of every code change required to add a new cloud API or open-weight local model to Piyu, including the piyu CLI.
 keywords:
   - contributing
   - new model
   - adapter
   - checklist
-  - opentryon CLI
+  - piyu CLI
 ---
 
 # Adding a New Model Integration
 
 This is the checklist we follow whenever a new model/provider (cloud API or
-open-weight/local) is added to OpenTryOn. Use it as a PR checklist -- most
+open-weight/local) is added to Piyu. Use it as a PR checklist -- most
 integrations touch every item below.
 
 ## 1. Decide where the adapter lives
@@ -118,7 +118,7 @@ __all__ = ["YourAdapter"]
   `install_requires` (core install).
 - Heavy ML dependency (torch, transformers, diffusers, a model-specific
   package) → `LOCAL_INFERENCE_DEPS`, which feeds the `local` / `training` /
-  `all` extras. Keep `pip install opentryon` free of GPU dependencies.
+  `all` extras. Keep `pip install piyu` free of GPU dependencies.
 
 ## 6. Add environment variables
 
@@ -127,7 +127,7 @@ __all__ = ["YourAdapter"]
 - Document the same variable in the README's environment/setup section and
   in the adapter's own docs page (see step 9).
 
-## 7. Wire it into the `opentryon` CLI
+## 7. Wire it into the `piyu` CLI
 
 Add a `ModelSpec` entry to the right service dict in `tryon/cli/registry.py`
 (`vton`, `generate`, `edit`, `understand`, `video-generate`, `bg-remove`, or

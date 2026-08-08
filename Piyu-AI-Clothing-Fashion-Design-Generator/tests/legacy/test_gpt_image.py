@@ -21,7 +21,7 @@ list_of_images.extend(images)
 
 # ---------- Image → Image ----------
 images = adapter.generate_image_edit(
-    images= "/home/naveen/dev/opentryon/outputs/generated_3.png",
+    images= "/home/naveen/dev/piyu/outputs/generated_3.png",
     prompt="Make the hat red and stylish",
     size="1024x1024",
     quality="high",

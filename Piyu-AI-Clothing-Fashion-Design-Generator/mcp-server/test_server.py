@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Lightweight, offline sanity checks for the OpenTryOn MCP server.
+"""Lightweight, offline sanity checks for the Piyu MCP server.
 
 Mirrors the structure of ``../tests/test_cli.py``: plain functions (no
 pytest dependency), run top to bottom, each asserting one thing and
 printing a checkmark. Everything here is a dry-run / in-process check --
 no network calls, no API keys required.
 
-Run with the same interpreter that has ``fastmcp`` and ``opentryon``
+Run with the same interpreter that has ``fastmcp`` and ``piyu``
 installed:
 
     python test_server.py
@@ -34,7 +34,7 @@ def _count_registry_models() -> int:
 
 async def check_tool_count_matches_registry() -> None:
     tools = await server.mcp._list_tools()
-    expected = _count_registry_models() + 2  # + list_opentryon_tools, opentryon_status
+    expected = _count_registry_models() + 2  # + list_piyu_tools, piyu_status
     assert len(tools) == expected, f"expected {expected} tools, got {len(tools)}"
     print(f"\u2713 {len(tools)} MCP tools registered ({_count_registry_models()} models + 2 discovery tools)")
 
@@ -107,7 +107,7 @@ async def check_dry_run_calls() -> None:
             tool = await server.mcp.get_tool(name)
             result = await tool.run(args)
             data = result.structured_content
-            assert data["success"] is False and "opentryon[local]" in data["error"], f"{name}: {data}"
+            assert data["success"] is False and "piyu[local]" in data["error"], f"{name}: {data}"
             checked += 1
             continue
         tool = await server.mcp.get_tool(name)
@@ -139,8 +139,8 @@ async def check_unknown_service_and_model_errors() -> None:
     print("\u2713 invoke_model returns structured errors for unknown service/model")
 
 
-async def check_list_opentryon_tools() -> None:
-    tool = await server.mcp.get_tool("list_opentryon_tools")
+async def check_list_piyu_tools() -> None:
+    tool = await server.mcp.get_tool("list_piyu_tools")
     result = await tool.run({"service": "understand"})
     data = result.structured_content
     assert "kimi-k2.6" in data["services"]["understand"]["models"]
@@ -149,14 +149,14 @@ async def check_list_opentryon_tools() -> None:
 
     bad = await tool.run({"service": "not-a-service"})
     assert bad.structured_content["success"] is False
-    print("\u2713 list_opentryon_tools lists models and rejects unknown services")
+    print("\u2713 list_piyu_tools lists models and rejects unknown services")
 
 
 async def check_status_message_mentions_every_service() -> None:
     msg = server.config.status_message()
     for service in SERVICES:
         assert f"[{service}]" in msg, f"missing section for {service}"
-    print("\u2713 opentryon_status covers every service")
+    print("\u2713 piyu_status covers every service")
 
 
 async def main() -> None:
@@ -168,7 +168,7 @@ async def main() -> None:
         check_dry_run_calls,
         check_alt_method_on_image_switches_method,
         check_unknown_service_and_model_errors,
-        check_list_opentryon_tools,
+        check_list_piyu_tools,
         check_status_message_mentions_every_service,
     ]
     for check in checks:

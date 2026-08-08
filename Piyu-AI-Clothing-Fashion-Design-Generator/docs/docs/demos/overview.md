@@ -1,6 +1,6 @@
 # Demos
 
-OpenTryOn includes interactive demos for easy experimentation and testing.
+Piyu includes interactive demos for easy experimentation and testing.
 
 ## Available Demos
 

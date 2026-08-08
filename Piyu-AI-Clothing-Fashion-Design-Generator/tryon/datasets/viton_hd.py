@@ -411,7 +411,7 @@ class VITONHD(Dataset):
         
         Args:
             data_dir: Directory containing the dataset. If None, uses default location
-                     (~/.opentryon/datasets/viton_hd)
+                     (~/.piyu/datasets/viton_hd)
             download: If True, attempt to download the dataset (not implemented yet).
                      Currently, users must manually download the dataset.
             train_pairs_file: Name of training pairs file (default: "train_pairs.txt")
@@ -437,9 +437,9 @@ class VITONHD(Dataset):
         Get the default data directory for VITON-HD.
         
         Returns:
-            Path to default data directory (~/.opentryon/datasets/viton_hd)
+            Path to default data directory (~/.piyu/datasets/viton_hd)
         """
-        data_dir = Path.home() / '.opentryon' / 'datasets' / 'viton_hd'
+        data_dir = Path.home() / '.piyu' / 'datasets' / 'viton_hd'
         data_dir.mkdir(parents=True, exist_ok=True)
         return data_dir
     

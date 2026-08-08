@@ -105,7 +105,7 @@ Subjects200K(data_dir: Optional[str] = None, download: bool = True, cache_dir: O
 ```
 
 **Parameters:**
-- `data_dir` (str, optional): Directory to store the dataset cache. Defaults to `~/.opentryon/datasets/subjects200k`
+- `data_dir` (str, optional): Directory to store the dataset cache. Defaults to `~/.piyu/datasets/subjects200k`
 - `download` (bool): If `True`, download the dataset if it doesn't exist. Default: `True`
 - `cache_dir` (str, optional): Optional cache directory for HuggingFace datasets
 

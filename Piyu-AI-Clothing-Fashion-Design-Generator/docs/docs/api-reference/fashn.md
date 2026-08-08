@@ -103,14 +103,14 @@ automatically.
 After a successful call, `adapter.last_prediction_id` and
 `adapter.last_credits_used` are set from the response.
 
-## opentryon CLI / MCP Server
+## piyu CLI / MCP Server
 
 ```bash
-opentryon vton --model fashn-tryon-max \
+piyu vton --model fashn-tryon-max \
   --model-image model.png --garment-image garment.png \
   --resolution 2k --generation-mode quality
 
-opentryon vton --model fashn-tryon-v1.6 \
+piyu vton --model fashn-tryon-v1.6 \
   --model-image model.png --garment-image garment.png --mode performance
 ```
 

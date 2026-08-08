@@ -1,6 +1,6 @@
 # Local Models Overview
 
-OpenTryOn provides adapters for local inference models that run directly on your hardware. Unlike the cloud API adapters in `tryon.api`, these models require local GPU resources but offer several advantages:
+Piyu provides adapters for local inference models that run directly on your hardware. Unlike the cloud API adapters in `tryon.api`, these models require local GPU resources but offer several advantages:
 
 - **No API costs**: Run unlimited inferences without per-request charges
 - **Privacy**: Your data never leaves your machine

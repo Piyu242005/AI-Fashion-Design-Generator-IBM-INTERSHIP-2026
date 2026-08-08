@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and solutions when using OpenTryOn.
+Common issues and solutions when using Piyu.
 
 ## Import Errors
 
@@ -12,7 +12,7 @@ ModuleNotFoundError: No module named 'tryon'
 ```
 
 **Solution:**
-Ensure OpenTryOn is installed:
+Ensure Piyu is installed:
 
 ```bash
 pip install -e .
@@ -99,7 +99,7 @@ Always load environment variables first:
 from dotenv import load_dotenv
 load_dotenv()
 
-# Then import OpenTryOn modules
+# Then import Piyu modules
 from tryon.preprocessing import segment_garment
 ```
 
@@ -132,16 +132,16 @@ Use conda environment:
 
 ```bash
 conda env create -f environment.yml
-conda activate opentryon
+conda activate piyu
 ```
 
 ## Still Having Issues?
 
-1. Check [GitHub Issues](https://github.com/tryonlabs/opentryon/issues)
+1. Check [GitHub Issues](https://github.com/piyu/piyu/issues)
 2. Join [Discord](https://discord.gg/T5mPpZHxkY)
 3. Open a new issue with:
    - Error message
    - Python version
-   - OpenTryOn version
+   - Piyu version
    - Steps to reproduce
 

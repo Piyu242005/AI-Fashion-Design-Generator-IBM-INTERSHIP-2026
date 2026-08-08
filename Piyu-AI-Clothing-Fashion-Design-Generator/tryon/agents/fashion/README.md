@@ -4,7 +4,7 @@ The Fashion Agent is a comprehensive LangChain-based AI agent that can perform v
 
 ## Overview
 
-The Fashion Agent intelligently analyzes user requests and selects the appropriate tools from OpenTryOn's comprehensive toolset to accomplish the requested tasks. It provides a unified interface for all fashion-related operations.
+The Fashion Agent intelligently analyzes user requests and selects the appropriate tools from Piyu's comprehensive toolset to accomplish the requested tasks. It provides a unified interface for all fashion-related operations.
 
 ## Capabilities
 
@@ -45,7 +45,7 @@ The Fashion Agent has access to 20+ tools organized into the following categorie
 ## Installation
 
 ```bash
-pip install opentryon
+pip install piyu
 ```
 
 ## Usage
@@ -342,8 +342,8 @@ if image_result['status'] == 'success':
 ### Import Errors
 
 ```python
-# Make sure OpenTryOn is installed
-pip install --upgrade opentryon
+# Make sure Piyu is installed
+pip install --upgrade piyu
 ```
 
 ### API Key Errors
@@ -364,7 +364,7 @@ print(os.getenv("OPENAI_API_KEY"))  # Should not be None
 
 ## See Also
 
-- [OpenTryOn Documentation](https://tryonlabs.github.io/opentryon/)
+- [Piyu Documentation](https://piyu.github.io/piyu/)
 - [Tools Module Documentation](../tools/README.md)
 - [Virtual Try-On Agent](../vton/README.md)
 - [Model Swap Agent](../model_swap/README.md)

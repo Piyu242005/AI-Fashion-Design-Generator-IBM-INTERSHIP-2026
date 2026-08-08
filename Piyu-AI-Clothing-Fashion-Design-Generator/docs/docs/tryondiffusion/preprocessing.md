@@ -10,5 +10,5 @@ Preprocessing pipeline for TryOnDiffusion training data.
 - `ia`: Cloth-agnostic RGB
 - `ic`: Segmented garments
 
-See [TryOnDiffusion README](https://github.com/tryonlabs/opentryon/tree/main/tryondiffusion/README.md) for preprocessing details.
+See [TryOnDiffusion README](https://github.com/piyu/piyu/tree/main/tryondiffusion/README.md) for preprocessing details.
 

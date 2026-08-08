@@ -2,7 +2,7 @@
 
 ## Creative Commons BY-NC 4.0
 
-All material in OpenTryOn is made available under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
+All material in Piyu is made available under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
 
 ### What this means:
 
@@ -16,18 +16,18 @@ All material in OpenTryOn is made available under the [Creative Commons Attribut
 
 ### For Commercial Use
 
-If you need to use OpenTryOn for commercial purposes, please contact us at [contact@tryonlabs.ai](mailto:contact@tryonlabs.ai).
+If you need to use Piyu for commercial purposes, please contact us at [contact@piyu.ai](mailto:contact@piyu.ai).
 
 ### Attribution
 
-When using OpenTryOn, please cite:
+When using Piyu, please cite:
 
 ```
-OpenTryOn: Open-source AI toolkit for fashion tech and virtual try-on
-https://github.com/tryonlabs/opentryon
+Piyu: Open-source AI toolkit for fashion tech and virtual try-on
+https://github.com/piyu/piyu
 ```
 
 ### Questions?
 
-For license questions, contact [contact@tryonlabs.ai](mailto:contact@tryonlabs.ai).
+For license questions, contact [contact@piyu.ai](mailto:contact@piyu.ai).
 

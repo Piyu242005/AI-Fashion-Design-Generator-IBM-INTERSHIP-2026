@@ -14,7 +14,7 @@ _ROOT = pathlib.Path(__file__).resolve().parent
 _TARGET = _ROOT / "examples" / "agents" / "model_swap_agent.py"
 
 print(
-    "[opentryon] WARNING: `model_swap_agent.py` is legacy; moved to examples/agents.",
+    "[piyu] WARNING: `model_swap_agent.py` is legacy; moved to examples/agents.",
     file=sys.stderr,
 )
 

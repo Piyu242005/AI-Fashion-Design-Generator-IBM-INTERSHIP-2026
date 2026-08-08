@@ -89,19 +89,19 @@ re-uploading the prior clip.
 When `previous_interaction_id` is passed to `generate_text_to_video` /
 `generate_image_to_video`, the request is treated as an `edit` task.
 
-## opentryon CLI / MCP Server
+## piyu CLI / MCP Server
 
 ```bash
 # Text-to-video
-opentryon video-generate --model gemini-omni \
+piyu video-generate --model gemini-omni \
   --prompt "A fashion model walking a runway" --aspect-ratio 9:16
 
 # Image-to-video (passing --image switches the method)
-opentryon video-generate --model gemini-omni \
+piyu video-generate --model gemini-omni \
   --prompt "Animate a slow walk toward camera" --image photo.jpg
 
 # Conversational edit
-opentryon video-generate --model gemini-omni \
+piyu video-generate --model gemini-omni \
   --prompt "Dim the lights" --previous-interaction-id <id>
 ```
 

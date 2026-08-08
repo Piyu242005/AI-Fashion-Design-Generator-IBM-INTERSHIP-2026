@@ -1,14 +1,14 @@
 ---
 sidebar_position: 3
 title: Roadmap
-description: OpenTryOn roadmap — v0.0.3 invoke layer shipped; next is Fashion ML Toolkit Core toward v0.1.0
+description: Piyu roadmap — v0.0.3 invoke layer shipped; next is Fashion ML Toolkit Core toward v0.1.0
 ---
 
 # Roadmap
 
-> **Last Updated**: 3 August 2026 · **Current release**: [v0.0.3](https://pypi.org/project/opentryon/0.0.3/) · **Next**: **v0.1.0 Fashion ML Toolkit Core**
+> **Last Updated**: 3 August 2026 · **Current release**: [v0.0.3](https://pypi.org/project/piyu/0.0.3/) · **Next**: **v0.1.0 Fashion ML Toolkit Core**
 
-Canonical file: [`ROADMAP.md`](https://github.com/tryonlabs/opentryon/blob/main/ROADMAP.md) · Strategy: [`VISION.md`](https://github.com/tryonlabs/opentryon/blob/main/VISION.md)
+Canonical file: [`ROADMAP.md`](https://github.com/piyu/piyu/blob/main/ROADMAP.md) · Strategy: [`VISION.md`](https://github.com/piyu/piyu/blob/main/VISION.md)
 
 **Audience priority:** fashion AI/ML engineers · agent builders · app builders · fashion companies (train + MCP) · CLI-first developers.
 
@@ -20,15 +20,15 @@ Canonical file: [`ROADMAP.md`](https://github.com/tryonlabs/opentryon/blob/main/
 - Broad cloud try-on / generate / edit / video / understand adapters
 - **OpenAPI / Postman** media snapshots, docs, Gradio demos
 - Local extras (FLUX.2 Turbo, Kimi-VL, LLaVA-NeXT, BEN2)
-- Web UI in [`tryon-studio`](https://github.com/tryonlabs/tryon-studio) over MCP
+- Web UI in [`tryon-studio`](https://github.com/piyu/tryon-studio) over MCP
 
 ## Next — Fashion ML Toolkit Core → v0.1.0
 
 | Slice | Focus |
 |---|---|
 | **A — Data & prompts** | Versioned prompt packs, train-pack schema, `data` CLI helpers |
-| **B — Train** | Brand-style LoRA + one VTON/local LoRA path; `opentryon train` |
-| **C — Eval** | Fashion Bench v0, side-by-side reports; `opentryon eval` |
+| **B — Train** | Brand-style LoRA + one VTON/local LoRA path; `piyu train` |
+| **C — Eval** | Fashion Bench v0, side-by-side reports; `piyu eval` |
 | **D — Local VTON** | Productize **one** of CatVTON / IDM-VTON / OOTDiffusion |
 | **E — Workflows** | MCP-native Try-On QA *or* Fine-Tune Coach (task agent, not chatbot) |
 | **F — Efficiency card** | VRAM/latency table for the path we actually ship |

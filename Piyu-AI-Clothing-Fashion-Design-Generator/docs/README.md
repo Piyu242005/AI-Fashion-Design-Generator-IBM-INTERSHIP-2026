@@ -1,6 +1,6 @@
-# OpenTryOn Documentation
+# Piyu Documentation
 
-This directory contains the Docusaurus documentation site for OpenTryOn.
+This directory contains the Docusaurus documentation site for Piyu.
 
 ## Development
 

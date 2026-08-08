@@ -1,4 +1,4 @@
-name: opentryon
+name: piyu
 channels:
   - defaults
 dependencies:
@@ -172,4 +172,4 @@ dependencies:
     - langchain-openai>=0.2.0
     - langchain-anthropic>=0.2.0
     - langchain-google-genai>=2.0.0
-prefix: /Users/apple/miniconda3/envs/opentryon
+prefix: /Users/apple/miniconda3/envs/piyu

@@ -8,7 +8,7 @@ long_description = (this_directory / "README.md").read_text()
 # Heavy, GPU-oriented stack needed only for local/on-device inference
 # (BEN2 background removal, LLaVA-NeXT understanding, FLUX.2-dev Turbo,
 # Kimi-VL understanding) and for training via tryondiffusion. Kept out of
-# the core install so `pip install opentryon` (cloud API adapters + CLI)
+# the core install so `pip install piyu` (cloud API adapters + CLI)
 # stays light.
 #
 # Note: Kimi-VL (moonshotai/Kimi-VL-*) recommends transformers>=4.48.2 in
@@ -31,21 +31,21 @@ LOCAL_INFERENCE_DEPS = [
 ]
 
 setup(
-    name="opentryon",
+    name="piyu",
     version="0.0.3",
     description="Open-source AI toolkit for fashion tech and virtual try-on",
     long_description=long_description,
     long_description_content_type='text/markdown',
     author="TryOn Labs",
-    author_email="contact@tryonlabs.ai",
-    url='https://github.com/tryonlabs/opentryon',
+    author_email="contact@piyu.ai",
+    url='https://github.com/piyu/piyu',
     license='CC-BY-NC-4.0',
     packages=find_packages(include=['tryon', 'tryon.*', 'tryondiffusion', 'tryondiffusion.*']),
     python_requires='>=3.10',
     # Core install stays light: it only covers the cloud API adapters (tryon.api,
-    # minus BEN2) and the `opentryon` CLI. Local/on-device inference (BEN2
+    # minus BEN2) and the `piyu` CLI. Local/on-device inference (BEN2
     # background removal, LLaVA-NeXT understanding, FLUX.2-dev Turbo, and
-    # tryondiffusion training) needs `pip install opentryon[local]`.
+    # tryondiffusion training) needs `pip install piyu[local]`.
     install_requires=[
         "numpy==1.26.4",
         "pillow==10.1.0",
@@ -95,14 +95,14 @@ setup(
         "License :: Other/Proprietary License",
     ],
     project_urls={
-        'Documentation': 'https://tryonlabs.github.io/opentryon/',
-        'Source': 'https://github.com/tryonlabs/opentryon',
-        'Bug Reports': 'https://github.com/tryonlabs/opentryon/issues',
+        'Documentation': 'https://piyu.github.io/piyu/',
+        'Source': 'https://github.com/piyu/piyu',
+        'Bug Reports': 'https://github.com/piyu/piyu/issues',
         'Discord': 'https://discord.gg/T5mPpZHxkY',
     },
     entry_points={
         "console_scripts": [
-            "opentryon=tryon.cli.main:cli_entry",
+            "piyu=tryon.cli.main:cli_entry",
         ],
     },
     extras_require={

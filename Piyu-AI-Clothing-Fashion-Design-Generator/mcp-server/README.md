@@ -1,14 +1,14 @@
-# OpenTryOn MCP Server
+# Piyu MCP Server
 
-An [MCP](https://modelcontextprotocol.io) (Model Context Protocol) server that exposes every model in the [`opentryon`](../README.md) toolkit -- virtual try-on, image/video generation & editing, multimodal image & video understanding, and background removal -- as tools an LLM agent (Claude, Cursor, ChatGPT, or any MCP client) can call directly.
+An [MCP](https://modelcontextprotocol.io) (Model Context Protocol) server that exposes every model in the [`piyu`](../README.md) toolkit -- virtual try-on, image/video generation & editing, multimodal image & video understanding, and background removal -- as tools an LLM agent (Claude, Cursor, ChatGPT, or any MCP client) can call directly.
 
-Requires **OpenTryOn v0.0.3+** (`pip install -U opentryon`). Docs: [MCP Server guide](https://tryonlabs.github.io/opentryon/docs/getting-started/mcp).
+Requires **Piyu v0.0.3+** (`pip install -U piyu`). Docs: [MCP Server guide](https://piyu.github.io/piyu/docs/getting-started/mcp).
 
 Built on [FastMCP](https://gofastmcp.com) 3.x, the actively-maintained, high-level Python framework for MCP servers (FastMCP 1.0 was folded into the official MCP Python SDK in 2024; this server uses the standalone FastMCP 2/3 project, which adds streamable-HTTP transport, better auth, and much less boilerplate).
 
 ## Why this is registry-driven
 
-Every tool below is generated **dynamically** at import time from `tryon.cli.registry.SERVICES` -- the exact same data-driven registry that powers the `opentryon` CLI (see [`getting-started/cli.md`](../docs/docs/getting-started/cli.md)). There is no hand-written per-model wrapper function and no JSON schema to maintain by hand.
+Every tool below is generated **dynamically** at import time from `tryon.cli.registry.SERVICES` -- the exact same data-driven registry that powers the `piyu` CLI (see [`getting-started/cli.md`](../docs/docs/getting-started/cli.md)). There is no hand-written per-model wrapper function and no JSON schema to maintain by hand.
 
 This means:
 
@@ -19,7 +19,7 @@ This means:
 ## Installation
 
 ```bash
-cd opentryon
+cd piyu
 pip install -e .              # core (API-backed) models
 # or, to also enable local/GPU models (llava-next, kimi-vl, flux2-turbo, ben2):
 pip install -e ".[local]"
@@ -40,7 +40,7 @@ python server.py
 python server.py --transport http --host 0.0.0.0 --port 8000
 ```
 
-On startup the server prints a configuration status report to stderr (which API keys are set, which models are ready) -- the same information the `opentryon_status` tool returns at runtime.
+On startup the server prints a configuration status report to stderr (which API keys are set, which models are ready) -- the same information the `piyu_status` tool returns at runtime.
 
 ### Claude Desktop
 
@@ -49,9 +49,9 @@ Add to `claude_desktop_config.json` (see [`examples/claude_desktop_config.json`]
 ```json
 {
   "mcpServers": {
-    "opentryon": {
+    "piyu": {
       "command": "python",
-      "args": ["/absolute/path/to/opentryon/mcp-server/server.py"]
+      "args": ["/absolute/path/to/piyu/mcp-server/server.py"]
     }
   }
 }
@@ -64,9 +64,9 @@ Add to `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global) -- see [`ex
 ```json
 {
   "mcpServers": {
-    "opentryon": {
+    "piyu": {
       "command": "python",
-      "args": ["/absolute/path/to/opentryon/mcp-server/server.py"]
+      "args": ["/absolute/path/to/piyu/mcp-server/server.py"]
     }
   }
 }
@@ -96,12 +96,12 @@ asyncio.run(main())
 
 Two meta tools are always available regardless of what's configured:
 
-- **`list_opentryon_tools(service=None)`** -- lists every service/model combination, its MCP tool name, which env var(s) it needs, and whether it's currently configured. Call this first.
-- **`opentryon_status()`** -- the same human-readable status report printed on startup.
+- **`list_piyu_tools(service=None)`** -- lists every service/model combination, its MCP tool name, which env var(s) it needs, and whether it's currently configured. Call this first.
+- **`piyu_status()`** -- the same human-readable status report printed on startup.
 
 ## Every generated tool accepts
 
-- All of the model's own parameters (mirrors `opentryon <service> --model <model> --help` exactly), with the same required/optional-ness, defaults, and choice/enum constraints as the CLI.
+- All of the model's own parameters (mirrors `piyu <service> --model <model> --help` exactly), with the same required/optional-ness, defaults, and choice/enum constraints as the CLI.
 - **`dry_run`** (bool, default `false`) -- preview the resolved adapter call (`ClassName(**init_kwargs).method(**call_kwargs)`) without hitting any API, GPU, or network.
 - **`output_dir`** (str, default `"outputs"`) -- where to save any resulting images/video/JSON.
 
@@ -186,7 +186,7 @@ Every tool returns a structured dict: `{"success": true/false, ...}` -- never ra
 |---|---|---|
 | `bg_remove_ben2` | BEN2 background remover (local) | local/GPU |
 
-Run `list_opentryon_tools()` at any time for the live, authoritative version of this table (including per-model parameter docs) plus real-time configuration status.
+Run `list_piyu_tools()` at any time for the live, authoritative version of this table (including per-model parameter docs) plus real-time configuration status.
 
 ## Architecture
 
@@ -203,7 +203,7 @@ mcp-server/
     └── example_usage.py
 ```
 
-`server.py`'s core trick (`_build_tool_fn`): for each `ModelSpec` in the registry, it builds a real Python function whose `inspect.signature()` has one keyword-only parameter per `Arg` (correct type -- `str`/`int`/`float`/`List[str]`/`Literal[...]` for `choices`/`bool` for flags -- and correct required-ness/default), then registers it with `@mcp.tool`. FastMCP inspects that signature to generate the tool's JSON schema, so the schema is always in sync with the registry with no manual duplication. The function body itself is a one-liner that forwards everything to `tryon.cli.runner.invoke_model(service, model, **kwargs)` -- the same execution path `opentryon <service> --model <model>` uses on the CLI.
+`server.py`'s core trick (`_build_tool_fn`): for each `ModelSpec` in the registry, it builds a real Python function whose `inspect.signature()` has one keyword-only parameter per `Arg` (correct type -- `str`/`int`/`float`/`List[str]`/`Literal[...]` for `choices`/`bool` for flags -- and correct required-ness/default), then registers it with `@mcp.tool`. FastMCP inspects that signature to generate the tool's JSON schema, so the schema is always in sync with the registry with no manual duplication. The function body itself is a one-liner that forwards everything to `tryon.cli.runner.invoke_model(service, model, **kwargs)` -- the same execution path `piyu <service> --model <model>` uses on the CLI.
 
 ## Testing
 
@@ -217,10 +217,10 @@ Checks (all offline, no API keys or GPU required):
 - representative `dry_run` calls resolve to the expected adapter call across services (vton, generate, edit, understand, video-generate, bg-remove)
 - `alt_method_on_image` models (veo/sora/luma-video) switch from text-to-video to image-to-video only when an image is supplied
 - unknown service/model and missing-local-extra cases return structured errors instead of raising
-- the two discovery tools (`list_opentryon_tools`, `opentryon_status`) work and reject invalid input
+- the two discovery tools (`list_piyu_tools`, `piyu_status`) work and reject invalid input
 
 ## Troubleshooting
 
-- **"requires local ML dependencies that aren't installed"** -- run `pip install opentryon[local]` in the same environment the server runs in, and make sure you have a CUDA GPU for the local models that need one.
-- **A tool call returns `{"success": false, "error": "..."}`** -- this is by design: adapter/API errors are caught and returned as structured data rather than crashing the MCP connection. Check `error` (and `traceback` for real failures) for details, or call `opentryon_status` to check whether the required API key is set.
+- **"requires local ML dependencies that aren't installed"** -- run `pip install piyu[local]` in the same environment the server runs in, and make sure you have a CUDA GPU for the local models that need one.
+- **A tool call returns `{"success": false, "error": "..."}`** -- this is by design: adapter/API errors are caught and returned as structured data rather than crashing the MCP connection. Check `error` (and `traceback` for real failures) for details, or call `piyu_status` to check whether the required API key is set.
 - **Tool not appearing** -- restart the server after editing `.env` or the registry; tools are built once at import time.

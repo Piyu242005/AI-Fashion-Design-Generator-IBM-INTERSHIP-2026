@@ -70,7 +70,7 @@ class FashionMNIST(Dataset):
         Initialize Fashion-MNIST dataset.
         
         Args:
-            data_dir: Directory to store the dataset. If None, uses ~/.opentryon/datasets/fashion_mnist
+            data_dir: Directory to store the dataset. If None, uses ~/.piyu/datasets/fashion_mnist
             download: If True, download the dataset if it doesn't exist
         """
         super().__init__(data_dir=data_dir, download=download)
@@ -79,7 +79,7 @@ class FashionMNIST(Dataset):
     
     def _get_default_data_dir(self) -> Path:
         """Get the default data directory for Fashion-MNIST."""
-        data_dir = Path.home() / '.opentryon' / 'datasets' / 'fashion_mnist'
+        data_dir = Path.home() / '.piyu' / 'datasets' / 'fashion_mnist'
         data_dir.mkdir(parents=True, exist_ok=True)
         return data_dir
     
@@ -249,7 +249,7 @@ def load_fashion_mnist(
     For more control, use the FashionMNIST class directly.
     
     Args:
-        data_dir: Directory to store the dataset. If None, uses ~/.opentryon/datasets/fashion_mnist
+        data_dir: Directory to store the dataset. If None, uses ~/.piyu/datasets/fashion_mnist
         download: If True, download the dataset if it doesn't exist
         normalize: If True, normalize pixel values to [0, 1] range
         flatten: If True, flatten images to 1D arrays (784,) instead of (28, 28)

@@ -1,7 +1,7 @@
-# OpenTryOn Media OpenAPI / Swagger
+# Piyu Media OpenAPI / Swagger
 
 This folder holds an OpenAPI 3 snapshot of the **upstream** media endpoints
-wired into OpenTryOn adapters (as of **v0.0.3**):
+wired into Piyu adapters (as of **v0.0.3**):
 
 - BytePlus ModelArk — Seedance video + Seedream image
 - Kling AI Open Platform — video 3.0 / Omni / Turbo
@@ -10,16 +10,16 @@ wired into OpenTryOn adapters (as of **v0.0.3**):
 - Ideogram — 4.0 generate
 - Pruna — `/v1/predictions` + `/v1/files` (p-image, p-image-edit, p-image-upscale, p-video, p-video-replace, p-video-avatar, p-video-animate, p-image-try-on)
 
-Companion Postman collection: [`../postman/opentryon-media.postman_collection.json`](../postman/opentryon-media.postman_collection.json).
+Companion Postman collection: [`../postman/piyu-media.postman_collection.json`](../postman/piyu-media.postman_collection.json).
 
-Docs page: [OpenAPI & Postman](https://tryonlabs.github.io/opentryon/docs/getting-started/openapi-swagger).
+Docs page: [OpenAPI & Postman](https://piyu.github.io/piyu/docs/getting-started/openapi-swagger).
 
 ## View in Swagger UI
 
 ```bash
-npx @redocly/cli preview-docs openapi/opentryon-media.openapi.yaml
+npx @redocly/cli preview-docs openapi/piyu-media.openapi.yaml
 # or import into https://editor.swagger.io /
-# or Postman: File → Import → openapi/opentryon-media.openapi.yaml
+# or Postman: File → Import → openapi/piyu-media.openapi.yaml
 ```
 
 The FastAPI demo server (`api_server.py`) still exposes its own `/docs`

@@ -1,5 +1,5 @@
 """
-Generic execution engine shared by every ``opentryon <service>`` subcommand.
+Generic execution engine shared by every ``piyu <service>`` subcommand.
 
 Argument parsing happens in two stages so that ``--model`` determines which
 further flags are valid (mirrors how e.g. ``git <subcommand>`` or
@@ -64,7 +64,7 @@ def _add_arg(parser: argparse.ArgumentParser, arg: Arg) -> None:
 
 def build_model_parser(service: str, model: str, spec: ModelSpec) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog=f"opentryon {service} --model {model}",
+        prog=f"piyu {service} --model {model}",
         description=f"{spec.label}" + (f"  [{spec.notes}]" if spec.notes else ""),
     )
     add_model_selector(parser, service)
@@ -83,7 +83,7 @@ def parse_service_args(service: str, argv: List[str]) -> argparse.Namespace:
     if probe_ns.model is None:
         # No --model yet (or user asked for bare --help): show the
         # service-level help listing available models.
-        top = argparse.ArgumentParser(prog=f"opentryon {service}")
+        top = argparse.ArgumentParser(prog=f"piyu {service}")
         add_model_selector(top, service)
         return top.parse_args(argv)  # will error/help out appropriately
 
@@ -124,7 +124,7 @@ def _extra_missing(spec: ModelSpec) -> Optional[str]:
     if importlib.util.find_spec("torch") is None:
         return (
             f"'{spec.label}' requires local ML dependencies that aren't installed. "
-            "Install them with: pip install opentryon[local]"
+            "Install them with: pip install piyu[local]"
         )
     return None
 

@@ -1,10 +1,10 @@
 # Installation
 
-This guide will help you install OpenTryOn on your system.
+This guide will help you install Piyu on your system.
 
 ## Prerequisites
 
-Before installing OpenTryOn, ensure you have:
+Before installing Piyu, ensure you have:
 
 - **Python 3.10** or higher
 - **CUDA-capable GPU** (recommended for best performance)
@@ -20,18 +20,18 @@ Conda is the recommended installation method as it handles all dependencies incl
 #### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/tryonlabs/opentryon.git
-cd opentryon
+git clone https://github.com/piyu/piyu.git
+cd piyu
 ```
 
 #### Step 2: Create Conda Environment
 
 ```bash
 conda env create -f environment.yml
-conda activate opentryon
+conda activate piyu
 ```
 
-This will create a new conda environment named `opentryon` with all required dependencies.
+This will create a new conda environment named `piyu` with all required dependencies.
 
 #### Step 3: Install Package
 
@@ -46,8 +46,8 @@ If you prefer using pip, you can install dependencies directly:
 #### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/tryonlabs/opentryon.git
-cd opentryon
+git clone https://github.com/piyu/piyu.git
+cd piyu
 ```
 
 #### Step 2: Create Virtual Environment
@@ -67,24 +67,24 @@ pip install -e .
 ### Method 3: Install from PyPI (recommended for app use)
 
 ```bash
-pip install -U opentryon
+pip install -U piyu
 # optional local/GPU models:
-pip install -U "opentryon[local]"
+pip install -U "piyu[local]"
 ```
 
 Verify the version (current stable: **0.0.3**):
 
 ```bash
 python -c "import tryon; print(tryon.__version__)"
-opentryon --help
+piyu --help
 ```
 
 ## Verify Installation
 
-After installation, verify that OpenTryOn is correctly installed:
+After installation, verify that Piyu is correctly installed:
 
 ```python
-python -c "import tryon; print('OpenTryOn', tryon.__version__, 'installed successfully')"
+python -c "import tryon; print('Piyu', tryon.__version__, 'installed successfully')"
 ```
 
 ## Configuration
@@ -195,7 +195,7 @@ pip install -r requirements.txt
 
 ```bash
 conda env create -f environment.yml
-conda activate opentryon
+conda activate piyu
 ```
 
 ### Getting Help
@@ -203,7 +203,7 @@ conda activate opentryon
 If you encounter issues:
 
 1. Check the [Troubleshooting Guide](../advanced/troubleshooting.md)
-2. Search [GitHub Issues](https://github.com/tryonlabs/opentryon/issues)
+2. Search [GitHub Issues](https://github.com/piyu/piyu/issues)
 3. Ask on [Discord](https://discord.gg/T5mPpZHxkY)
 
 ## Next Steps

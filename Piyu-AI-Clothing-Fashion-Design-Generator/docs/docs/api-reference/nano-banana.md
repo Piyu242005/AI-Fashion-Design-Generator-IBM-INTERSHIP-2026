@@ -374,7 +374,7 @@ images[0].save("result.png")
 
 **Returns:** `List[Image.Image]`
 
-Also available from the `opentryon` CLI / MCP server as `vton --model nano-banana-2-lite`.
+Also available from the `piyu` CLI / MCP server as `vton --model nano-banana-2-lite`.
 
 ## Command Line Usage
 

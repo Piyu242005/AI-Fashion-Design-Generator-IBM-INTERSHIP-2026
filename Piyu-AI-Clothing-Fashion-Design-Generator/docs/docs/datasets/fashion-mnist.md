@@ -27,7 +27,7 @@ Fashion-MNIST is a dataset of Zalando's article images designed as a drop-in rep
 
 ## Installation
 
-Fashion-MNIST requires no additional dependencies beyond the core OpenTryOn package. The dataset will be automatically downloaded on first use.
+Fashion-MNIST requires no additional dependencies beyond the core Piyu package. The dataset will be automatically downloaded on first use.
 
 ## Usage
 
@@ -87,7 +87,7 @@ FashionMNIST(data_dir: Optional[str] = None, download: bool = True)
 ```
 
 **Parameters:**
-- `data_dir` (str, optional): Directory to store the dataset. Defaults to `~/.opentryon/datasets/fashion_mnist`
+- `data_dir` (str, optional): Directory to store the dataset. Defaults to `~/.piyu/datasets/fashion_mnist`
 - `download` (bool): If `True`, download the dataset if it doesn't exist. Default: `True`
 
 **Example:**

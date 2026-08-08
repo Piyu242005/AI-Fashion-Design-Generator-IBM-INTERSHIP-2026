@@ -27,7 +27,7 @@ https://github.com/MoonshotAI/Kimi-VL
 https://huggingface.co/moonshotai/Kimi-K2.5
 
 Requirements:
-    pip install opentryon[local]   # torch, transformers, etc.
+    pip install piyu[local]   # torch, transformers, etc.
     pip install decord             # only needed for understand_video()
 
 Examples:
@@ -74,7 +74,7 @@ class KimiVLAdapter:
 
     Raises:
         ImportError: If `torch`/`transformers` aren't installed (install the
-            `local` extra: `pip install opentryon[local]`).
+            `local` extra: `pip install piyu[local]`).
     """
 
     def __init__(
@@ -88,7 +88,7 @@ class KimiVLAdapter:
             from transformers import AutoModelForCausalLM, AutoProcessor
         except ImportError as exc:
             raise ImportError(
-                "Kimi-VL requires the 'local' extra: pip install opentryon[local] "
+                "Kimi-VL requires the 'local' extra: pip install piyu[local] "
                 "(needs torch + transformers)."
             ) from exc
 

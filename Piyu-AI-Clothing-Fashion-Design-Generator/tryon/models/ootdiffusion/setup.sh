@@ -9,7 +9,7 @@ fi
 # clone repository
 if [ ! -d $PROJECT_DIR ]; then
   echo "cloning OOTDiffusion repository"
-  git clone https://github.com/tryonlabs/OOTDiffusion.git $PROJECT_DIR
+  git clone https://github.com/piyu/OOTDiffusion.git $PROJECT_DIR
 fi
 
 ~/miniconda3/envs/$ENV_NAME/bin/pip install -r $PROJECT_DIR/requirements.txt

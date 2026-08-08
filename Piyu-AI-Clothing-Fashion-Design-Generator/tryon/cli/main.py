@@ -1,19 +1,19 @@
 """
-Unified OpenTryOn CLI.
+Unified Piyu CLI.
 
 Three levels of control:
-    opentryon <service> --model <model> [params...]
+    piyu <service> --model <model> [params...]
 
 Examples:
-  opentryon vton --model flux-vto --model-image model.png --garment-image garment.png
-  opentryon generate --model nano-banana --prompt "Fashion model in a studio"
-  opentryon edit --model gpt-image --images photo.jpg --prompt "Add sunglasses"
-  opentryon understand --model llava-next --image outfit.jpg
-  opentryon video-generate --model veo --prompt "A model walking a runway"
-  opentryon bg-remove --model ben2 --image product.jpg
+  piyu vton --model flux-vto --model-image model.png --garment-image garment.png
+  piyu generate --model nano-banana --prompt "Fashion model in a studio"
+  piyu edit --model gpt-image --images photo.jpg --prompt "Add sunglasses"
+  piyu understand --model llava-next --image outfit.jpg
+  piyu video-generate --model veo --prompt "A model walking a runway"
+  piyu bg-remove --model ben2 --image product.jpg
 
-Run `opentryon <service> --help` to list models for that service, or
-`opentryon <service> --model <model> --help` to see that model's parameters.
+Run `piyu <service> --help` to list models for that service, or
+`piyu <service> --model <model> --help` to see that model's parameters.
 """
 
 from __future__ import annotations
@@ -27,8 +27,8 @@ from tryon.cli.registry import SERVICE_HELP, SERVICES
 
 def _build_top_level_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="opentryon",
-        description="OpenTryOn: run image/video generation, editing, virtual try-on, "
+        prog="piyu",
+        description="Piyu: run image/video generation, editing, virtual try-on, "
         "understanding, and background removal models from the command line.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,

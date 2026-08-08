@@ -3,15 +3,15 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'OpenTryOn',
+  title: 'Piyu',
   tagline: 'Open-source AI toolkit for fashion tech and virtual try-on',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://tryonlabs.github.io',
+  url: 'https://piyu.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub Pages project pages, use '/opentryon/'
-  baseUrl: '/opentryon/',
+  // For GitHub Pages project pages, use '/piyu/'
+  baseUrl: '/piyu/',
   
   // SEO Configuration
   trailingSlash: false, // Better for SEO - no trailing slashes
@@ -27,7 +27,7 @@ const config: Config = {
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
-        name: 'OpenTryOn',
+        name: 'Piyu',
         applicationCategory: 'DeveloperApplication',
         operatingSystem: 'Any',
         offers: {
@@ -36,13 +36,13 @@ const config: Config = {
           priceCurrency: 'USD',
         },
         description: 'Open-source AI toolkit for fashion technology and virtual try-on applications. Provides tools for garment segmentation, human parsing, pose estimation, and virtual try-on using state-of-the-art diffusion models.',
-        url: 'https://tryonlabs.github.io/opentryon',
+        url: 'https://piyu.github.io/piyu',
         author: {
           '@type': 'Organization',
           name: 'TryOn Labs',
-          url: 'https://tryonlabs.ai',
+          url: 'https://piyu.ai',
         },
-        codeRepository: 'https://github.com/tryonlabs/opentryon',
+        codeRepository: 'https://github.com/piyu/piyu',
         license: 'https://creativecommons.org/licenses/by-nc/4.0/',
         keywords: 'virtual try-on, fashion AI, AI toolkit, virtual try-on API, fashion technology, garment segmentation, TryOnDiffusion, open source AI',
         programmingLanguage: 'Python',
@@ -57,23 +57,23 @@ const config: Config = {
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        name: 'OpenTryOn',
-        url: 'https://tryonlabs.github.io/opentryon',
+        name: 'Piyu',
+        url: 'https://piyu.github.io/piyu',
         description: 'Open-source AI toolkit for fashion technology and virtual try-on applications',
         publisher: {
           '@type': 'Organization',
           name: 'TryOn Labs',
-          url: 'https://tryonlabs.ai',
+          url: 'https://piyu.ai',
           logo: {
             '@type': 'ImageObject',
-            url: 'https://tryonlabs.github.io/opentryon/img/logo.png',
+            url: 'https://piyu.github.io/piyu/img/logo.png',
           },
         },
         potentialAction: {
           '@type': 'SearchAction',
           target: {
             '@type': 'EntryPoint',
-            urlTemplate: 'https://tryonlabs.github.io/opentryon/search?q={search_term_string}',
+            urlTemplate: 'https://piyu.github.io/piyu/search?q={search_term_string}',
           },
           'query-input': 'required name=search_term_string',
         },
@@ -87,8 +87,8 @@ const config: Config = {
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'TechArticle',
-        headline: 'OpenTryOn Documentation',
-        description: 'Complete documentation for OpenTryOn - an open-source AI toolkit for fashion technology and virtual try-on applications',
+        headline: 'Piyu Documentation',
+        description: 'Complete documentation for Piyu - an open-source AI toolkit for fashion technology and virtual try-on applications',
         author: {
           '@type': 'Organization',
           name: 'TryOn Labs',
@@ -98,7 +98,7 @@ const config: Config = {
           name: 'TryOn Labs',
           logo: {
             '@type': 'ImageObject',
-            url: 'https://tryonlabs.github.io/opentryon/img/logo.png',
+            url: 'https://piyu.github.io/piyu/img/logo.png',
           },
         },
         datePublished: '2024-01-01',
@@ -110,7 +110,7 @@ const config: Config = {
       tagName: 'meta',
       attributes: {
         name: 'description',
-        content: 'OpenTryOn is an open-source AI toolkit for fashion technology and virtual try-on. Features virtual try-on APIs (Amazon Nova Canvas, Kling AI, Segmind), datasets (Fashion-MNIST, VITON-HD), garment segmentation, pose estimation, and TryOnDiffusion implementation.',
+        content: 'Piyu is an open-source AI toolkit for fashion technology and virtual try-on. Features virtual try-on APIs (Amazon Nova Canvas, Kling AI, Segmind), datasets (Fashion-MNIST, VITON-HD), garment segmentation, pose estimation, and TryOnDiffusion implementation.',
       },
     },
     {
@@ -124,7 +124,7 @@ const config: Config = {
       tagName: 'link',
       attributes: {
         rel: 'canonical',
-        href: 'https://tryonlabs.github.io',
+        href: 'https://piyu.github.io',
       },
     },
     {
@@ -132,15 +132,15 @@ const config: Config = {
       attributes: {
         rel: 'alternate',
         type: 'application/rss+xml',
-        title: 'OpenTryOn Documentation',
-        href: 'https://tryonlabs.github.io/opentryon/feed.xml',
+        title: 'Piyu Documentation',
+        href: 'https://piyu.github.io/piyu/feed.xml',
       },
     },
   ],
 
   // GitHub pages deployment config.
-  organizationName: 'tryonlabs',
-  projectName: 'opentryon',
+  organizationName: 'piyu',
+  projectName: 'piyu',
 
   onBrokenLinks: 'throw',
 
@@ -166,7 +166,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/tryonlabs/opentryon/tree/main/docs/',
+          editUrl: 'https://github.com/piyu/piyu/tree/main/docs/',
           routeBasePath: '/', // Serve docs at root instead of /docs/
           // The first document in the sidebar (intro.md) will be the home page
           remarkPlugins: [],
@@ -203,21 +203,21 @@ const config: Config = {
       {name: 'apple-mobile-web-app-capable', content: 'yes'},
       {name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent'},
       {property: 'og:type', content: 'website'},
-      {property: 'og:site_name', content: 'OpenTryOn'},
+      {property: 'og:site_name', content: 'Piyu'},
       {property: 'og:locale', content: 'en_US'},
       {property: 'og:image:width', content: '1200'},
       {property: 'og:image:height', content: '630'},
       {property: 'og:image:type', content: 'image/jpeg'},
       {name: 'twitter:card', content: 'summary_large_image'},
-      {name: 'twitter:site', content: '@tryonlabs'},
-      {name: 'twitter:creator', content: '@tryonlabs'},
-      {name: 'twitter:image:alt', content: 'OpenTryOn - Open-source AI toolkit for fashion tech and virtual try-on'},
+      {name: 'twitter:site', content: '@piyu'},
+      {name: 'twitter:creator', content: '@piyu'},
+      {name: 'twitter:image:alt', content: 'Piyu - Open-source AI toolkit for fashion tech and virtual try-on'},
     ],
-    image: '/img/opentryon-social-card.jpg',
+    image: '/img/piyu-social-card.jpg',
     navbar: {
-      title: 'OpenTryOn',
+      title: 'Piyu',
       logo: {
-        alt: 'OpenTryOn Logo',
+        alt: 'Piyu Logo',
         src: '/img/logo.png',
         href: '/', // Make logo clickable, links to home page (intro.md)
       },
@@ -231,7 +231,7 @@ const config: Config = {
         {
           type: 'html',
           position: 'right',
-          value: '<a href="https://github.com/tryonlabs/opentryon" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link navbar__link-with-icon" aria-label="GitHub"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg><span>GitHub</span></a>',
+          value: '<a href="https://github.com/piyu/piyu" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link navbar__link-with-icon" aria-label="GitHub"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg><span>GitHub</span></a>',
         },
         {
           type: 'html',
@@ -269,11 +269,11 @@ const config: Config = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/tryonlabs/opentryon',
+              href: 'https://github.com/piyu/piyu',
             },
             {
               label: 'Twitter',
-              href: 'https://twitter.com/tryonlabs',
+              href: 'https://twitter.com/piyu',
             },
           ],
         },

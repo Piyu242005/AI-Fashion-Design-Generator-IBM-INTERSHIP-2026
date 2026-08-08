@@ -1,5 +1,5 @@
 """
-OpenTryOn Tools Module
+Piyu Tools Module
 
 This module provides a comprehensive set of LangChain-compatible tools for building
 AI agents that can perform various fashion tech and virtual try-on tasks.

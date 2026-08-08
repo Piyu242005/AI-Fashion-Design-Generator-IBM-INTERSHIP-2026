@@ -1,5 +1,5 @@
 """
-Tests for the `opentryon` CLI.
+Tests for the `piyu` CLI.
 
 Fast/offline checks (registry integrity, argument parsing for every
 registered model, dry-run resolution) always run. A real end-to-end API call

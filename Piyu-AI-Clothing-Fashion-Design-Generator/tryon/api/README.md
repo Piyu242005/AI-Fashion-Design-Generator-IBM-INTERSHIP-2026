@@ -1,4 +1,4 @@
-# OpenTryOn API Adapters
+# Piyu API Adapters
 
 The `tryon.api` module provides adapters for various virtual try-on and image generation APIs. These adapters offer a unified interface for interacting with different cloud-based AI services, making it easy to switch between providers or use multiple services in your applications.
 
@@ -669,7 +669,7 @@ def generate_with_retry(adapter, max_retries=3, backoff=2):
 
 ## Additional Resources
 
-- [OpenTryOn Documentation](https://tryonlabs.github.io/opentryon/)
+- [Piyu Documentation](https://piyu.github.io/piyu/)
 - [Amazon Nova Canvas Blog Post](https://aws.amazon.com/blogs/aws/amazon-nova-canvas-update-virtual-try-on-and-style-options-now-available/)
 - [Kling AI API Documentation](https://app.klingai.com/global/dev/document-api/apiReference/model/functionalityTry)
 - [Segmind Try-On Diffusion API](https://www.segmind.com/models/try-on-diffusion/api)
@@ -681,5 +681,5 @@ All material is made available under [Creative Commons BY-NC 4.0](https://creati
 
 ---
 
-Made with ❤️ by [TryOn Labs](https://www.tryonlabs.ai)
+Made with ❤️ by [TryOn Labs](https://www.piyu.ai)
 

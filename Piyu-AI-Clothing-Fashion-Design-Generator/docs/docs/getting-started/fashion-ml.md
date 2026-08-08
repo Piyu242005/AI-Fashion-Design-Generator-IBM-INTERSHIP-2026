@@ -1,7 +1,7 @@
 ---
 sidebar_position: 7
 title: Fashion ML Engineer Path
-description: Outline of the train → eval → invoke → workflow path OpenTryOn is building toward v0.1.0
+description: Outline of the train → eval → invoke → workflow path Piyu is building toward v0.1.0
 keywords:
   - fashion ML
   - fine-tune
@@ -14,7 +14,7 @@ keywords:
 
 # Fashion ML Engineer Path
 
-This page is the **outline** for AI/ML engineers who want to train, evaluate, and operate fashion models with OpenTryOn — not only call cloud APIs.
+This page is the **outline** for AI/ML engineers who want to train, evaluate, and operate fashion models with Piyu — not only call cloud APIs.
 
 **Status:** target path for **v0.1.0 (Fashion ML Toolkit Core)**. Invoke-layer pieces below work today on **v0.0.3**; train/eval/workflow sections are planned. See the [Roadmap](../community/roadmap).
 
@@ -35,20 +35,20 @@ data / prompts  →  train (LoRA)  →  eval / bench  →  invoke (CLI/MCP)  →
 | Step | Goal | Today (v0.0.3) | Toward v0.1.0 |
 |---|---|---|---|
 | **1. Data & prompts** | Train packs + versioned prompt packs | Dataset loaders (VITON-HD, …) | Schema, validate CLI, prompt packs |
-| **2. Train** | Brand-style / VTON LoRA | TryOnDiffusion research code | `opentryon train` + recipes/notebooks |
-| **3. Eval** | Garment/identity quality | Manual / ad-hoc | Fashion Bench v0 + `opentryon eval` |
+| **2. Train** | Brand-style / VTON LoRA | TryOnDiffusion research code | `piyu train` + recipes/notebooks |
+| **3. Eval** | Garment/identity quality | Manual / ad-hoc | Fashion Bench v0 + `piyu eval` |
 | **4. Invoke** | Same path for cloud & local | CLI + MCP registry | + productized local OSS VTON |
 | **5. Workflow** | Task agents, not chatbots | Early LangChain agents | Try-On QA or Fine-Tune Coach via MCP |
 
 ## What you can do now
 
 ```bash
-pip install -U opentryon
+pip install -U piyu
 # local/GPU models when needed:
-pip install -U "opentryon[local]"
+pip install -U "piyu[local]"
 
-opentryon vton --model flux-vto --help
-opentryon generate --model p-image --help
+piyu vton --model flux-vto --help
+piyu generate --model p-image --help
 # MCP: see getting-started/mcp
 ```
 
@@ -71,7 +71,7 @@ tryon/datasets/    # loaders + train packs / cards
 1. [Roadmap — next slices A–F](../community/roadmap)  
 2. [CLI](cli) · [MCP](mcp) · [Configuration](configuration)  
 3. [New model checklist](../advanced/new-model-checklist) (when adding local/train adapters)  
-4. [`VISION.md`](https://github.com/tryonlabs/opentryon/blob/main/VISION.md) (product system)
+4. [`VISION.md`](https://github.com/piyu/piyu/blob/main/VISION.md) (product system)
 
 ## Contribute
 

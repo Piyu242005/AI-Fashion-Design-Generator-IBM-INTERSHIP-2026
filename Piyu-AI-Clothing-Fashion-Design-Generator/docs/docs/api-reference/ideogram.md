@@ -29,7 +29,7 @@ export IDEOGRAM_API_KEY=...
 ## CLI
 
 ```bash
-opentryon generate --model ideogram \
+piyu generate --model ideogram \
   --prompt 'Poster reading "SUMMER LOOKBOOK 2026"' \
   --rendering-speed QUALITY --aspect-ratio 3:4
 ```

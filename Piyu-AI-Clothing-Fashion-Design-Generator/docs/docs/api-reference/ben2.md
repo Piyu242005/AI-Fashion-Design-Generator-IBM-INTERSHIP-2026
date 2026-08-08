@@ -1,6 +1,6 @@
 # BEN2 - Background Erase Network
 
-BEN2 (Background Erase Network 2) is a state-of-the-art background removal model integrated into OpenTryOn. It provides high-quality background removal for fashion and product images, making it ideal for e-commerce, virtual try-on preprocessing, and product photography.
+BEN2 (Background Erase Network 2) is a state-of-the-art background removal model integrated into Piyu. It provides high-quality background removal for fashion and product images, making it ideal for e-commerce, virtual try-on preprocessing, and product photography.
 
 ## Overview
 
@@ -23,10 +23,10 @@ BEN2 uses a transformer-based architecture with window attention mechanisms for 
 
 ## Installation
 
-BEN2 is included with OpenTryOn. The model weights are automatically downloaded on first use:
+BEN2 is included with Piyu. The model weights are automatically downloaded on first use:
 
 ```bash
-pip install opentryon
+pip install piyu
 ```
 
 ## Quick Start

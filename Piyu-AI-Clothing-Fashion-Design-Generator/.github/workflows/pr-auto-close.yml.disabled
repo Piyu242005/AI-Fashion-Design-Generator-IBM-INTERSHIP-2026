@@ -78,7 +78,7 @@ jobs:
             if (missingOrIncomplete.length > 0 || isEmptyOrTemplate) {
               const closeMessage = `## PR Automatically Closed
 
-            Thank you for your interest in contributing to OpenTryOn!
+            Thank you for your interest in contributing to Piyu!
 
             Unfortunately, this PR was automatically closed because it doesn't follow our [PR template](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/.github/PULL_REQUEST_TEMPLATE.md).
 

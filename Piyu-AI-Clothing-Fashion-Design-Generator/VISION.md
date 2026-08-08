@@ -1,15 +1,15 @@
-# OpenTryOn Vision Document
+# Piyu Vision Document
 
 > **Status:** Living document  
 > **Last updated:** July 21, 2026  
 > **Owner:** TryOn Labs  
-> **Scope:** OpenTryOn (open-source Fashion AI toolkit) + commercial layer (TryOn Studio / Playground)
+> **Scope:** Piyu (open-source Fashion AI toolkit) + commercial layer (TryOn Studio / Playground)
 
 ---
 
 ## 1. One-line vision
 
-**OpenTryOn is the open-source Fashion AI toolkit** — models, training, fine-tuning, prompts, agents, efficient inference, and an open studio UI — so builders can create virtual try-on, catalog, and fashion content systems without starting from scratch.
+**Piyu is the open-source Fashion AI toolkit** — models, training, fine-tuning, prompts, agents, efficient inference, and an open studio UI — so builders can create virtual try-on, catalog, and fashion content systems without starting from scratch.
 
 Fashion-first now. Platform-generic later.
 
@@ -30,7 +30,7 @@ Fashion is one of the hardest domains for generative AI and one of the highest-R
 
 **Market signal (directional, sources vary by definition):** virtual try-on market estimates around **~$15B in 2025 → ~$46–48B by 2030** (~26% CAGR). Reported retail outcomes include **~20–35% conversion lift**, **~25–40% return reduction**, **AOV up to ~33%** — while consumer demand far exceeds adoption. AI/ML-based try-on is among the fastest-growing segments vs classic AR overlays.
 
-OpenTryOn exists because the gap is not “another demo” — it is **infrastructure**: training + inference + prompts + agents + studio, open enough to own, commercial enough to ship.
+Piyu exists because the gap is not “another demo” — it is **infrastructure**: training + inference + prompts + agents + studio, open enough to own, commercial enough to ship.
 
 ---
 
@@ -46,7 +46,7 @@ OpenTryOn exists because the gap is not “another demo” — it is **infrastru
 │  PLAYGROUND / API (developer closed-source surface)             │
 │  Credits, orgs, logs, evals — already live for API testing      │
 ├─────────────────────────────────────────────────────────────────┤
-│  OPENTRYON (open-source toolkit)                                │
+│  PIYU (open-source toolkit)                                │
 │  CLI · MCP · adapters · local models · train/finetune · agents  │
 │  prompts · efficiency recipes · datasets · docs                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -54,11 +54,11 @@ OpenTryOn exists because the gap is not “another demo” — it is **infrastru
 
 | Layer | Nature | Job |
 |---|---|---|
-| **OpenTryOn** | Open source (CC BY-NC today; revisit license for commercial OSS strategy) | The toolkit researchers and engineers fork, extend, and run locally or against any provider |
+| **Piyu** | Open source (CC BY-NC today; revisit license for commercial OSS strategy) | The toolkit researchers and engineers fork, extend, and run locally or against any provider |
 | **Playground** | Closed / hosted | Developers test APIs, compare models, inspect outputs — **exists today** |
 | **TryOn Studio** | Open UI code path + hosted commercial product | Non-dev fashion teams: try-on, model swap, catalog, campaigns, agents — without assembling the stack |
 
-This matches the existing TryOn Labs split: **shared core**, **developer Playground**, **outcome-focused Studio/agentic product** — OpenTryOn is the open heart of that core.
+This matches the existing TryOn Labs split: **shared core**, **developer Playground**, **outcome-focused Studio/agentic product** — Piyu is the open heart of that core.
 
 ### 3.2 Capability pillars (fashion-only for now)
 
@@ -85,7 +85,7 @@ This matches the existing TryOn Labs split: **shared core**, **developer Playgro
 
 ### 4.1 Closed-source / commercial
 
-| Player | Focus | Strength | Weakness vs OpenTryOn |
+| Player | Focus | Strength | Weakness vs Piyu |
 |---|---|---|---|
 | **[FASHN](https://fashn.ai/)** | Fashion API + studio (try-on, model create, edit, video) | Strong fashion-native API; agent skill for coding agents; credit pricing | Closed models; not a training/finetune/efficiency toolkit |
 | **Vue.ai** | Enterprise retail AI suite | Full stack for large retailers | Heavy enterprise sales; not OSS toolkit |
@@ -106,7 +106,7 @@ This matches the existing TryOn Labs split: **shared core**, **developer Playgro
 | **OrthoTryOn** | Unified fashion gen (try-on + pose + reconstruction) | Research-efficient multi-task LoRA |
 | **OpenVTO** | Studio avatar + try-on + short video loops | Early toolkit; aesthetics-first |
 | **ComfyUI workflows / HF Spaces** | Ad-hoc pipelines | Powerful but not a productized toolkit |
-| **OpenTryOn (us)** | Multi-provider CLI/MCP + local models + docs + agents path | Broadest *ops* surface among fashion OSS; still thin on train/efficiency/studio |
+| **Piyu (us)** | Multi-provider CLI/MCP + local models + docs + agents path | Broadest *ops* surface among fashion OSS; still thin on train/efficiency/studio |
 
 ### 4.3 Positioning (where we win)
 
@@ -118,7 +118,7 @@ This matches the existing TryOn Labs split: **shared core**, **developer Playgro
                              \                 /
                               ▼               ▼
                      ┌─────────────────────────────┐
-                     │  OPENTRYON = fashion AI OS  │
+                     │  PIYU = fashion AI OS  │
                      │  train · serve · prompt ·   │
                      │  agent · studio · any model │
                      └─────────────────────────────┘
@@ -140,7 +140,7 @@ We are the **toolkit and studio layer** that wraps open models *and* closed APIs
 
 ## 5. Ideal Customer Profile (ICP)
 
-### 5.1 OpenTryOn (OSS) ICP
+### 5.1 Piyu (OSS) ICP
 
 | Segment | Persona | Jobs to be done |
 |---|---|---|
@@ -172,7 +172,7 @@ We are the **toolkit and studio layer** that wraps open models *and* closed APIs
 
 ## 6. Business model (closed-source layer)
 
-OpenTryOn remains the **community and adoption engine**. Revenue sits on hosted products and enterprise.
+Piyu remains the **community and adoption engine**. Revenue sits on hosted products and enterprise.
 
 | Stream | Model | Notes |
 |---|---|---|
@@ -186,7 +186,7 @@ OpenTryOn remains the **community and adoption engine**. Revenue sits on hosted 
 
 - Credits for compute-heavy gen (Playground/API)  
 - Subscription for workflow/agent value (Studio)  
-- Never charge for “access to docs” — docs stay open to grow OpenTryOn  
+- Never charge for “access to docs” — docs stay open to grow Piyu  
 
 **Unit economics levers:** model routing (cheap vs quality), caching, batch, efficient local inference for self-host Enterprise, multi-provider failover.
 
@@ -194,9 +194,9 @@ OpenTryOn remains the **community and adoption engine**. Revenue sits on hosted 
 
 ## 7. Go-to-market (GTM)
 
-### 7.1 OpenTryOn (bottom-up)
+### 7.1 Piyu (bottom-up)
 
-1. **GitHub + docs** as source of truth ([docs](https://tryonlabs.github.io/opentryon/))  
+1. **GitHub + docs** as source of truth ([docs](https://piyu.github.io/piyu/))  
 2. **Discord / LinkedIn / WhatsApp** — ship notes like the recent 4-API drop, not press releases  
 3. **MCP + CLI** — meet developers where agents already work (Cursor, Claude, etc.)  
 4. **HF Spaces / notebooks** — one-click try-on and efficiency demos  
@@ -204,7 +204,7 @@ OpenTryOn remains the **community and adoption engine**. Revenue sits on hosted 
 
 ### 7.2 Playground (developer wedge)
 
-1. Sign up → run try-on in minutes → export code snippet that uses OpenTryOn adapters  
+1. Sign up → run try-on in minutes → export code snippet that uses Piyu adapters  
 2. Credits for power users; free tier for exploration  
 3. Partner listings (API marketplaces) once stable  
 
@@ -249,10 +249,10 @@ Horizon assumes **fashion-only** through Phase 3; generic verticalization after 
 | **Train / finetune** | Documented LoRA/QLoRA recipes; fashion dataset loaders; brand-style fine-tune notebook |
 | **Prompt collections** | Versioned prompt packs (try-on, catalog, lookbook, video) in-repo |
 | **Evals** | Minimal garment-fidelity / identity-preservation checklist + scripted side-by-side runner |
-| **Studio OSS MVP** | Open UI that drives OpenTryOn via MCP/CLI for try-on + generate + export |
+| **Studio OSS MVP** | Open UI that drives Piyu via MCP/CLI for try-on + generate + export |
 | **License clarity** | Publish commercial-use policy for adapters vs weights vs Studio |
 
-**Exit criteria:** A new contributor can fine-tune a small fashion adapter and run local VTON with `opentryon[local]` without reading 5 research READMEs.
+**Exit criteria:** A new contributor can fine-tune a small fashion adapter and run local VTON with `piyu[local]` without reading 5 research READMEs.
 
 ### Phase 2 — Efficient Fashion AI (3–8 months)
 
@@ -307,13 +307,13 @@ Prioritize **task agents** with measurable outputs:
 | **Return-Risk Advisor** | Garment attributes + fit notes | Risk score + try-on suggestion |
 | **Fine-Tune Coach** | Brand images | Dataset checklist + train config |
 
-Agents should call OpenTryOn tools (MCP/CLI), not reimplement providers.
+Agents should call Piyu tools (MCP/CLI), not reimplement providers.
 
 ---
 
 ## 10. Efficiency roadmap (detail)
 
-Package as `opentryon efficiency` docs + scripts:
+Package as `piyu efficiency` docs + scripts:
 
 1. **Baseline** — FP16/BF16 reference latency & VRAM  
 2. **Quantize** — bitsandbytes / GGUF / AWQ where model family allows  
@@ -341,7 +341,7 @@ Every recipe must answer: **GPU class, VRAM, ms/image, quality delta vs baseline
 
 ## 12. Success metrics
 
-### OpenTryOn
+### Piyu
 
 - GitHub stars / forks / unique contributors  
 - Docs traffic; Discord active weekly users  
@@ -369,12 +369,12 @@ Every recipe must answer: **GPU class, VRAM, ms/image, quality delta vs baseline
 
 ## 14. References (selected)
 
-- OpenTryOn docs: https://tryonlabs.github.io/opentryon/  
-- OpenTryOn repo: https://github.com/tryonlabs/opentryon  
+- Piyu docs: https://piyu.github.io/piyu/  
+- Piyu repo: https://github.com/piyu/piyu  
 - Market: Mordor / Grand View style VTON market reports (~$15.18B 2025 → ~$48.1B 2030, ~26% CAGR); retailer ROI writeups citing conversion/return/AOV ranges  
 - Open models: IDM-VTON, CatVTON, OOTDiffusion; OrthoTryOn; OpenVTO  
 - Closed: FASHN, Vue.ai, Revery, Nightjar, Botika, Genlook, Google/Walmart in-platform VTO  
-- Internal: TryOn AI Strategy & Product Plan (Playground vs Studio split, tryonlabs.ai domains)
+- Internal: TryOn AI Strategy & Product Plan (Playground vs Studio split, piyu.ai domains)
 
 ---
 
@@ -382,7 +382,7 @@ Every recipe must answer: **GPU class, VRAM, ms/image, quality delta vs baseline
 
 | Name | Role |
 |---|---|
-| **OpenTryOn** | Open-source toolkit |
+| **Piyu** | Open-source toolkit |
 | **TryOn AI Playground** | Developer hosted API testing / credits |
 | **TryOn Studio** (aka TryOn AI product UX) | Agentic / workflow product for fashion teams |
 | **TryOn Labs** | Company / org |

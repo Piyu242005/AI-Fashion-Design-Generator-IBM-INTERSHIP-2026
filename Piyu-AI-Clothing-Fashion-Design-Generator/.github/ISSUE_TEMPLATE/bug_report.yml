@@ -116,8 +116,8 @@ body:
   - type: input
     id: package-version
     attributes:
-      label: OpenTryOn Version
-      description: What version of OpenTryOn are you using? (run `pip show opentryon`)
+      label: Piyu Version
+      description: What version of Piyu are you using? (run `pip show piyu`)
       placeholder: "latest / commit hash"
 
   - type: dropdown

@@ -50,7 +50,7 @@ import numpy as np
 class MyDataset(Dataset):
     def _get_default_data_dir(self) -> Path:
         """Return default data directory."""
-        return Path.home() / '.opentryon' / 'datasets' / 'my_dataset'
+        return Path.home() / '.piyu' / 'datasets' / 'my_dataset'
     
     def _ensure_downloaded(self) -> None:
         """Download dataset files if needed."""
@@ -166,7 +166,7 @@ FashionMNIST(data_dir: Optional[str] = None, download: bool = True)
 ```
 
 **Parameters:**
-- `data_dir` (str, optional): Directory to store the dataset. Defaults to `~/.opentryon/datasets/fashion_mnist`
+- `data_dir` (str, optional): Directory to store the dataset. Defaults to `~/.piyu/datasets/fashion_mnist`
 - `download` (bool): If `True`, download the dataset if it doesn't exist. Default: `True`
 
 **Example:**
@@ -464,7 +464,7 @@ VITONHD(
 ```
 
 **Parameters:**
-- `data_dir` (str or Path, optional): Directory containing the dataset. Defaults to `~/.opentryon/datasets/viton_hd`
+- `data_dir` (str or Path, optional): Directory containing the dataset. Defaults to `~/.piyu/datasets/viton_hd`
 - `download` (bool): Currently not implemented. Dataset must be downloaded manually. Default: `False`
 - `train_pairs_file` (str): Name of training pairs file. Default: `"train_pairs.txt"`
 - `test_pairs_file` (str): Name of test pairs file. Default: `"test_pairs.txt"`
@@ -877,7 +877,7 @@ Subjects200K(data_dir: Optional[str] = None, download: bool = True, cache_dir: O
 ```
 
 **Parameters:**
-- `data_dir` (str, optional): Directory to store the dataset cache. Defaults to `~/.opentryon/datasets/subjects200k`
+- `data_dir` (str, optional): Directory to store the dataset cache. Defaults to `~/.piyu/datasets/subjects200k`
 - `download` (bool): If `True`, download the dataset if it doesn't exist (always True for HuggingFace). Default: `True`
 - `cache_dir` (str, optional): Optional cache directory for HuggingFace datasets. If None, uses `~/.cache/huggingface/datasets`
 
@@ -1219,7 +1219,7 @@ import numpy as np
 class MyNewDataset(Dataset):
     def _get_default_data_dir(self) -> Path:
         """Return default data directory."""
-        return Path.home() / '.opentryon' / 'datasets' / 'my_dataset'
+        return Path.home() / '.piyu' / 'datasets' / 'my_dataset'
     
     def _ensure_downloaded(self) -> None:
         """Download dataset files if needed."""
@@ -1251,12 +1251,12 @@ class MyNewDataset(Dataset):
 
 By default, datasets are stored in:
 ```
-~/.opentryon/datasets/{dataset_name}/
+~/.piyu/datasets/{dataset_name}/
 ```
 
 ### Fashion-MNIST Storage
 
-Location: `~/.opentryon/datasets/fashion_mnist/`
+Location: `~/.piyu/datasets/fashion_mnist/`
 
 Files:
 - `train-images-idx3-ubyte.gz` - Training images (compressed)
@@ -1268,11 +1268,11 @@ Files:
 
 ### VITON-HD Storage
 
-Location: `~/.opentryon/datasets/viton_hd/` (or custom path)
+Location: `~/.piyu/datasets/viton_hd/` (or custom path)
 
 ### Subjects200K Storage
 
-Location: `~/.opentryon/datasets/subjects200k/` (or custom path)
+Location: `~/.piyu/datasets/subjects200k/` (or custom path)
 
 **HuggingFace Cache:**
 - Default cache: `~/.cache/huggingface/datasets/`
@@ -1306,7 +1306,7 @@ person_image.jpg clothing_image.jpg
 
 ### Subjects200K Storage
 
-Location: `~/.opentryon/datasets/subjects200k/` (or custom path)
+Location: `~/.piyu/datasets/subjects200k/` (or custom path)
 
 **HuggingFace Cache:**
 - Default cache: `~/.cache/huggingface/datasets/`

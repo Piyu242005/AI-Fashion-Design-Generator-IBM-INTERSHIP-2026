@@ -1,6 +1,6 @@
 # Custom Models
 
-Guide to using custom models with OpenTryOn.
+Guide to using custom models with Piyu.
 
 ## Loading Custom Models
 
@@ -13,7 +13,7 @@ os.environ["U2NET_CLOTH_SEG_CHECKPOINT_PATH"] = "/path/to/custom/model.pth"
 
 ## Model Compatibility
 
-OpenTryOn supports models compatible with:
+Piyu supports models compatible with:
 - U2Net architecture
 - Standard PyTorch model formats
 

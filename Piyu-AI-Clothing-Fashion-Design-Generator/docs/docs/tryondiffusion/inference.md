@@ -18,5 +18,5 @@ result = diffusion.sample(
 )
 ```
 
-See [TryOnDiffusion README](https://github.com/tryonlabs/opentryon/tree/main/tryondiffusion/README.md) for complete inference guide.
+See [TryOnDiffusion README](https://github.com/piyu/piyu/tree/main/tryondiffusion/README.md) for complete inference guide.
 

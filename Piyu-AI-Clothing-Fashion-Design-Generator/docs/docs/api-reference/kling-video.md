@@ -31,18 +31,18 @@ export KLING_AI_SECRET_KEY=...
 ## CLI
 
 ```bash
-opentryon video-generate --model kling-v3 \
+piyu video-generate --model kling-v3 \
   --prompt "Slow pan across a couture atelier" \
   --duration 5 --mode pro --aspect-ratio 16:9 --sound on
 
-opentryon video-generate --model kling-v3-omni \
+piyu video-generate --model kling-v3-omni \
   --prompt "Multi-shot lookbook" --duration 8 --mode pro
 
-opentryon video-generate --model kling-v2-5-turbo \
+piyu video-generate --model kling-v2-5-turbo \
   --prompt "Quick product spin" --duration 5 --mode std
 
 # Image-to-video
-opentryon video-generate --model kling-v3 \
+piyu video-generate --model kling-v3 \
   --image start.jpg --prompt "Subject turns and smiles" --duration 5
 ```
 

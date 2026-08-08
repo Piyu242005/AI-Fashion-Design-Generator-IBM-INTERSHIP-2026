@@ -2,7 +2,7 @@
 DEPRECATED legacy entrypoint.
 
 Moved to `examples/legacy/bg_remove.py`. Prefer:
-  opentryon bg-remove --model ben2 --image ... [--refine]
+  piyu bg-remove --model ben2 --image ... [--refine]
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ _ROOT = pathlib.Path(__file__).resolve().parent
 _TARGET = _ROOT / "examples" / "legacy" / "bg_remove.py"
 
 print(
-    "[opentryon] WARNING: `bg_remove.py` is legacy; use `opentryon bg-remove --model ben2 ...` instead.",
+    "[piyu] WARNING: `bg_remove.py` is legacy; use `piyu bg-remove --model ben2 ...` instead.",
     file=sys.stderr,
 )
 

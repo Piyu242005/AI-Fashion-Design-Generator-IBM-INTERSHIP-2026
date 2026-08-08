@@ -156,7 +156,7 @@ from pathlib import Path
 class MyDataset(Dataset):
     def _get_default_data_dir(self) -> Path:
         """Return default data directory."""
-        return Path.home() / '.opentryon' / 'datasets' / 'my_dataset'
+        return Path.home() / '.piyu' / 'datasets' / 'my_dataset'
     
     def _ensure_downloaded(self) -> None:
         """Download dataset files if needed."""
@@ -176,8 +176,8 @@ class MyDataset(Dataset):
 ## Dataset Storage
 
 By default, datasets are stored in:
-- **Linux/Mac**: `~/.opentryon/datasets/`
-- **Windows**: `C:\Users\<username>\.opentryon\datasets\`
+- **Linux/Mac**: `~/.piyu/datasets/`
+- **Windows**: `C:\Users\<username>\.piyu\datasets\`
 
 You can override this by specifying a custom `data_dir` when creating a dataset instance.
 

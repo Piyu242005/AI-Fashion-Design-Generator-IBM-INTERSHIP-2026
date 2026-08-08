@@ -1,5 +1,5 @@
 """
-Model registry for the ``opentryon`` CLI.
+Model registry for the ``piyu`` CLI.
 
 The CLI is organized in three levels of control:
 
@@ -62,7 +62,7 @@ class ModelSpec:
     args: List[Arg] = field(default_factory=list)
     alt_method_on_image: Optional[str] = None
     alt_image_dest: str = "image"
-    extra: str = "core"  # "core" | "local" (needs `pip install opentryon[local]`)
+    extra: str = "core"  # "core" | "local" (needs `pip install piyu[local]`)
     env_hint: Optional[str] = None
     notes: Optional[str] = None
 
@@ -308,7 +308,7 @@ _GENERATE = {
         id="flux2-turbo", label="FLUX.2-dev Turbo (local, 8-step)",
         import_path="tryon.models.flux2_turbo", class_name="Flux2TurboAdapter",
         method="generate_text_to_image", output_kind="images", extra="local",
-        notes="Local GPU inference. Requires `pip install opentryon[local]` and a CUDA GPU (12GB+ VRAM recommended).",
+        notes="Local GPU inference. Requires `pip install piyu[local]` and a CUDA GPU (12GB+ VRAM recommended).",
         args=[
             Arg(("--prompt", "-p"), "prompt", required=True, help="Text prompt"),
             Arg(("--width",), "width", type=int, default=1024),
@@ -490,7 +490,7 @@ _EDIT = {
         id="flux2-turbo", label="FLUX.2-dev Turbo (local, image-to-image)",
         import_path="tryon.models.flux2_turbo", class_name="Flux2TurboAdapter",
         method="generate_image_to_image", output_kind="images", extra="local",
-        notes="Local GPU inference. Requires `pip install opentryon[local]` and a CUDA GPU.",
+        notes="Local GPU inference. Requires `pip install piyu[local]` and a CUDA GPU.",
         args=[
             _img(("--image", "-i"), "image", "Input image (path)", required=True),
             Arg(("--prompt", "-p"), "prompt", required=True, help="Editing instruction"),
@@ -571,7 +571,7 @@ _UNDERSTAND = {
         id="llava-next", label="LLaVA-NeXT (local VLM captioning)",
         import_path="tryon.cli.local_wrappers", class_name="LlavaNextUnderstandAdapter",
         method="understand", output_kind="text", extra="local",
-        notes="Local GPU inference. Requires `pip install opentryon[local]` and a CUDA GPU.",
+        notes="Local GPU inference. Requires `pip install piyu[local]` and a CUDA GPU.",
         args=[
             _img(("--image", "-i"), "image", "Image to describe (path or URL)", required=True),
             Arg(("--prompt", "-p"), "prompt", help="Question/instruction for the model"),
@@ -626,7 +626,7 @@ _UNDERSTAND = {
         import_path="tryon.models.kimi_vl", class_name="KimiVLAdapter",
         method="understand", output_kind="text", extra="local",
         notes="Open-weight counterpart to kimi-k2.6/k2.7-code. Local GPU inference "
-        "(24GB+ VRAM recommended). Requires `pip install opentryon[local]`.",
+        "(24GB+ VRAM recommended). Requires `pip install piyu[local]`.",
         args=[
             Arg(("--image", "-i"), "image", help="Image to understand (path or URL)"),
             Arg(("--video",), "video", help="Video to understand (path or URL, requires `pip install decord`)"),
@@ -986,7 +986,7 @@ _BG_REMOVE = {
         id="ben2", label="BEN2 background remover (local)",
         import_path="tryon.api.ben2.adapter", class_name="BEN2BackgroundRemoverAdapter",
         method="remove_background", output_kind="images", extra="local",
-        notes="Local GPU/CPU inference. Requires `pip install opentryon[local]`.",
+        notes="Local GPU/CPU inference. Requires `pip install piyu[local]`.",
         args=[
             _img(("--image", "-i"), "image", "Input image (path or URL)", required=True),
             Arg(("--refine",), "refine", action="store_true", help="Refined foreground enhancement"),

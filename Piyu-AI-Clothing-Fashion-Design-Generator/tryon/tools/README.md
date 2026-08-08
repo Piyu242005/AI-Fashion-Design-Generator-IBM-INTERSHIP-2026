@@ -1,4 +1,4 @@
-# OpenTryOn Tools Module
+# Piyu Tools Module
 
 This module provides a comprehensive set of LangChain-compatible tools for building AI agents that can perform various fashion tech and virtual try-on tasks.
 
@@ -261,7 +261,7 @@ def my_tool(input_param: str) -> str:
 
 - langchain >= 1.0.0
 - pydantic >= 2.0.0
-- All OpenTryOn API adapters
+- All Piyu API adapters
 
 ## Notes
 

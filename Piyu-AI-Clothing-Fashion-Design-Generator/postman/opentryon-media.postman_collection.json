@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "OpenTryOn Media APIs",
-    "description": "Postman collection for newly integrated OpenTryOn image/video providers (Seedance, Seedream, Kling Video, Luma Ray 3.2, Grok Imagine, Ideogram, Pruna). These call upstream provider APIs directly — for the unified CLI/MCP path use `opentryon` / MCP tools instead.",
+    "name": "Piyu Media APIs",
+    "description": "Postman collection for newly integrated Piyu image/video providers (Seedance, Seedream, Kling Video, Luma Ray 3.2, Grok Imagine, Ideogram, Pruna). These call upstream provider APIs directly — for the unified CLI/MCP path use `piyu` / MCP tools instead.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

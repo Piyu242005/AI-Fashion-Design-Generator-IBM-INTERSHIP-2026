@@ -1,4 +1,4 @@
-"""Unified command-line interface for OpenTryOn: `opentryon <service> --model <model> ...`."""
+"""Unified command-line interface for Piyu: `piyu <service> --model <model> ...`."""
 
 
 def main(argv=None):

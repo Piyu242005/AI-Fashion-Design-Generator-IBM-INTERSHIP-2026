@@ -1,6 +1,6 @@
 # Performance Optimization
 
-Tips for optimizing OpenTryOn performance.
+Tips for optimizing Piyu performance.
 
 ## GPU Optimization
 

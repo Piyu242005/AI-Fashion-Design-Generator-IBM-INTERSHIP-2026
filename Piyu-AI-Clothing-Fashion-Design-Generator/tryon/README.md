@@ -379,4 +379,4 @@ for cls in ["upper", "lower"]:
 
 - [U2Net Paper](https://arxiv.org/abs/2005.09007)
 - [LLaVA-NeXT](https://github.com/llava-hf/llava-next)
-- [OOTDiffusion](https://github.com/tryonlabs/OOTDiffusion)
+- [OOTDiffusion](https://github.com/piyu/OOTDiffusion)

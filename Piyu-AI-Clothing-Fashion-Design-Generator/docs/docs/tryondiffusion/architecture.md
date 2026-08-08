@@ -16,5 +16,5 @@ The model consists of two parallel UNets:
 - FiLM layers for feature modulation
 - Attention pooling for pose embeddings
 
-See [TryOnDiffusion README](https://github.com/tryonlabs/opentryon/tree/main/tryondiffusion/README.md) for complete architecture details.
+See [TryOnDiffusion README](https://github.com/piyu/piyu/tree/main/tryondiffusion/README.md) for complete architecture details.
 
