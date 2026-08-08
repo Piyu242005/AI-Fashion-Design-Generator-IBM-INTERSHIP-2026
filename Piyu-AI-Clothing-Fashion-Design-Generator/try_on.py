@@ -62,7 +62,7 @@ from detectron2.data.detection_utils import (
     _apply_exif_orientation,
 )
 
-from model_manager import get_densepose_paths
+from src.model_manager import get_densepose_paths, get_idm_vton_extra_paths
 
 log.getLogger().setLevel(log.INFO)
 

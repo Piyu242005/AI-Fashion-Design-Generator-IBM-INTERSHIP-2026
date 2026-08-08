@@ -9,11 +9,16 @@ Running
 -------
     streamlit run app.py
 
-Environment variables
----------------------
-    HF_TOKEN     Hugging Face token (required for private/gated repos)
-    HF_REPO_ID   Override model repo  (default: Piyu242005/piyu-fashion-models)
-    MODEL_DIR    Local weight cache   (default: models/)
+Secrets (Streamlit Cloud / .streamlit/secrets.toml)
+----------------------------------------------------
+    HF_TOKEN     Hugging Face token (required for private/gated repos).
+                 Set in Streamlit secrets — never hard-code in source.
+
+Environment variables (local / Colab fallback)
+----------------------------------------------
+    HF_TOKEN     Falls back to os.environ if not in st.secrets
+    HF_REPO_ID   Override model repo (default: Piyu2420/AI-Fashion-Design-Generator-IBM-INTERNSHIP-2026)
+    MODEL_DIR    Local weight cache root (default: project root)
 """
 
 from __future__ import annotations
@@ -27,6 +32,15 @@ from pathlib import Path
 import numpy as np
 import streamlit as st
 from PIL import Image
+
+# ─── Inject HF_TOKEN from Streamlit secrets into os.environ so that
+#     src/model_manager.py (which reads os.getenv) picks it up regardless
+#     of whether we are on Streamlit Cloud or running locally. ──────────
+try:
+    if "HF_TOKEN" in st.secrets and not os.environ.get("HF_TOKEN"):
+        os.environ["HF_TOKEN"] = st.secrets["HF_TOKEN"]
+except Exception:
+    pass  # st.secrets not available in local runs — .env / shell export used instead
 
 # ─── Page config — MUST be first Streamlit call ───────────────────────────
 st.set_page_config(
@@ -540,14 +554,14 @@ def _gif_b64(path: Path) -> str | None:
 # ─── Cached model loaders ─────────────────────────────────────────────────
 @st.cache_resource(show_spinner="Loading RealVisXL generation pipeline…")
 def load_generation_pipeline():
-    from model_manager import get_realvisxl_path
+    from src.model_manager import get_realvisxl_path
     from auto1111sdk import StableDiffusionPipeline
     return StableDiffusionPipeline(get_realvisxl_path(), default_command_args="--device-id 0")
 
 
 @st.cache_resource(show_spinner="Loading SAM ViT-H…")
 def load_sam_predictor():
-    from model_manager import get_sam_path
+    from src.model_manager import get_sam_path
     from segment_anything import SamPredictor, sam_model_registry
     sam = sam_model_registry["vit_h"](checkpoint=get_sam_path())
     sam.to(device="cuda")

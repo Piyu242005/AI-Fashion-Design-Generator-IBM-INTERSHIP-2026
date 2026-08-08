@@ -21,7 +21,7 @@ import logging as log
 import torch
 from auto1111sdk import StableDiffusionPipeline
 
-from model_manager import get_realvisxl_path
+from src.model_manager import get_realvisxl_path
 
 log.getLogger().setLevel(log.INFO)
 

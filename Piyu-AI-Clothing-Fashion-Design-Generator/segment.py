@@ -36,7 +36,7 @@ import matplotlib.image as mpimg
 import torch
 from segment_anything import SamPredictor, sam_model_registry
 
-from model_manager import get_sam_path
+from src.model_manager import get_sam_path
 
 log.getLogger().setLevel(log.INFO)
 

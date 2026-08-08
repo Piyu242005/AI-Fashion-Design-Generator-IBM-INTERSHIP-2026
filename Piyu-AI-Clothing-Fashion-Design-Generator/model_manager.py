@@ -1,165 +1,216 @@
 """
 model_manager.py
 ----------------
-Downloads and caches all model weight files from a Hugging Face model repository.
+Downloads and caches all 9 model weight files from the project's Hugging Face
+model repository.
 
-Usage
------
-    from model_manager import ModelPaths, download_all_models
+Hugging Face repository
+-----------------------
+    Piyu2420/AI-Fashion-Design-Generator-IBM-INTERNSHIP-2026
 
-    paths = download_all_models()
-    print(paths.realvisxl)      # local path to RealVisXL .safetensors
-    print(paths.sam)            # local path to SAM ViT-H .pth
-    print(paths.densepose)      # local path to DensePose .pkl
-    print(paths.humanparsing_atr)
-    print(paths.humanparsing_lip)
-    print(paths.openpose)
+Repository structure expected on Hugging Face
+---------------------------------------------
+    realvisxl/realvisxl.safetensors
+    sam/sam_vit_h_4b8939.pth
+    idm_vton/densepose/model_final_162be9.pkl
+    idm_vton/humanparsing/parsing_atr.onnx
+    idm_vton/humanparsing/parsing_lip.onnx
+    idm_vton/openpose/body_pose_model.pth
+    idm_vton/image_encoder/config.json
+    idm_vton/image_encoder/model.safetensors
+    idm_vton/ip_adapter/ip-adapter-plus_sdxl_vit-h.bin
+
+Local cache layout (under project root)
+----------------------------------------
+    weights/realvisxl.safetensors
+    weights/sam_vit_h_4b8939.pth
+    idm_vton/ckpt/densepose/model_final_162be9.pkl
+    idm_vton/ckpt/humanparsing/parsing_atr.onnx
+    idm_vton/ckpt/humanparsing/parsing_lip.onnx
+    idm_vton/ckpt/openpose/ckpts/body_pose_model.pth
+    idm_vton/ckpt/image_encoder/config.json
+    idm_vton/ckpt/image_encoder/model.safetensors
+    idm_vton/ckpt/ip_adapter/ip-adapter-plus_sdxl_vit-h.bin
 
 Environment variables
 ---------------------
-    HF_REPO_ID   Override the default Hugging Face repo (default: Piyu242005/piyu-fashion-models)
-    HF_TOKEN     Hugging Face access token for gated / private repositories
-    MODEL_DIR    Local directory to cache downloaded weights (default: models/)
-
-Notes
------
-    * hf_hub_download() caches files under MODEL_DIR and skips re-downloading
-      if the file is already present and up-to-date.
-    * Large files (~10 GB total) are downloaded once and reused across runs.
-    * Never commit HF_TOKEN to source control — store it as an environment variable
-      or a .env file that is excluded via .gitignore.
+    HF_TOKEN     Hugging Face access token (required for private repositories).
+                 In Streamlit Cloud set this in st.secrets — never hard-code it.
+    HF_REPO_ID   Override the default repository ID.
+    MODEL_DIR    Override the local cache root (default: project root).
 """
 
-from __future__ import annotations
-
-import os
-import logging
-from dataclasses import dataclass
 from pathlib import Path
+import os
 
 from huggingface_hub import hf_hub_download
 
-log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
 
-# ---------------------------------------------------------------------------
-# Configuration — override with environment variables
-# ---------------------------------------------------------------------------
+# ============================================================
+# CONFIGURATION
+# ============================================================
 
-REPO_ID: str = os.getenv("HF_REPO_ID", "Piyu242005/piyu-fashion-models")
-HF_TOKEN: str | None = os.getenv("HF_TOKEN")          # None → public repo
-MODEL_DIR: str = os.getenv("MODEL_DIR", "models")
+PROJECT_ROOT = Path(__file__).resolve().parent
+
+REPO_ID = os.getenv(
+    "HF_REPO_ID",
+    "Piyu2420/AI-Fashion-Design-Generator-IBM-INTERNSHIP-2026",
+)
+
+# Set this ONLY if the HF repository is private.
+# For Streamlit, use st.secrets instead of hard-coding the token.
+HF_TOKEN = os.getenv("HF_TOKEN", None)
 
 
-# ---------------------------------------------------------------------------
-# File paths inside the Hugging Face repository
-# ---------------------------------------------------------------------------
+# ============================================================
+# HF filename → local absolute path mapping (9 files)
+# ============================================================
 
 _HF_FILES = {
-    "realvisxl":         "realvisxl/realvisxl.safetensors",
-    "sam":               "sam/sam_vit_h_4b8939.pth",
-    "densepose":         "idm_vton/densepose/model_final_162be9.pkl",
-    "humanparsing_atr":  "idm_vton/humanparsing/parsing_atr.onnx",
-    "humanparsing_lip":  "idm_vton/humanparsing/parsing_lip.onnx",
-    "openpose":          "idm_vton/openpose/body_pose_model.pth",
+    "realvisxl":           "realvisxl/realvisxl.safetensors",
+    "sam":                 "sam/sam_vit_h_4b8939.pth",
+    "densepose":           "idm_vton/densepose/model_final_162be9.pkl",
+    "parsing_atr":         "idm_vton/humanparsing/parsing_atr.onnx",
+    "parsing_lip":         "idm_vton/humanparsing/parsing_lip.onnx",
+    "openpose":            "idm_vton/openpose/body_pose_model.pth",
+    "image_encoder_config":"idm_vton/image_encoder/config.json",
+    "image_encoder":       "idm_vton/image_encoder/model.safetensors",
+    "ip_adapter":          "idm_vton/ip_adapter/ip-adapter-plus_sdxl_vit-h.bin",
+}
+
+_LOCAL_FILES = {
+    "realvisxl":            PROJECT_ROOT / "weights/realvisxl.safetensors",
+    "sam":                  PROJECT_ROOT / "weights/sam_vit_h_4b8939.pth",
+    "densepose":            PROJECT_ROOT / "idm_vton/ckpt/densepose/model_final_162be9.pkl",
+    "parsing_atr":          PROJECT_ROOT / "idm_vton/ckpt/humanparsing/parsing_atr.onnx",
+    "parsing_lip":          PROJECT_ROOT / "idm_vton/ckpt/humanparsing/parsing_lip.onnx",
+    "openpose":             PROJECT_ROOT / "idm_vton/ckpt/openpose/ckpts/body_pose_model.pth",
+    "image_encoder_config": PROJECT_ROOT / "idm_vton/ckpt/image_encoder/config.json",
+    "image_encoder":        PROJECT_ROOT / "idm_vton/ckpt/image_encoder/model.safetensors",
+    "ip_adapter":           PROJECT_ROOT / "idm_vton/ckpt/ip_adapter/ip-adapter-plus_sdxl_vit-h.bin",
 }
 
 
-# ---------------------------------------------------------------------------
-# Return type
-# ---------------------------------------------------------------------------
+# ============================================================
+# DOWNLOAD ONE FILE
+# ============================================================
 
-@dataclass
-class ModelPaths:
-    """Local filesystem paths to every downloaded weight file."""
-    realvisxl: str
-    sam: str
-    densepose: str
-    humanparsing_atr: str
-    humanparsing_lip: str
-    openpose: str
+def _download(model_name: str) -> str:
+
+    hf_file    = _HF_FILES[model_name]
+    local_path = _LOCAL_FILES[model_name]
+
+    local_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Already on disk — skip download
+    if local_path.exists() and local_path.stat().st_size > 0:
+        size_mb = local_path.stat().st_size / (1024 ** 2)
+        print(f"✅ {model_name:<25} already available ({size_mb:.2f} MB)")
+        return str(local_path)
+
+    # Download from Hugging Face
+    print(f"⬇️  Downloading {model_name}")
+    print(f"    repo : {REPO_ID}")
+    print(f"    file : {hf_file}")
+
+    try:
+        hf_hub_download(
+            repo_id=REPO_ID,
+            filename=hf_file,
+            repo_type="model",
+            token=HF_TOKEN,
+            local_dir=str(PROJECT_ROOT),
+        )
+
+        # hf_hub_download writes to PROJECT_ROOT/hf_file; move to our layout
+        hf_placed = PROJECT_ROOT / hf_file
+        if hf_placed.exists() and hf_placed.resolve() != local_path.resolve():
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+            hf_placed.rename(local_path)
+
+        if not local_path.exists() or local_path.stat().st_size == 0:
+            raise RuntimeError(f"File missing or empty after download: {local_path}")
+
+        size_mb = local_path.stat().st_size / (1024 ** 2)
+        print(f"✅ {model_name:<25} downloaded ({size_mb:.2f} MB)")
+        return str(local_path)
+
+    except Exception as exc:
+        raise RuntimeError(
+            f"\n❌ Failed to download '{model_name}'\n"
+            f"   repo : {REPO_ID}\n"
+            f"   file : {hf_file}\n\n"
+            f"Original error:\n{exc}\n"
+        ) from exc
 
 
-# ---------------------------------------------------------------------------
-# Download helpers
-# ---------------------------------------------------------------------------
+# ============================================================
+# PUBLIC API
+# ============================================================
 
-def _download(filename: str) -> str:
-    """
-    Download a single file from the Hugging Face Hub and return its local path.
+def download_all_models() -> dict:
+    """Download (or verify) all 9 model weights. Returns a dict of local paths."""
+    print("=" * 70)
+    print("HUGGING FACE MODEL MANAGER")
+    print(f"Repository: {REPO_ID}")
+    print("=" * 70)
 
-    hf_hub_download() caches the file under MODEL_DIR and skips the network
-    request if an up-to-date copy already exists.
-    """
-    log.info("Ensuring weight is available: %s", filename)
-    local_path = hf_hub_download(
-        repo_id=REPO_ID,
-        filename=filename,
-        local_dir=MODEL_DIR,
-        token=HF_TOKEN,
-    )
-    log.info("  → %s", local_path)
-    return local_path
+    paths = {name: _download(name) for name in _HF_FILES}
 
-
-def download_all_models() -> ModelPaths:
-    """
-    Download (or verify cache of) all model weight files and return a
-    ModelPaths dataclass with the local path for each weight.
-
-    This function is safe to call multiple times — files are only downloaded
-    if they are not already cached locally.
-    """
-    Path(MODEL_DIR).mkdir(parents=True, exist_ok=True)
-
-    log.info("=== Model Manager: resolving weights from %s ===", REPO_ID)
-
-    paths = ModelPaths(
-        realvisxl=        _download(_HF_FILES["realvisxl"]),
-        sam=              _download(_HF_FILES["sam"]),
-        densepose=        _download(_HF_FILES["densepose"]),
-        humanparsing_atr= _download(_HF_FILES["humanparsing_atr"]),
-        humanparsing_lip= _download(_HF_FILES["humanparsing_lip"]),
-        openpose=         _download(_HF_FILES["openpose"]),
-    )
-
-    log.info("=== All weights resolved ===")
+    print()
+    print("=" * 70)
+    print("🎉 ALL 9 MODELS READY")
+    print("=" * 70)
     return paths
 
 
-# ---------------------------------------------------------------------------
-# Convenience: download only what you need
-# ---------------------------------------------------------------------------
+def verify_models() -> bool:
+    """Check all 9 local paths exist and are non-empty. No network calls."""
+    print("=" * 70)
+    print("LOCAL MODEL VERIFICATION")
+    print("=" * 70)
 
+    passed = 0
+    failed = 0
+
+    for name, path in _LOCAL_FILES.items():
+        if path.exists() and path.stat().st_size > 0:
+            size_mb = path.stat().st_size / (1024 ** 2)
+            print(f"✅ {name:<25} {size_mb:>10.2f} MB")
+            passed += 1
+        else:
+            print(f"❌ {name:<25} MISSING — {path}")
+            failed += 1
+
+    print()
+    print(f"PASSED: {passed}/{len(_LOCAL_FILES)}")
+    print(f"FAILED: {failed}/{len(_LOCAL_FILES)}")
+    return failed == 0
+
+
+# Convenience getters — keep same API as before
 def get_realvisxl_path() -> str:
-    """Return the local path for the RealVisXL weight, downloading if needed."""
-    Path(MODEL_DIR).mkdir(parents=True, exist_ok=True)
-    return _download(_HF_FILES["realvisxl"])
-
+    return _download("realvisxl")
 
 def get_sam_path() -> str:
-    """Return the local path for the SAM ViT-H weight, downloading if needed."""
-    Path(MODEL_DIR).mkdir(parents=True, exist_ok=True)
-    return _download(_HF_FILES["sam"])
+    return _download("sam")
+
+def get_densepose_paths() -> dict:
+    return {k: _download(k) for k in ("densepose", "parsing_atr", "parsing_lip", "openpose")}
+
+def get_idm_vton_extra_paths() -> dict:
+    return {k: _download(k) for k in ("image_encoder_config", "image_encoder", "ip_adapter")}
 
 
-def get_densepose_paths() -> dict[str, str]:
-    """Return local paths for all DensePose / human-parsing / OpenPose weights."""
-    Path(MODEL_DIR).mkdir(parents=True, exist_ok=True)
-    return {
-        "densepose":        _download(_HF_FILES["densepose"]),
-        "humanparsing_atr": _download(_HF_FILES["humanparsing_atr"]),
-        "humanparsing_lip": _download(_HF_FILES["humanparsing_lip"]),
-        "openpose":         _download(_HF_FILES["openpose"]),
-    }
-
-
-# ---------------------------------------------------------------------------
-# Standalone test
-# ---------------------------------------------------------------------------
+# ============================================================
+# MAIN — run directly to verify or download
+# ============================================================
 
 if __name__ == "__main__":
-    paths = download_all_models()
-    print("\nResolved paths:")
-    for field, value in paths.__dict__.items():
-        print(f"  {field:<20} {value}")
+
+    if verify_models():
+        print("\n🎉 All 9 models already exist locally.")
+        print("No Hugging Face download is required.")
+    else:
+        print("\n⬇️  Some models are missing. Downloading from Hugging Face...\n")
+        download_all_models()

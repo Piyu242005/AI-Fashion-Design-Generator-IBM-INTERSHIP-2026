@@ -1,7 +1,31 @@
+# -- Python
 *.pyc
+__pycache__/
+*.DS_Store
+
+# -- Model weight files (never commit -- stored on Hugging Face)
+*.safetensors
 *.pth
 *.onnx
 *.pkl
-*.DS_Store
-__pycache__
-*.safetensors
+*.bin
+
+# -- Local weight cache directories
+weights/
+models/
+idm_vton/ckpt/
+
+# -- IDM-VTON clone (cloned separately: git clone yisol/IDM-VTON idm_vton)
+idm_vton/
+
+# -- Environment / secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# -- Generated images
+reference_images/*.png
+reference_images/*.jpg
+results/*.png
+results/*.jpg
