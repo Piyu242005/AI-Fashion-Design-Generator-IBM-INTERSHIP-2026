@@ -18,7 +18,7 @@ import logging
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from app.schemas.design import DesignRequest, DesignResponse, ErrorDetail, ErrorResponse
+from app.schemas.design import DEFAULT_MODEL, DesignRequest, DesignResponse, ErrorDetail, ErrorResponse
 from app.services.cloudflare_ai import credentials_configured, generate_fashion_image
 
 logger = logging.getLogger(__name__)
@@ -55,9 +55,13 @@ async def generate_design(req: DesignRequest) -> JSONResponse:
             ).model_dump(),
         )
 
-    logger.info("Generating fashion design (prompt length=%d)", len(req.prompt))
+    resolved_model = req.model or DEFAULT_MODEL
+    logger.info(
+        "Generating fashion design (prompt length=%d, model=%s)",
+        len(req.prompt), resolved_model
+    )
 
-    result = await generate_fashion_image(req.prompt)
+    result = await generate_fashion_image(req.prompt, resolved_model)
 
     if result.success and result.image_base64:
         return JSONResponse(

@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-CF_MODEL         = "@cf/black-forest-labs/flux-1-schnell"
+CF_DEFAULT_MODEL = "@cf/black-forest-labs/flux-1-schnell"
 CF_API_BASE      = "https://api.cloudflare.com/client/v4/accounts"
 CF_TIMEOUT       = httpx.Timeout(90.0, connect=10.0)   # FLUX can be slow on cold start
 SAFE_ERROR_MSG   = "Unable to generate the fashion design. Please try again."
@@ -69,17 +69,20 @@ def credentials_configured() -> bool:
     )
 
 
-async def generate_fashion_image(prompt: str) -> GenerationResult:
+async def generate_fashion_image(prompt: str, model: str | None = None) -> GenerationResult:
     """
-    Call Cloudflare Workers AI → FLUX.1 Schnell and return a GenerationResult.
+    Call Cloudflare Workers AI and return a GenerationResult.
 
     Args:
         prompt: The fashion design prompt (already validated by the API layer).
+        model:  Cloudflare model ID. Falls back to CF_DEFAULT_MODEL if None.
 
     Returns:
         GenerationResult with success=True and image_base64 set on success,
         or success=False with a safe error message on any failure.
     """
+    cf_model = model or CF_DEFAULT_MODEL
+    logger.info("Using model: %s", cf_model)
     try:
         account_id, api_token = _get_credentials()
     except RuntimeError as exc:
@@ -91,7 +94,7 @@ async def generate_fashion_image(prompt: str) -> GenerationResult:
             error_message=SAFE_ERROR_MSG,
         )
 
-    url = f"{CF_API_BASE}/{account_id}/ai/run/{CF_MODEL}"
+    url = f"{CF_API_BASE}/{account_id}/ai/run/{cf_model}"
     headers = {
         # Token value intentionally never logged
         "Authorization": f"Bearer {api_token}",

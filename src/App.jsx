@@ -4,7 +4,7 @@ import {
   Scissors, ShoppingBag, User, Upload, Layers, Trash2,
   Maximize2, RefreshCw, X, Camera, Palette, Leaf, FileText,
   Bell, BellRing, Activity, Wand2, ChevronRight, Star,
-  TrendingUp, Zap, ArrowRight
+  TrendingUp, Zap, ArrowRight, Cpu, ChevronDown
 } from 'lucide-react';
 
 /* ─── CONFIG ──────────────────────────────────────────────────────── */
@@ -63,21 +63,63 @@ const FashionIntelligenceService = {
   })
 };
 
+/* ─── IMAGE MODELS CATALOGUE ──────────────────────────────────────── */
+export const IMAGE_MODELS = [
+  {
+    id: "@cf/black-forest-labs/flux-1-schnell",
+    label: "FLUX.1 Schnell",
+    provider: "Cloudflare",
+    badge: "Fast",
+    badgeColor: "text-sky-400 bg-sky-400/10 border-sky-400/20",
+    description: "Best quality/speed for fashion renders",
+    default: true,
+  },
+  {
+    id: "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+    label: "SDXL Base 1.0",
+    provider: "Cloudflare",
+    badge: "Detailed",
+    badgeColor: "text-violet-400 bg-violet-400/10 border-violet-400/20",
+    description: "Higher detail, slightly slower",
+    default: false,
+  },
+  {
+    id: "@cf/lykon/dreamshaper-8-lcm",
+    label: "DreamShaper 8",
+    provider: "Cloudflare",
+    badge: "Artistic",
+    badgeColor: "text-rose-400 bg-rose-400/10 border-rose-400/20",
+    description: "Painterly, creative fashion illustrations",
+    default: false,
+  },
+  {
+    id: "@cf/bytedance/stable-diffusion-xl-lightning",
+    label: "SDXL Lightning",
+    provider: "Cloudflare",
+    badge: "Fastest",
+    badgeColor: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
+    description: "Ultra-fast 4-step generation",
+    default: false,
+  },
+];
+
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80";
 
 const ImageGenerationService = {
   /**
-   * Primary route  : POST /api/design          → Cloudflare FLUX.1-schnell
+   * Primary route  : POST /api/design          → Cloudflare (model selectable)
    * Fallback route : POST /api/generate-image  → HuggingFace FLUX.1-schnell
    * Both routes live in the FastAPI backend — the token NEVER touches the browser.
    */
-  async generate(optimizedPrompt) {
+  async generate(optimizedPrompt, modelId = null) {
     // ── 1. Try Cloudflare via /api/design ──────────────────────────────
     try {
+      const body = { prompt: optimizedPrompt };
+      if (modelId) body.model = modelId;
       const res = await fetch(`${BACKEND_URL}/api/design`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: optimizedPrompt }),
+        body: JSON.stringify(body),
       });
       if (res.ok) {
         const data = await res.json();
@@ -267,6 +309,8 @@ const stats = [
 export default function App() {
   const [activeTab, setActiveTab]   = useState('runway');
   const [prompt, setPrompt]         = useState("");
+  const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS.find(m => m.default).id);
+  const [modelDropOpen, setModelDropOpen] = useState(false);
   const [designJob, setDesignJob]   = useState({ status: 'idle', spec: null, image: null, products: [] });
   const [expandedImage, setExpandedImage] = useState(null);
   const [showTechPack, setShowTechPack]   = useState(false);
@@ -276,6 +320,17 @@ export default function App() {
   const [savedDesigns, setSavedDesigns]   = useState([]);
   const [savePulse, setSavePulse]         = useState(false);
   const fileInputRef = useRef(null);
+  const modelDropRef = useRef(null);
+
+  // Close model dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (modelDropRef.current && !modelDropRef.current.contains(e.target))
+        setModelDropOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => { setSavedDesigns(StorageService.getCollections()); }, []);
 
@@ -288,7 +343,7 @@ export default function App() {
     try {
       const spec = await FashionIntelligenceService.extractSpecification(targetPrompt);
       const [image, products] = await Promise.all([
-        ImageGenerationService.generate(spec.optimized_image_prompt || targetPrompt),
+        ImageGenerationService.generate(spec.optimized_image_prompt || targetPrompt, selectedModel),
         ProductSearchService.searchSimilarProducts(spec)
       ]);
       setDesignJob({ status: 'completed', spec, image, products, prompt: targetPrompt });
@@ -568,6 +623,59 @@ export default function App() {
                     className="w-full h-32 p-3.5 bg-[#080808] border border-neutral-800/80 rounded-xl resize-none focus:outline-none focus:border-neutral-600 text-sm text-neutral-300 placeholder:text-neutral-700 transition-colors leading-relaxed"
                     required
                   />
+
+                  {/* ── Model Selector ───────────────────────────────── */}
+                  <div ref={modelDropRef} className="relative">
+                    <p className="text-[10px] text-neutral-600 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                      <Cpu size={9} /> AI Model
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setModelDropOpen(o => !o)}
+                      className="w-full flex items-center justify-between bg-[#080808] border border-neutral-800/80 hover:border-neutral-600 rounded-xl px-3 py-2.5 transition-colors group"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {(() => {
+                          const m = IMAGE_MODELS.find(m => m.id === selectedModel);
+                          return (
+                            <>
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${m?.badgeColor}`}>{m?.badge}</span>
+                              <span className="text-sm text-neutral-200 font-medium truncate">{m?.label}</span>
+                              <span className="text-[10px] text-neutral-600 shrink-0">{m?.provider}</span>
+                            </>
+                          );
+                        })()}
+                      </div>
+                      <ChevronDown size={13} className={`text-neutral-500 transition-transform shrink-0 ml-1 ${modelDropOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Dropdown */}
+                    {modelDropOpen && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-[#0e0e0e] border border-neutral-800/80 rounded-xl overflow-hidden shadow-2xl z-50 ring-1 ring-white/5">
+                        {IMAGE_MODELS.map(m => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => { setSelectedModel(m.id); setModelDropOpen(false); }}
+                            className={`w-full flex items-start gap-3 px-3.5 py-3 text-left hover:bg-neutral-800/60 transition-colors border-b border-neutral-800/40 last:border-0
+                              ${selectedModel === m.id ? 'bg-neutral-800/40' : ''}`}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className="text-sm text-neutral-200 font-medium">{m.label}</span>
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${m.badgeColor}`}>{m.badge}</span>
+                              </div>
+                              <p className="text-[11px] text-neutral-600 leading-snug">{m.description}</p>
+                            </div>
+                            {selectedModel === m.id && (
+                              <div className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 shrink-0" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   <button
                     type="submit"
                     disabled={designJob.status === 'processing'}
