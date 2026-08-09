@@ -66,20 +66,53 @@ const FashionIntelligenceService = {
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80";
 
 const ImageGenerationService = {
+  /**
+   * Primary route  : POST /api/design          → Cloudflare FLUX.1-schnell
+   * Fallback route : POST /api/generate-image  → HuggingFace FLUX.1-schnell
+   * Both routes live in the FastAPI backend — the token NEVER touches the browser.
+   */
   async generate(optimizedPrompt) {
+    // ── 1. Try Cloudflare via /api/design ──────────────────────────────
     try {
-      const res = await fetch(`${BACKEND_URL}/api/generate-image`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const res = await fetch(`${BACKEND_URL}/api/design`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: optimizedPrompt }),
       });
-      if (!res.ok) {
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.image) return data.image;
+      } else {
+        const err = await res.json().catch(() => ({}));
+        // 503 = backend not configured → fall through to HF route
+        if (res.status !== 503) {
+          console.warn('[ImageGen] Cloudflare error:', err?.error?.code);
+        }
+      }
+    } catch (e) {
+      console.warn('[ImageGen] /api/design unreachable, trying HF fallback:', e.message);
+    }
+
+    // ── 2. Fallback: HuggingFace /api/generate-image ──────────────────
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/generate-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: optimizedPrompt }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.image_base64) return data.image_base64;
+      } else {
         const err = await res.json().catch(() => ({}));
         if (err?.detail?.fallback_url) return err.detail.fallback_url;
-        return FALLBACK_IMAGE;
       }
-      const data = await res.json();
-      return data.image_base64;
-    } catch { return FALLBACK_IMAGE; }
+    } catch (e) {
+      console.warn('[ImageGen] /api/generate-image also unreachable:', e.message);
+    }
+
+    // ── 3. Final fallback: static placeholder ─────────────────────────
+    return FALLBACK_IMAGE;
   }
 };
 
@@ -98,18 +131,58 @@ const VirtualTryOnService = {
   async processTryOn(personImage, garmentImage) {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const canvas = document.createElement('canvas');
+        const canvas  = document.createElement('canvas');
+        const scratch = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const pImg = new Image(), gImg = new Image();
         pImg.crossOrigin = gImg.crossOrigin = "anonymous";
+
         pImg.onload = () => {
-          canvas.width = pImg.width; canvas.height = pImg.height;
-          ctx.drawImage(pImg, 0, 0);
+          const W = pImg.width, H = pImg.height;
+          canvas.width  = scratch.width  = W;
+          canvas.height = scratch.height = H;
+
           gImg.onload = () => {
-            ctx.globalAlpha = 0.85;
-            const w = pImg.width * 0.7, h = (gImg.height / gImg.width) * w;
-            ctx.drawImage(gImg, (pImg.width - w) / 2, pImg.height * 0.2, w, h);
-            resolve({ resultImage: canvas.toDataURL('image/png') });
+            // ── 1. Draw full person as base ──────────────────────────
+            ctx.drawImage(pImg, 0, 0, W, H);
+
+            // ── 2. Build garment layer on scratch canvas ─────────────
+            //    Scale garment to cover the torso region (top 20% → 85%)
+            const sc  = scratch.getContext('2d');
+            const torsoTop    = H * 0.18;
+            const torsoHeight = H * 0.67;
+            const gAspect     = gImg.width / gImg.height;
+            const gW          = W;
+            const gH          = gW / gAspect;
+            // centre the garment and offset so it starts at the shoulder
+            const gX = 0;
+            const gY = torsoTop - (gH - torsoHeight) * 0.15;
+
+            sc.drawImage(gImg, gX, gY, gW, gH);
+
+            // ── 3. Blend garment onto person using 'multiply' ────────
+            //    This darkens person's clothing area with the garment colour,
+            //    giving a natural colour-replacement look without a hard edge.
+            ctx.save();
+            ctx.globalCompositeOperation = 'multiply';
+            ctx.globalAlpha = 0.82;
+            ctx.drawImage(scratch, 0, 0);
+            ctx.restore();
+
+            // ── 4. Restore person's face/head cleanly on top ─────────
+            //    Re-draw the top ~22% of the person over the garment layer
+            //    so the face is never obscured.
+            const headH = H * 0.22;
+            ctx.drawImage(pImg, 0, 0, W, headH, 0, 0, W, headH);
+
+            // ── 5. Subtle vignette to unify the composite ────────────
+            const vignette = ctx.createRadialGradient(W/2, H/2, H*0.3, W/2, H/2, H*0.85);
+            vignette.addColorStop(0, 'rgba(0,0,0,0)');
+            vignette.addColorStop(1, 'rgba(0,0,0,0.18)');
+            ctx.fillStyle = vignette;
+            ctx.fillRect(0, 0, W, H);
+
+            resolve({ resultImage: canvas.toDataURL('image/jpeg', 0.92) });
           };
           gImg.src = garmentImage;
         };

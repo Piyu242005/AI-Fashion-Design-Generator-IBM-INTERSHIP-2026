@@ -1,134 +1,205 @@
-# AI Fashion Studio — API Setup Guide
+# AI Fashion Studio — Setup Guide
 
-## Architecture Overview
+## Architecture
 
 ```
 Browser (React + Vite)
     │
-    ├─ Text / Spec extraction ──► Gemini 2.5 Flash (free)   [client-side]
+    ├─ Text / Spec extraction ──► Gemini 2.5 Flash (free tier)  [client-side]
     │
-    └─ Image generation ─────────► FastAPI backend
-                                        │
-                                        └──► Hugging Face FLUX.1 (free credits)
-                                                  ↓ (credits exhausted)
-                                             Unsplash placeholder (fallback)
+    └─ Image generation
+            │
+            ▼
+       FastAPI backend  (port 8000)
+            │
+            ├─ PRIMARY  ──► Cloudflare Workers AI → FLUX.1-schnell
+            │
+            └─ FALLBACK ──► HuggingFace Inference API → FLUX.1-schnell
+                                    │
+                                    └─ (credits exhausted) ──► Unsplash placeholder
 ```
 
-Your **HuggingFace API token is never exposed to the browser** — it lives only in the
-Python backend's `.env` file.
+**Your API tokens never reach the browser.** They live only in the server-side `.env` file.
 
 ---
 
-## Step 1 — Clone & install frontend
+## Cloudflare Workers AI Setup
+
+### 1. Create a Cloudflare account
+Sign up at https://dash.cloudflare.com (free).
+
+### 2. Enable Workers AI
+In the dashboard: **AI → Workers AI** → click "Enable".
+
+### 3. Get your Account ID
+Your Account ID is shown in the **right sidebar** of any Cloudflare dashboard page (labelled "Account ID").
+
+### 4. Create an API token
+1. Go to **My Profile → API Tokens → Create Token**
+2. Use "Create Custom Token"
+3. Add permissions:
+   - **Workers AI** — Read
+   - **Workers AI** — Edit
+4. Click "Continue to summary" → "Create Token"
+5. Copy the token **now** — it is shown only once.
+
+### 5. Add credentials to `.env`
 
 ```bash
-# Install frontend deps (Vite + Tailwind + lucide-react)
-npm install
-
-# Install Vite + React if not already present
-npm install vite @vitejs/plugin-react react react-dom
-```
-
----
-
-## Step 2 — Configure environment variables
-
-```bash
-# Copy the example file
 cp .env.example .env
 ```
 
-Open `.env` and fill in **two** values:
+Edit `.env`:
 
-| Variable | Where to get it | Free? |
-|---|---|---|
-| `VITE_GEMINI_API_KEY` | https://aistudio.google.com/app/apikey | ✅ Free tier |
-| `HUGGINGFACE_API_TOKEN` | https://huggingface.co/settings/tokens | ✅ $0.10 credits |
+```env
+CLOUDFLARE_ACCOUNT_ID=your_account_id_here
+CLOUDFLARE_API_TOKEN=your_api_token_here
+```
 
-Leave everything else as-is for local development.
+> ⚠️ Use placeholder values only in `.env.example` and this README.
+> Never put a real token in source code, Git history, or any committed file.
 
 ---
 
-## Step 3 — Start the Python backend
+## Google Gemini Setup (optional — for spec extraction)
+
+1. Go to https://aistudio.google.com/app/apikey
+2. Click "Create API Key"
+3. Add to `.env`:
+
+```env
+VITE_GEMINI_API_KEY=your_gemini_key_here
+```
+
+Without this key the app uses a local mock spec — image generation still works.
+
+---
+
+## Running the Project
+
+### Prerequisites
+- Node.js 18+
+- Python 3.10+
+
+### Step 1 — Install frontend dependencies
+
+```bash
+npm install
+```
+
+### Step 2 — Set up the Python backend
 
 ```bash
 cd backend
 
-# Create a virtual environment (recommended)
+# Create virtual environment
 python -m venv venv
 venv\Scripts\activate          # Windows
 # source venv/bin/activate     # macOS / Linux
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Run the server
-uvicorn main:app --reload --port 8000
 ```
 
-Verify it's running:
-```
-http://localhost:8000/api/health
-```
-Expected response:
-```json
-{ "status": "ok", "hf_token_set": true, "model": "black-forest-labs/FLUX.1-schnell" }
-```
-
----
-
-## Step 4 — Start the React frontend
-
-In a **separate terminal** (keep the backend running):
+### Step 3 — Start the FastAPI backend
 
 ```bash
-# Back in the project root
+# From the backend/ directory, with venv activated
+uvicorn app.main:app --reload --port 8000
+```
+
+Verify at: http://localhost:8000/api/health
+
+Expected response:
+```json
+{
+  "status": "ok",
+  "providers": {
+    "cloudflare": { "configured": true },
+    "huggingface": { "configured": false }
+  }
+}
+```
+
+### Step 4 — Start the React frontend
+
+In a **new terminal** (keep the backend running):
+
+```bash
 npm run dev
 ```
 
-Open http://localhost:5173 in your browser.
+Open http://localhost:5173
+
+### Step 5 — Generate a fashion design
+
+1. Click **Studio** in the navigation
+2. Type a prompt, e.g.:
+   - `Modern Indian half-saree in pastel pink and gold`
+   - `Luxury men's beach resort suit in linen`
+   - `Contemporary cotton kurta with geometric patterns under Rs 3000`
+3. Click **Generate Design**
+4. The request flows: React → FastAPI → Cloudflare FLUX.1 → FastAPI → React
+
+---
+
+## Running Tests
+
+```bash
+cd backend
+pytest tests/ -v
+```
+
+All 7 tests run with mocked Cloudflare responses — no real API calls or credits used.
+
+---
+
+## API Reference
+
+### `POST /api/design`  ← Primary (Cloudflare)
+
+```json
+// Request
+{ "prompt": "Modern Indian half-saree in pastel pink and gold" }
+
+// Success
+{ "success": true, "image": "data:image/png;base64,...", "provider": "cloudflare" }
+
+// Error
+{ "success": false, "error": { "code": "IMAGE_GENERATION_FAILED", "message": "..." } }
+```
+
+### `GET /api/health`
+
+```json
+{
+  "status": "ok",
+  "providers": {
+    "cloudflare":   { "configured": true },
+    "huggingface":  { "configured": false, "model": "black-forest-labs/FLUX.1-schnell" }
+  }
+}
+```
+
+### `POST /api/generate-image`  ← Legacy (HuggingFace, kept for compatibility)
 
 ---
 
 ## Free Tier Limits
 
-| Provider | Free Allowance | Best For |
+| Provider | Free Allowance | Notes |
 |---|---|---|
-| Google Gemini | Generous free tier (text) | Fashion spec extraction |
-| HuggingFace | $0.10/month inference credits | Dev & demo image generation |
-| Unsplash (fallback) | Unlimited | Offline / no-credit fallback |
-
-### When HuggingFace credits run out
-The backend returns a `402` error and the frontend automatically falls back to an
-Unsplash placeholder — **the app never crashes**.
-
-### Upgrading to production
-1. Replace `HUGGINGFACE_API_TOKEN` with a paid-tier token, or
-2. Switch to **fal.ai** by adding a `/api/generate-image-fal` route in `backend/main.py`, or
-3. Use **Google Imagen 4.0** (paid) by re-enabling the Imagen route.
+| Cloudflare Workers AI | Generous free tier (10,000 neurons/day) | Recommended for production |
+| Google Gemini | Free tier for text | Spec extraction only |
+| HuggingFace | $0.10/month credits | Dev fallback |
+| Unsplash placeholder | Unlimited | Offline fallback |
 
 ---
 
-## Model Options (HuggingFace)
+## Security
 
-Change `HUGGINGFACE_IMAGE_MODEL` in `.env`:
-
-| Model | Speed | Quality | Steps |
-|---|---|---|---|
-| `black-forest-labs/FLUX.1-schnell` | ⚡ Fast | Good | 1–4 |
-| `black-forest-labs/FLUX.1-dev` | Medium | Excellent | 20–50 |
-| `stabilityai/stable-diffusion-xl-base-1.0` | Medium | Good | 20–40 |
-
-For a **college project / demo**, `FLUX.1-schnell` at 4 steps is the sweet spot.
-
----
-
-## Troubleshooting
-
-| Symptom | Fix |
-|---|---|
-| `CORS error` in browser console | Make sure FastAPI backend is running on port 8000 |
-| `503 Model is loading` | Wait 20–30 s and retry — HF cold-starts free-tier models |
-| `402 Credits exhausted` | Add HF billing or use Unsplash fallback mode (remove token) |
-| `VITE_GEMINI_API_KEY not found` | Restart `npm run dev` after editing `.env` |
-| Gemini returns mock spec | Check `VITE_GEMINI_API_KEY` is set and prefixed with `VITE_` |
+- `CLOUDFLARE_API_TOKEN` lives only in `backend/.env` — never in browser code
+- `CLOUDFLARE_ACCOUNT_ID` is also server-side only
+- Raw Cloudflare errors are sanitised before being sent to the client
+- No credentials appear in logs, error responses, or the frontend bundle
+- `.env` is listed in `.gitignore`
