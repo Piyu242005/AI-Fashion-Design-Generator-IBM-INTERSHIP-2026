@@ -6,9 +6,12 @@ import {
 } from 'lucide-react';
 
 // --- CONFIGURATION ---
-// Put your Gemini API Key here for production. 
-// If left empty, the app uses Portfolio Mock Mode to ensure it always works for demos!
-const API_KEY = ""; 
+// Keys are read from .env (Vite exposes only VITE_* variables to the browser).
+// The Gemini key is used client-side only for TEXT extraction (free tier).
+// Image generation is handled by the FastAPI backend → HuggingFace (key stays server-side).
+const GEMINI_API_KEY   = import.meta.env.VITE_GEMINI_API_KEY   || "";
+const GEMINI_MODEL     = import.meta.env.VITE_GEMINI_MODEL      || "gemini-2.5-flash";
+const BACKEND_URL      = import.meta.env.VITE_BACKEND_URL       || "http://localhost:8000";
 
 // --- UTILITY & STORAGE SERVICES ---
 const StorageService = {
@@ -43,12 +46,13 @@ const cleanJSON = (text) => {
 // --- CORE AI SERVICES (WITH MOCK FALLBACKS FOR PORTFOLIO) ---
 const FashionIntelligenceService = {
   async extractSpecification(prompt) {
-    if (!API_KEY) return this.mockSpec(prompt);
+    // Uses Gemini text API — free tier, key is safe in the browser for text-only calls.
+    if (!GEMINI_API_KEY) return this.mockSpec(prompt);
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
-      const payload = { 
-        contents: [{ parts: [{ text: `Extract fashion details to JSON: ${prompt}. Schema: {"category":"", "fabric":"", "colors":["hex codes"], "sustainability_score": 0-100, "budget": {"maximum": number}}` }] }], 
-        generationConfig: { responseMimeType: "application/json" } 
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+      const payload = {
+        contents: [{ parts: [{ text: `Extract fashion details to JSON: ${prompt}. Schema: {"category":"", "fabric":"", "colors":["hex codes"], "sustainability_score": 0-100, "budget": {"maximum": number}}` }] }],
+        generationConfig: { responseMimeType: "application/json" }
       };
       const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await res.json();
@@ -67,17 +71,36 @@ const FashionIntelligenceService = {
   })
 };
 
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80";
+
 const ImageGenerationService = {
+  /**
+   * Calls the FastAPI backend → HuggingFace FLUX model.
+   * The HF token never touches the browser — it lives in backend/.env.
+   * Falls back gracefully to an Unsplash placeholder if the backend is offline.
+   */
   async generate(optimizedPrompt) {
-    if (!API_KEY) return "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80"; // Fallback Image
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${API_KEY}`;
-      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ instances: { prompt: optimizedPrompt } }) });
+      const res = await fetch(`${BACKEND_URL}/api/generate-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: optimizedPrompt }),
+      });
+
+      if (!res.ok) {
+        // Backend returned a structured error — check for mock fallback_url
+        const err = await res.json().catch(() => ({}));
+        if (err?.detail?.fallback_url) return err.detail.fallback_url;
+        console.warn("Image generation error:", err?.detail || res.status);
+        return FALLBACK_IMAGE;
+      }
+
       const data = await res.json();
-      if (data.predictions && data.predictions[0]) return `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
-      throw new Error();
+      return data.image_base64;               // data:image/png;base64,…
     } catch (e) {
-      return "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80";
+      // Backend is not running — silently degrade to placeholder
+      console.warn("Backend unreachable, using fallback image:", e.message);
+      return FALLBACK_IMAGE;
     }
   }
 };
