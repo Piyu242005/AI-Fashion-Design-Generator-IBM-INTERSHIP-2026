@@ -90,6 +90,10 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
         "null",                     # file:// origin — index.html opened directly
+        # ── Production ────────────────────────────────────────────────
+        # Replace these with your real Vercel + Railway domains after deploy:
+        "https://your-app.vercel.app",          # Vercel frontend URL
+        "https://your-app.up.railway.app",      # Railway backend URL (self-origin)
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
