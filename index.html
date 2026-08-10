@@ -219,31 +219,64 @@ const ShopService = {
 
 const TryOnService = {
   process(personImg, garmentImg) {
-    return new Promise(resolve=>setTimeout(()=>{
-      const canvas=document.createElement('canvas'),scratch=document.createElement('canvas');
-      const ctx=canvas.getContext('2d');
-      const pImg=new Image(),gImg=new Image();
-      pImg.crossOrigin=gImg.crossOrigin='anonymous';
-      pImg.onload=()=>{
-        const W=pImg.width,H=pImg.height;
-        canvas.width=scratch.width=W; canvas.height=scratch.height=H;
-        gImg.onload=()=>{
-          ctx.drawImage(pImg,0,0,W,H);
-          const sc=scratch.getContext('2d');
-          const torsoTop=H*.18,torsoH=H*.67,gW=W,gH=gW/(gImg.width/gImg.height);
-          sc.drawImage(gImg,0,torsoTop-(gH-torsoH)*.15,gW,gH);
-          ctx.save(); ctx.globalCompositeOperation='multiply'; ctx.globalAlpha=.82;
-          ctx.drawImage(scratch,0,0); ctx.restore();
-          ctx.drawImage(pImg,0,0,W,H*.22,0,0,W,H*.22);
-          const vg=ctx.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,H*.85);
-          vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.18)');
-          ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
-          resolve(canvas.toDataURL('image/jpeg',.92));
+    return new Promise(resolve => {
+      const canvas = document.createElement('canvas');
+      const ctx    = canvas.getContext('2d');
+      const pImg   = new Image();
+      const gImg   = new Image();
+      pImg.crossOrigin = gImg.crossOrigin = 'anonymous';
+
+      pImg.onload = () => {
+        const W = pImg.naturalWidth  || pImg.width;
+        const H = pImg.naturalHeight || pImg.height;
+        canvas.width  = W;
+        canvas.height = H;
+
+        gImg.onload = () => {
+          // 1. Draw full person as base layer
+          ctx.drawImage(pImg, 0, 0, W, H);
+
+          // 2. Draw garment over torso — source-over, semi-transparent
+          //    Torso region: top=18% … bottom=85% of frame height
+          const torsoTop = H * 0.18;
+          const torsoH   = H * 0.67;           // 85% - 18%
+          const scale    = W / gImg.naturalWidth;
+          const gH       = gImg.naturalHeight * scale;
+          // Centre the garment vertically inside the torso band
+          const gY       = torsoTop + (torsoH - gH) * 0.5;
+
+          ctx.save();
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.globalAlpha = 0.88;
+          ctx.drawImage(gImg, 0, gY, W, gH);
+          ctx.restore();
+
+          // 3. Re-draw person's head/neck region on top at full opacity
+          //    so it is never obscured by the garment layer
+          const headH = H * 0.25;
+          ctx.save();
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.globalAlpha = 1;
+          ctx.drawImage(pImg, 0, 0, W, headH, 0, 0, W, headH);
+          ctx.restore();
+
+          // 4. Subtle vignette for polish
+          const vg = ctx.createRadialGradient(W/2, H/2, H*0.3, W/2, H/2, H*0.9);
+          vg.addColorStop(0, 'rgba(0,0,0,0)');
+          vg.addColorStop(1, 'rgba(0,0,0,0.15)');
+          ctx.fillStyle = vg;
+          ctx.fillRect(0, 0, W, H);
+
+          setTimeout(() => resolve(canvas.toDataURL('image/jpeg', 0.92)), 2500);
         };
-        gImg.src=garmentImg;
+
+        gImg.onerror = () => resolve(canvas.toDataURL('image/jpeg', 0.92));
+        gImg.src = garmentImg;
       };
-      pImg.src=personImg;
-    },2500));
+
+      pImg.onerror = () => resolve(personImg); // fallback: return original
+      pImg.src = personImg;
+    });
   }
 };
 
@@ -796,7 +829,7 @@ function App() {
             h('span',{className:'text-violet-400 font-semibold'},'Piyush Ramteke'),
             ' · IBM Internship 2026'
           ),
-          h('p',{className:'text-[10px] text-neutral-800 mt-0.5'},'Powered by Cloudflare AI · HuggingFace · Google Gemini')
+          h('p',{className:'text-[10px] text-neutral-800 mt-0.5'},'Powered by Cloudflare Workers AI')
         ),
         h('div',{className:'flex items-center gap-1.5'},
           h('span',{className:'text-[10px] text-neutral-700 bg-neutral-900 border border-neutral-800 px-2 py-1 rounded-md'},'v2.0.0'),
