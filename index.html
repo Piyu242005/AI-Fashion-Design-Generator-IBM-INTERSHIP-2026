@@ -191,7 +191,6 @@ const FashionService = {
 
 const ImageService = {
   async generate(prompt, modelId) {
-    // ── Primary: unified /api/design (Cloudflare / HuggingFace / Google) ──
     try {
       const body = { prompt };
       if (modelId) body.model = modelId;
@@ -201,20 +200,7 @@ const ImageService = {
       });
       const d = await res.json().catch(() => ({}));
       if (res.ok && d.success && d.image && d.image.startsWith('data:')) return d.image;
-      // Error with fallback_url — use it directly
       if (d?.error?.fallback_url) return d.error.fallback_url;
-      // Legacy HTTPException shape
-      if (d?.detail?.fallback_url) return d.detail.fallback_url;
-    } catch {}
-    // ── Fallback: legacy HuggingFace /api/generate-image ──────────────────
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/generate-image`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ prompt }),
-      });
-      const d = await res.json().catch(() => ({}));
-      if (res.ok && d.image_base64 && d.image_base64.startsWith('data:')) return d.image_base64;
-      if (d?.detail?.fallback_url) return d.detail.fallback_url;
     } catch {}
     return FALLBACK_IMG;
   }
@@ -263,17 +249,10 @@ const TryOnService = {
 
 /* ── DATA ─────────────────────────────────────────────────────────────── */
 const IMAGE_MODELS=[
-  // ── Cloudflare Workers AI ──────────────────────────────────────────────
   {id:'@cf/black-forest-labs/flux-1-schnell',         label:'FLUX.1 Schnell',  badge:'Fast',    provider:'Cloudflare', bc:'text-sky-400 bg-sky-400/10 border-sky-400/20',          desc:'Best quality/speed for fashion renders',def:true},
   {id:'@cf/stabilityai/stable-diffusion-xl-base-1.0', label:'SDXL Base 1.0',   badge:'Detail',  provider:'Cloudflare', bc:'text-violet-400 bg-violet-400/10 border-violet-400/20',  desc:'Higher detail, slightly slower'},
   {id:'@cf/lykon/dreamshaper-8-lcm',                  label:'DreamShaper 8',   badge:'Art',     provider:'Cloudflare', bc:'text-rose-400 bg-rose-400/10 border-rose-400/20',         desc:'Painterly, creative illustrations'},
   {id:'@cf/bytedance/stable-diffusion-xl-lightning',  label:'SDXL Lightning',  badge:'Fastest', provider:'Cloudflare', bc:'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',desc:'Ultra-fast 4-step generation'},
-  // ── HuggingFace Inference API ──────────────────────────────────────────
-  {id:'hf/black-forest-labs/FLUX.1-schnell',          label:'HF FLUX.1',       badge:'HF',      provider:'HuggingFace',bc:'text-orange-400 bg-orange-400/10 border-orange-400/20',   desc:'FLUX via HuggingFace free tier'},
-  {id:'hf/stabilityai/stable-diffusion-xl-base-1.0',  label:'HF SDXL',         badge:'HF',      provider:'HuggingFace',bc:'text-orange-400 bg-orange-400/10 border-orange-400/20',   desc:'SDXL Base via HuggingFace'},
-  {id:'hf/runwayml/stable-diffusion-v1-5',            label:'SD v1.5',          badge:'HF',      provider:'HuggingFace',bc:'text-orange-400 bg-orange-400/10 border-orange-400/20',   desc:'Classic Stable Diffusion 1.5'},
-  // ── Google Imagen ──────────────────────────────────────────────────────
-  {id:'google/imagen-3.0-generate-002',               label:'Imagen 3',         badge:'Google',  provider:'Google',     bc:'text-blue-400 bg-blue-400/10 border-blue-400/20',          desc:'Google Imagen 3 (billing required)'},
 ];
 
 const RUNWAY=[
