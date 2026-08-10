@@ -347,7 +347,8 @@ function App() {
         h('div',{className:'flex items-center gap-2.5'},
           h('div',{className:'bg-white text-black p-1.5 rounded-lg'},h(Icon,{name:'Scissors',size:15})),
           h('span',{className:'font-semibold text-[15px] tracking-tight hidden sm:block'},'AI Fashion Studio'),
-          h('span',{className:'ml-1 text-[10px] font-medium text-violet-400 bg-violet-400/10 border border-violet-400/20 px-1.5 py-0.5 rounded-md hidden sm:inline'},'BETA')
+          h('span',{className:'ml-1 text-[10px] font-medium text-violet-400 bg-violet-400/10 border border-violet-400/20 px-1.5 py-0.5 rounded-md hidden sm:inline'},'BETA'),
+          h('span',{className:'ml-2 text-[10px] text-neutral-600 hidden md:inline'},'by Piyush Ramteke')
         ),
         h('div',{className:'flex items-center gap-0.5 bg-neutral-900/60 border border-neutral-800/60 p-1 rounded-xl overflow-x-auto'},
           tabs.map(t=>h('button',{key:t.id,onClick:()=>setTab(t.id),
@@ -748,6 +749,28 @@ function App() {
                 )
               ))
             )
+      )
+    ),
+
+    /* ── FOOTER ── */
+    h('footer',{className:'border-t border-neutral-900/80 mt-16 py-8'},
+      h('div',{className:'max-w-7xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-3'},
+        h('div',{className:'flex items-center gap-2.5'},
+          h('div',{className:'bg-white text-black p-1.5 rounded-lg'},h(Icon,{name:'Scissors',size:13})),
+          h('span',{className:'text-sm font-semibold text-neutral-300'},'AI Fashion Studio')
+        ),
+        h('div',{className:'text-center'},
+          h('p',{className:'text-xs text-neutral-600'},
+            'Designed & built by ',
+            h('span',{className:'text-violet-400 font-semibold'},'Piyush Ramteke'),
+            ' · IBM Internship 2026'
+          ),
+          h('p',{className:'text-[10px] text-neutral-800 mt-0.5'},'Powered by Cloudflare AI · HuggingFace · Google Gemini')
+        ),
+        h('div',{className:'flex items-center gap-1.5'},
+          h('span',{className:'text-[10px] text-neutral-700 bg-neutral-900 border border-neutral-800 px-2 py-1 rounded-md'},'v2.0.0'),
+          h('span',{className:'text-[10px] font-medium text-violet-400 bg-violet-400/10 border border-violet-400/20 px-2 py-1 rounded-md'},'BETA')
+        )
       )
     )
   );
