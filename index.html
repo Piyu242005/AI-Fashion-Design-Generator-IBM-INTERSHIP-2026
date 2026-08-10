@@ -503,37 +503,19 @@ function App() {
                   ),
                   h(Icon,{name:'ChevronDown',size:13,className:`text-neutral-500 shrink-0 ml-1 ${dropOpen?'rotate-180':''}`,style:{transition:'transform .2s'}})
                 ),
-                dropOpen && h('div',{className:'absolute top-full left-0 right-0 mt-1 bg-[#0e0e0e] border border-neutral-800/80 rounded-xl overflow-hidden shadow-2xl z-50 max-h-80 overflow-y-auto'},
-                  // Group models by provider and render with section headers
-                  (() => {
-                    const groups = ['Cloudflare','HuggingFace','Google'];
-                    const pColor = {Cloudflare:'text-sky-500',HuggingFace:'text-orange-500',Google:'text-blue-500'};
-                    const items = [];
-                    groups.forEach(grp => {
-                      const ms = IMAGE_MODELS.filter(m=>m.provider===grp);
-                      if (!ms.length) return;
-                      items.push(h('div',{key:'hdr-'+grp,className:'px-3.5 pt-2.5 pb-1 flex items-center gap-1.5 border-b border-neutral-800/40'},
-                        h('span',{className:`text-[9px] font-bold uppercase tracking-wider ${pColor[grp]}`},grp),
-                        h('span',{className:'text-[9px] text-neutral-700'},
-                          grp==='HuggingFace'?'· free tier':grp==='Google'?'· billing required':'· free tier')
-                      ));
-                      ms.forEach(m => items.push(
-                        h('button',{key:m.id,type:'button',onClick:()=>{setModel(m.id);setDropOpen(false);},
-                          className:cx('w-full flex items-start gap-3 px-3.5 py-2.5 text-left border-b border-neutral-800/20 last:border-0 hover:bg-neutral-800/60',model===m.id?'bg-neutral-800/40':''),
-                          style:{transition:'background .15s'}},
-                          h('div',{className:'flex-1 min-w-0'},
-                            h('div',{className:'flex items-center gap-2 mb-0.5'},
-                              h('span',{className:'text-sm text-neutral-200 font-medium'},m.label),
-                              h('span',{className:`text-[9px] font-bold px-1.5 py-0.5 rounded border ${m.bc}`},m.badge)
-                            ),
-                            h('p',{className:'text-[11px] text-neutral-600'},m.desc)
-                          ),
-                          model===m.id && h('div',{className:'w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 shrink-0'})
-                        )
-                      ));
-                    });
-                    return items;
-                  })()
+                dropOpen && h('div',{className:'absolute top-full left-0 right-0 mt-1 bg-[#0e0e0e] border border-neutral-800/80 rounded-xl overflow-hidden shadow-2xl z-50'},
+                  IMAGE_MODELS.map(m=>h('button',{key:m.id,type:'button',onClick:()=>{setModel(m.id);setDropOpen(false);},
+                    className:cx('w-full flex items-start gap-3 px-3.5 py-3 text-left border-b border-neutral-800/40 last:border-0 hover:bg-neutral-800/60',model===m.id?'bg-neutral-800/40':''),
+                    style:{transition:'background .15s'}},
+                    h('div',{className:'flex-1 min-w-0'},
+                      h('div',{className:'flex items-center gap-2 mb-0.5'},
+                        h('span',{className:'text-sm text-neutral-200 font-medium'},m.label),
+                        h('span',{className:`text-[9px] font-bold px-1.5 py-0.5 rounded border ${m.bc}`},m.badge)
+                      ),
+                      h('p',{className:'text-[11px] text-neutral-600'},m.desc)
+                    ),
+                    model===m.id && h('div',{className:'w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 shrink-0'})
+                  ))
                 )
               ),
 
