@@ -143,7 +143,9 @@ function Icon({ name, size = 16, className = "" }) {
 
 /* ── CONFIG ──────────────────────────────────────────────────────── */
 const BACKEND_URL   = "http://localhost:8000";
-const GEMINI_KEY    = "";   // optional — paste VITE_GEMINI_API_KEY here
+// Gemini key (optional): paste your key here, or set it via a <meta> tag:
+//   <meta name="gemini-key" content="AIza...">
+const GEMINI_KEY    = (document.querySelector('meta[name="gemini-key"]')?.content) || "";
 const GEMINI_MODEL  = "gemini-2.5-flash";
 const FALLBACK_IMG  = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80";
 
@@ -190,21 +192,46 @@ const FashionService = {
 
 const ImageService = {
   async generate(prompt, modelId) {
+    // ── Primary: Cloudflare Workers AI via /api/design ──────────────
     try {
       const body = { prompt };
       if (modelId) body.model = modelId;
-      const res = await fetch(`${BACKEND_URL}/api/design`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-      if (res.ok) { const d = await res.json(); if (d.success && d.image) return d.image; }
-      else {
+      const res = await fetch(`${BACKEND_URL}/api/design`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        // DesignResponse: { success: true, image: "data:image/png;base64,…" }
+        if (d.success && d.image) return d.image;
+      } else {
+        // ErrorResponse from Cloudflare route: { success: false, error: { code, message } }
+        // Legacy HTTPException from HuggingFace route: { detail: { fallback_url } }
         const err = await res.json().catch(() => ({}));
         if (err?.detail?.fallback_url) return err.detail.fallback_url;
+        // Cloudflare route returns ErrorResponse (no fallback_url) — fall through to HF route
       }
-    } catch {}
+    } catch {
+      // Backend not running — fall through to HuggingFace legacy route
+    }
+    // ── Fallback: HuggingFace legacy route /api/generate-image ──────
     try {
-      const res = await fetch(`${BACKEND_URL}/api/generate-image`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ prompt }) });
-      if (res.ok) { const d = await res.json(); if (d.image_base64) return d.image_base64; }
-      else { const e = await res.json().catch(()=>({})); if (e?.detail?.fallback_url) return e.detail.fallback_url; }
-    } catch {}
+      const res = await fetch(`${BACKEND_URL}/api/generate-image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        if (d.image_base64) return d.image_base64;
+      } else {
+        const e = await res.json().catch(() => ({}));
+        if (e?.detail?.fallback_url) return e.detail.fallback_url;
+      }
+    } catch {
+      // HuggingFace route also unavailable — use static fallback
+    }
     return FALLBACK_IMG;
   }
 };

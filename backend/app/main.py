@@ -80,13 +80,18 @@ app = FastAPI(
 
 # ── CORS ─────────────────────────────────────────────────────────────────────
 # Explicit allow-list — no wildcard in production.
+# "null" covers browsers that open index.html directly from the filesystem
+# (file:// pages send Origin: null).
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",    # Vite default
         "http://localhost:3000",    # CRA / alternate port
         "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+        "null",                     # file:// origin — index.html opened directly
     ],
+    allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
