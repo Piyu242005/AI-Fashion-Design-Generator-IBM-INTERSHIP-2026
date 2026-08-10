@@ -200,6 +200,7 @@ const FashionService = {
 };
 
 const ImageService = {
+  // Returns { image, reason } so callers know WHY a fallback was used
   async generate(prompt, modelId) {
     try {
       const body = { prompt };
@@ -209,10 +210,23 @@ const ImageService = {
         body: JSON.stringify(body),
       });
       const d = await res.json().catch(() => ({}));
-      if (res.ok && d.success && d.image && d.image.startsWith('data:')) return d.image;
-      if (d?.error?.fallback_url) return d.error.fallback_url;
-    } catch {}
-    return FALLBACK_IMG;
+      // ✅ Real AI image
+      if (res.ok && d.success && d.image && d.image.startsWith('data:'))
+        return { image: d.image, reason: null };
+      // ⚠️ Backend alive but not configured (first deploy, missing .env)
+      if (res.status === 503)
+        return { image: d?.error?.fallback_url || FALLBACK_IMG, reason: 'not_configured' };
+      // ⚠️ Rate limited
+      if (res.status === 429)
+        return { image: d?.error?.fallback_url || FALLBACK_IMG, reason: 'rate_limited' };
+      // ⚠️ Backend returned error with a fallback URL
+      if (d?.error?.fallback_url)
+        return { image: d.error.fallback_url, reason: 'generation_failed' };
+    } catch (e) {
+      // Network error — backend is sleeping (Render cold start) or offline
+      return { image: FALLBACK_IMG, reason: 'offline' };
+    }
+    return { image: FALLBACK_IMG, reason: 'generation_failed' };
   }
 };
 
@@ -278,8 +292,8 @@ const TryOnService = {
     // of a model wearing the garment. No canvas involved.
     const garmentDesc = this._describeGarment(garmentPrompt || '');
     const prompt = this._buildPrompt(garmentDesc, garmentPrompt);
-    const result = await ImageService.generate(prompt, modelId);
-    return result;
+    const { image } = await ImageService.generate(prompt, modelId);
+    return image;
   }
 };
 
@@ -382,14 +396,22 @@ function App() {
     setHistory(PromptHistory.get());
     try {
       const spec=await FashionService.spec(p);
-      const [image,products]=await Promise.all([
+      const [imgResult,products]=await Promise.all([
         ImageService.generate(spec.optimized_image_prompt||p,model),
         ShopService.search(spec)
       ]);
-      // Detect if we got a real AI image or a fallback placeholder
-      const isFallback = image===FALLBACK_IMG || image.includes('unsplash.com');
-      if(isFallback) showToast('AI image unavailable — showing placeholder','warn');
-      // Tally neurons consumed (only for successful real generations)
+      const { image, reason } = imgResult;
+      const isFallback = reason !== null;
+      // Show a specific, actionable message per failure reason
+      if (reason === 'offline')
+        showToast('Backend is waking up (cold start) — try again in 30 s','warn');
+      else if (reason === 'not_configured')
+        showToast('Cloudflare credentials not set on server — showing sample image','warn');
+      else if (reason === 'rate_limited')
+        showToast('Rate limit reached — please wait 1 minute and try again','warn');
+      else if (reason === 'generation_failed')
+        showToast('Image generation failed — showing sample image','warn');
+      // Tally neurons consumed only for real AI generations
       if(!isFallback) setNeurons(n=>n+CF_NEURONS_PER_GEN);
       setJob({status:'completed',spec,image,products,prompt:p,isFallback});
     } catch { setJob({status:'failed',spec:null,image:null,products:[]}); }
