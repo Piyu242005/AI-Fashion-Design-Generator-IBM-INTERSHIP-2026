@@ -1,23 +1,39 @@
 <div align="center">
 
-# ✂️ AI Fashion Studio
+# ✂️ AI Fashion Design Generator
 
 **Describe any outfit. AI renders it. Try it on.**
 
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat&logo=vite&logoColor=white)](https://vitejs.dev)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Cloudflare Workers AI](https://img.shields.io/badge/Cloudflare-Workers_AI-F38020?style=flat&logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/workers-ai/)
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
+[![IBM Internship](https://img.shields.io/badge/IBM-Internship_2026-054ADA?style=flat&logo=ibm&logoColor=white)](https://ibm.com)
+
+**Built by [Piyush Ramteke](https://github.com/piyushramteke) · IBM Internship 2026**
 
 </div>
 
 ---
 
+## Problem Statement
+
+Many students want to explore fashion design but lack artistic or technical skills. Traditional design tools are expensive, have steep learning curves, and are time-consuming. This project provides a **generative AI solution** that:
+
+- Creates clothing designs from plain-language text prompts
+- Suggests similar, affordable products available online
+- Lets you virtually try on any generated garment
+- Makes fashion design **accessible, fast, and fun** — no design skills required
+
+---
+
 ## Overview
 
-AI Fashion Studio is a full-stack fashion design tool that lets you describe any outfit in plain language and instantly generate a photorealistic render using Cloudflare Workers AI (FLUX.1-schnell and other models), suggest real alternatives to buy, and virtually try the garment on.
+**AI Fashion Design Generator** is a full-stack AI web app that lets you describe any outfit in plain English and instantly:
+1. Generate a photorealistic fashion render via Cloudflare Workers AI (FLUX.1-schnell, SDXL, DreamShaper)
+2. See matching affordable alternatives from Myntra, Ajio, and Tata CLiQ
+3. Virtually try the garment on by uploading your own photo
+4. Save designs to your local collection and generate manufacturing tech packs
 
 ```
 You type a prompt
@@ -30,6 +46,18 @@ FLUX.1 / SDXL / DreamShaper renders the image
       ↓
 React displays result + shopping alternatives
 ```
+
+---
+
+---
+
+## Screenshots
+
+### Dashboard — Runway & Trending Concepts
+![AI Fashion Studio Dashboard](DASHBOARD.jpeg)
+
+### Studio — Generated Design Output
+![Generated Design Output](generated%20output.png)
 
 ---
 
@@ -309,6 +337,22 @@ MIT — free for personal, educational, and commercial use.
 
 ---
 
+---
+
+## Creator
+
 <div align="center">
-  Built with ❤️ for the IBM Internship 2026 · Piyush Ramteke
+
+**Piyush Ramteke**
+IBM Internship 2026
+
+*"Making fashion design accessible to everyone through the power of generative AI."*
+
+</div>
+
+---
+
+<div align="center">
+  Built with ❤️ by <strong>Piyush Ramteke</strong> · IBM Internship 2026<br/>
+  Powered by Cloudflare Workers AI · FastAPI · React
 </div>
