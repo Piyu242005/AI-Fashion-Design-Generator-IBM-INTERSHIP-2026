@@ -2,6 +2,11 @@
 backend/app/schemas/design.py
 ===============================
 Pydantic request / response models for the /api/design endpoint.
+
+Model ID convention (used by frontend & backend routing):
+  @cf/...       → Cloudflare Workers AI
+  hf/...        → HuggingFace Inference API
+  google/...    → Google Imagen (Gemini key)
 """
 
 from __future__ import annotations
@@ -9,12 +14,21 @@ from __future__ import annotations
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
-# All valid Cloudflare Workers AI image model IDs.
+# ---------------------------------------------------------------------------
+# Allowed model IDs — prefix determines which provider is called
+# ---------------------------------------------------------------------------
 ALLOWED_MODELS = {
+    # ── Cloudflare Workers AI ────────────────────────────────────────────────
     "@cf/black-forest-labs/flux-1-schnell",
     "@cf/stabilityai/stable-diffusion-xl-base-1.0",
     "@cf/lykon/dreamshaper-8-lcm",
     "@cf/bytedance/stable-diffusion-xl-lightning",
+    # ── HuggingFace Inference API ────────────────────────────────────────────
+    "hf/black-forest-labs/FLUX.1-schnell",
+    "hf/stabilityai/stable-diffusion-xl-base-1.0",
+    "hf/runwayml/stable-diffusion-v1-5",
+    # ── Google Imagen ────────────────────────────────────────────────────────
+    "google/imagen-3.0-generate-002",
 }
 DEFAULT_MODEL = "@cf/black-forest-labs/flux-1-schnell"
 
@@ -33,7 +47,8 @@ class DesignRequest(BaseModel):
     model: Optional[str] = Field(
         default=None,
         description=(
-            "Cloudflare Workers AI model ID to use for image generation. "
+            "Model ID. Prefix selects provider: @cf/ = Cloudflare, "
+            "hf/ = HuggingFace, google/ = Google Imagen. "
             f"Defaults to {DEFAULT_MODEL}."
         ),
         examples=list(ALLOWED_MODELS),
@@ -44,7 +59,7 @@ class DesignRequest(BaseModel):
     def strip_and_check(cls, v: str) -> str:
         v = v.strip()
         if len(v) < 5:
-            raise ValueError("Prompt is too short. Please describe the design in more detail.")
+            raise ValueError("Prompt is too short.")
         return v
 
     @field_validator("model")
@@ -75,6 +90,7 @@ class DesignResponse(BaseModel):
 class ErrorDetail(BaseModel):
     code: str
     message: str
+    fallback_url: Optional[str] = None   # populated when falling back to placeholder
 
 
 # ---------------------------------------------------------------------------

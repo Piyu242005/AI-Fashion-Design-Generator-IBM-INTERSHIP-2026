@@ -125,16 +125,30 @@ const FashionService = {
 
 const ImageService = {
   async generate(prompt, modelId) {
+    // ── Primary: unified /api/design (Cloudflare / HuggingFace / Google) ──
     try {
-      const body={prompt}; if(modelId) body.model=modelId;
-      const res=await fetch(`${BACKEND_URL}/api/design`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      if(res.ok){ const d=await res.json(); if(d.success&&d.image) return d.image; }
-      else { const e=await res.json().catch(()=>({})); if(e?.detail?.fallback_url) return e.detail.fallback_url; }
+      const body = { prompt };
+      if (modelId) body.model = modelId;
+      const res = await fetch(`${BACKEND_URL}/api/design`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(body),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d.success && d.image && d.image.startsWith('data:')) return d.image;
+      // Error with fallback_url — use it directly
+      if (d?.error?.fallback_url) return d.error.fallback_url;
+      // Legacy HTTPException shape
+      if (d?.detail?.fallback_url) return d.detail.fallback_url;
     } catch {}
+    // ── Fallback: legacy HuggingFace /api/generate-image ──────────────────
     try {
-      const res=await fetch(`${BACKEND_URL}/api/generate-image`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
-      if(res.ok){ const d=await res.json(); if(d.image_base64) return d.image_base64; }
-      else { const e=await res.json().catch(()=>({})); if(e?.detail?.fallback_url) return e.detail.fallback_url; }
+      const res = await fetch(`${BACKEND_URL}/api/generate-image`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ prompt }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d.image_base64 && d.image_base64.startsWith('data:')) return d.image_base64;
+      if (d?.detail?.fallback_url) return d.detail.fallback_url;
     } catch {}
     return FALLBACK_IMG;
   }
@@ -183,10 +197,17 @@ const TryOnService = {
 
 /* ── DATA ─────────────────────────────────────────────────────────────── */
 const IMAGE_MODELS=[
-  {id:'@cf/black-forest-labs/flux-1-schnell',         label:'FLUX.1 Schnell', badge:'Fast',    bc:'text-sky-400 bg-sky-400/10 border-sky-400/20',         desc:'Best quality/speed for fashion renders',def:true},
-  {id:'@cf/stabilityai/stable-diffusion-xl-base-1.0', label:'SDXL Base 1.0',  badge:'Detail',  bc:'text-violet-400 bg-violet-400/10 border-violet-400/20', desc:'Higher detail, slightly slower'},
-  {id:'@cf/lykon/dreamshaper-8-lcm',                  label:'DreamShaper 8',  badge:'Art',     bc:'text-rose-400 bg-rose-400/10 border-rose-400/20',       desc:'Painterly, creative illustrations'},
-  {id:'@cf/bytedance/stable-diffusion-xl-lightning',  label:'SDXL Lightning', badge:'Fastest', bc:'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',desc:'Ultra-fast 4-step generation'},
+  // ── Cloudflare Workers AI ──────────────────────────────────────────────
+  {id:'@cf/black-forest-labs/flux-1-schnell',         label:'FLUX.1 Schnell',  badge:'Fast',    provider:'Cloudflare', bc:'text-sky-400 bg-sky-400/10 border-sky-400/20',          desc:'Best quality/speed for fashion renders',def:true},
+  {id:'@cf/stabilityai/stable-diffusion-xl-base-1.0', label:'SDXL Base 1.0',   badge:'Detail',  provider:'Cloudflare', bc:'text-violet-400 bg-violet-400/10 border-violet-400/20',  desc:'Higher detail, slightly slower'},
+  {id:'@cf/lykon/dreamshaper-8-lcm',                  label:'DreamShaper 8',   badge:'Art',     provider:'Cloudflare', bc:'text-rose-400 bg-rose-400/10 border-rose-400/20',         desc:'Painterly, creative illustrations'},
+  {id:'@cf/bytedance/stable-diffusion-xl-lightning',  label:'SDXL Lightning',  badge:'Fastest', provider:'Cloudflare', bc:'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',desc:'Ultra-fast 4-step generation'},
+  // ── HuggingFace Inference API ──────────────────────────────────────────
+  {id:'hf/black-forest-labs/FLUX.1-schnell',          label:'HF FLUX.1',       badge:'HF',      provider:'HuggingFace',bc:'text-orange-400 bg-orange-400/10 border-orange-400/20',   desc:'FLUX via HuggingFace free tier'},
+  {id:'hf/stabilityai/stable-diffusion-xl-base-1.0',  label:'HF SDXL',         badge:'HF',      provider:'HuggingFace',bc:'text-orange-400 bg-orange-400/10 border-orange-400/20',   desc:'SDXL Base via HuggingFace'},
+  {id:'hf/runwayml/stable-diffusion-v1-5',            label:'SD v1.5',          badge:'HF',      provider:'HuggingFace',bc:'text-orange-400 bg-orange-400/10 border-orange-400/20',   desc:'Classic Stable Diffusion 1.5'},
+  // ── Google Imagen ──────────────────────────────────────────────────────
+  {id:'google/imagen-3.0-generate-002',               label:'Imagen 3',         badge:'Google',  provider:'Google',     bc:'text-blue-400 bg-blue-400/10 border-blue-400/20',          desc:'Google Imagen 3 (billing required)'},
 ];
 
 const RUNWAY=[
@@ -432,23 +453,41 @@ function App() {
                   h('div',{className:'flex items-center gap-2 min-w-0'},
                     h('span',{className:`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${activeModel?.bc}`},activeModel?.badge),
                     h('span',{className:'text-sm text-neutral-200 font-medium truncate'},activeModel?.label),
-                    h('span',{className:'text-[10px] text-neutral-600 shrink-0'},'Cloudflare')
+                    h('span',{className:'text-[10px] text-neutral-600 shrink-0'},activeModel?.provider||'Cloudflare')
                   ),
                   h(Icon,{name:'ChevronDown',size:13,className:`text-neutral-500 shrink-0 ml-1 ${dropOpen?'rotate-180':''}`,style:{transition:'transform .2s'}})
                 ),
-                dropOpen && h('div',{className:'absolute top-full left-0 right-0 mt-1 bg-[#0e0e0e] border border-neutral-800/80 rounded-xl overflow-hidden shadow-2xl z-50'},
-                  IMAGE_MODELS.map(m=>h('button',{key:m.id,type:'button',onClick:()=>{setModel(m.id);setDropOpen(false);},
-                    className:cx('w-full flex items-start gap-3 px-3.5 py-3 text-left border-b border-neutral-800/40 last:border-0 hover:bg-neutral-800/60',model===m.id?'bg-neutral-800/40':''),
-                    style:{transition:'background .15s'}},
-                    h('div',{className:'flex-1 min-w-0'},
-                      h('div',{className:'flex items-center gap-2 mb-0.5'},
-                        h('span',{className:'text-sm text-neutral-200 font-medium'},m.label),
-                        h('span',{className:`text-[9px] font-bold px-1.5 py-0.5 rounded border ${m.bc}`},m.badge)
-                      ),
-                      h('p',{className:'text-[11px] text-neutral-600'},m.desc)
-                    ),
-                    model===m.id && h('div',{className:'w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 shrink-0'})
-                  ))
+                dropOpen && h('div',{className:'absolute top-full left-0 right-0 mt-1 bg-[#0e0e0e] border border-neutral-800/80 rounded-xl overflow-hidden shadow-2xl z-50 max-h-80 overflow-y-auto'},
+                  // Group models by provider and render with section headers
+                  (() => {
+                    const groups = ['Cloudflare','HuggingFace','Google'];
+                    const pColor = {Cloudflare:'text-sky-500',HuggingFace:'text-orange-500',Google:'text-blue-500'};
+                    const items = [];
+                    groups.forEach(grp => {
+                      const ms = IMAGE_MODELS.filter(m=>m.provider===grp);
+                      if (!ms.length) return;
+                      items.push(h('div',{key:'hdr-'+grp,className:'px-3.5 pt-2.5 pb-1 flex items-center gap-1.5 border-b border-neutral-800/40'},
+                        h('span',{className:`text-[9px] font-bold uppercase tracking-wider ${pColor[grp]}`},grp),
+                        h('span',{className:'text-[9px] text-neutral-700'},
+                          grp==='HuggingFace'?'· free tier':grp==='Google'?'· billing required':'· free tier')
+                      ));
+                      ms.forEach(m => items.push(
+                        h('button',{key:m.id,type:'button',onClick:()=>{setModel(m.id);setDropOpen(false);},
+                          className:cx('w-full flex items-start gap-3 px-3.5 py-2.5 text-left border-b border-neutral-800/20 last:border-0 hover:bg-neutral-800/60',model===m.id?'bg-neutral-800/40':''),
+                          style:{transition:'background .15s'}},
+                          h('div',{className:'flex-1 min-w-0'},
+                            h('div',{className:'flex items-center gap-2 mb-0.5'},
+                              h('span',{className:'text-sm text-neutral-200 font-medium'},m.label),
+                              h('span',{className:`text-[9px] font-bold px-1.5 py-0.5 rounded border ${m.bc}`},m.badge)
+                            ),
+                            h('p',{className:'text-[11px] text-neutral-600'},m.desc)
+                          ),
+                          model===m.id && h('div',{className:'w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 shrink-0'})
+                        )
+                      ));
+                    });
+                    return items;
+                  })()
                 )
               ),
 
