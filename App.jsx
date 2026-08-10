@@ -8,10 +8,9 @@ import {
 // --- CONFIGURATION ---
 // Keys are read from .env (Vite exposes only VITE_* variables to the browser).
 // The Gemini key is used client-side only for TEXT extraction (free tier).
-// Image generation is handled by the FastAPI backend → HuggingFace (key stays server-side).
+// Image generation is handled by the Vercel serverless function /api/design → Cloudflare Workers AI.
 const GEMINI_API_KEY   = import.meta.env.VITE_GEMINI_API_KEY   || "";
 const GEMINI_MODEL     = import.meta.env.VITE_GEMINI_MODEL      || "gemini-2.5-flash";
-const BACKEND_URL      = import.meta.env.VITE_BACKEND_URL       || "http://localhost:8000";
 
 // --- UTILITY & STORAGE SERVICES ---
 const StorageService = {
@@ -75,31 +74,28 @@ const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1515886657613-9f3515b0
 
 const ImageGenerationService = {
   /**
-   * Calls the FastAPI backend → HuggingFace FLUX model.
-   * The HF token never touches the browser — it lives in backend/.env.
-   * Falls back gracefully to an Unsplash placeholder if the backend is offline.
+   * Calls the Vercel serverless function /api/design → Cloudflare Workers AI (FLUX).
+   * Credentials (CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN) stay in Vercel env vars.
+   * Falls back gracefully to an Unsplash placeholder if generation fails.
    */
   async generate(optimizedPrompt) {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/generate-image`, {
+      const res = await fetch('/api/design', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: optimizedPrompt }),
       });
 
       if (!res.ok) {
-        // Backend returned a structured error — check for mock fallback_url
         const err = await res.json().catch(() => ({}));
-        if (err?.detail?.fallback_url) return err.detail.fallback_url;
-        console.warn("Image generation error:", err?.detail || res.status);
+        console.warn("Image generation error:", err?.error || res.status);
         return FALLBACK_IMAGE;
       }
 
       const data = await res.json();
-      return data.image_base64;               // data:image/png;base64,…
+      return data.image;                      // data:image/png;base64,…
     } catch (e) {
-      // Backend is not running — silently degrade to placeholder
-      console.warn("Backend unreachable, using fallback image:", e.message);
+      console.warn("Image generation failed, using fallback:", e.message);
       return FALLBACK_IMAGE;
     }
   }
