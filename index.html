@@ -437,7 +437,9 @@ function App() {
     {id:'tryon',      label:'Try-On',                 icon:'User'},
     {id:'collection', label:`Saved · ${saved.length}`,icon:'Layers'},
   ];
-  const activeModel=IMAGE_MODELS.find(m=>m.id===model);
+  const activeModel  = IMAGE_MODELS.find(m=>m.id===model);
+  const activeGarment = garmentUpload || job.image;   // whichever is set
+  const garmentRef   = useRef(null);
 
   /* helper: clx(cond, yes, no) */
   const cx=(...args)=>args.filter(Boolean).join(' ');
@@ -782,9 +784,17 @@ function App() {
         h('div',{className:'flex items-center justify-between'},
           h('div',null,
             h('h2',{className:'text-base font-semibold text-neutral-200'},'Virtual Try-On Room'),
-            h('p',{className:'text-xs text-neutral-600 mt-0.5'},'Upload your photo · select a design · see the result')
+            h('p',{className:'text-xs text-neutral-600 mt-0.5'},
+              personImg && activeGarment
+                ? tryJob.status==='processing'
+                  ? '✦ Creating your look…'
+                  : tryJob.status==='completed'
+                    ? '✓ Try-on ready — upload a new photo or garment to regenerate'
+                    : 'Upload your photo · select a garment · see the result'
+                : 'Upload your photo · select a garment · result generates automatically'
+            )
           ),
-          !job.image && h('button',{onClick:()=>setTab('design'),
+          !activeGarment && h('button',{onClick:()=>setTab('design'),
             className:'text-xs text-violet-400 flex items-center gap-1 bg-violet-400/10 border border-violet-400/20 px-3 py-1.5 rounded-lg'},
             h(Icon,{name:'Sparkles',size:11}),' Generate a design first')
         ),
@@ -796,16 +806,17 @@ function App() {
               h('div',{className:'flex items-center gap-2'},
                 h('span',{className:'w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400'},'1'),
                 h('h3',{className:'text-xs font-semibold text-neutral-400 uppercase tracking-wider'},'Your Photo'),
-                (personImg&&!bodyAI) && h('span',{className:'ml-auto inline-block w-3 h-3 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin'})
+                personImg && h('span',{className:'ml-auto text-[9px] text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full'},'Ready')
               ),
               h('div',{onClick:()=>fileRef.current?.click(),
                 className:'aspect-[3/4] bg-[#080808] border-2 border-dashed border-neutral-800 hover:border-neutral-600 rounded-xl flex items-center justify-center cursor-pointer overflow-hidden',
                 style:{transition:'border-color .2s'}},
                 personImg
                   ? h('img',{src:personImg,className:'w-full h-full object-cover'})
-                  : h('div',{className:'text-center space-y-2'},
-                      h(Icon,{name:'Upload',size:18,className:'text-neutral-700 mx-auto'}),
-                      h('p',{className:'text-[11px] text-neutral-700'},'Click to upload')
+                  : h('div',{className:'text-center space-y-2 p-4'},
+                      h(Icon,{name:'Upload',size:20,className:'text-neutral-700 mx-auto'}),
+                      h('p',{className:'text-[11px] text-neutral-600 font-medium'},'Click to upload'),
+                      h('p',{className:'text-[10px] text-neutral-800'},'JPG, PNG, WEBP')
                     ),
                 h('input',{type:'file',ref:fileRef,onChange:uploadPerson,className:'hidden',accept:'image/*'})
               ),
@@ -817,70 +828,108 @@ function App() {
               )
             ),
 
-            /* Step 2 — Garment */
+            /* Step 2 — Garment (upload OR from Studio) */
             h('div',{className:'space-y-3'},
               h('div',{className:'flex items-center gap-2'},
                 h('span',{className:'w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400'},'2'),
-                h('h3',{className:'text-xs font-semibold text-neutral-400 uppercase tracking-wider'},'Garment')
+                h('h3',{className:'text-xs font-semibold text-neutral-400 uppercase tracking-wider'},'Garment'),
+                activeGarment && h('span',{className:'ml-auto text-[9px] text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full'},'Ready')
               ),
-              h('div',{className:'aspect-[3/4] bg-[#080808] border border-neutral-800/60 rounded-xl flex items-center justify-center overflow-hidden'},
-                job.image
-                  ? h('img',{src:job.image,className:'w-full h-full object-cover'})
-                  : h('div',{className:'text-center space-y-2'},
-                      h(Icon,{name:'Image',size:18,className:'text-neutral-800 mx-auto'}),
-                      h('p',{className:'text-[11px] text-neutral-700'},'No design yet')
+              /* Garment display — click to replace */
+              h('div',{onClick:()=>garmentRef.current?.click(),
+                className:'aspect-[3/4] bg-[#080808] border-2 border-dashed border-neutral-800 hover:border-neutral-600 rounded-xl flex items-center justify-center cursor-pointer overflow-hidden relative group',
+                style:{transition:'border-color .2s'}},
+                activeGarment
+                  ? h(Fragment,null,
+                      h('img',{src:activeGarment,className:'w-full h-full object-cover'}),
+                      h('div',{className:'absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-1 text-white text-[11px] font-medium',style:{transition:'opacity .2s'}},
+                        h(Icon,{name:'RefreshCw',size:12}),' Replace'
+                      )
                     )
+                  : h('div',{className:'text-center space-y-2 p-4'},
+                      h(Icon,{name:'Shirt',size:20,className:'text-neutral-700 mx-auto'}),
+                      h('p',{className:'text-[11px] text-neutral-600 font-medium'},'Upload garment'),
+                      h('p',{className:'text-[10px] text-neutral-800'},'or generate in Studio')
+                    ),
+                h('input',{type:'file',ref:garmentRef,onChange:uploadGarment,className:'hidden',accept:'image/*'})
+              ),
+              /* If garment came from Studio, show the prompt it was made from */
+              job.image && !garmentUpload && job.prompt && h('p',{className:'text-[10px] text-neutral-700 line-clamp-2 leading-relaxed italic'},
+                `"${job.prompt}"`
+              ),
+              /* If user uploaded their own garment, offer to clear it (revert to Studio image) */
+              garmentUpload && h('button',{
+                onClick:()=>{setGarmentUpload(null); lastTryOnKey.current=null; setTryJob({status:'idle',result:null});},
+                className:'text-[10px] text-neutral-600 hover:text-neutral-400 flex items-center gap-1'},
+                h(Icon,{name:'X',size:10}),' Use Studio garment instead'
               )
             ),
 
-            /* Step 3 — Result */
+            /* Step 3 — Result (auto-generated, single image only) */
             h('div',{className:'space-y-3 flex flex-col'},
               h('div',{className:'flex items-center gap-2'},
-                h('span',{className:'w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400'},'3'),
-                h('h3',{className:'text-xs font-semibold text-neutral-400 uppercase tracking-wider'},'Result')
+                h('span',{className:cx('w-5 h-5 border rounded-full flex items-center justify-center text-[10px] font-bold',
+                  tryJob.status==='completed'?'bg-violet-500/20 border-violet-500/40 text-violet-300':'bg-neutral-800 border-neutral-700 text-neutral-400')},'3'),
+                h('h3',{className:'text-xs font-semibold text-neutral-400 uppercase tracking-wider'},'Result'),
+                tryJob.status==='processing' && h('span',{className:'ml-auto inline-block w-3 h-3 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin'})
               ),
               h('div',{className:'aspect-[3/4] bg-[#080808] border border-neutral-800/60 rounded-xl overflow-hidden relative'},
                 tryJob.status==='processing'
-                  ? h('div',{className:'absolute inset-0 flex flex-col items-center justify-center gap-2'},
-                      h('div',{className:'relative w-8 h-8'},
+                  /* Loading state */
+                  ? h('div',{className:'absolute inset-0 flex flex-col items-center justify-center gap-3'},
+                      h('div',{className:'relative w-10 h-10'},
                         h('div',{className:'absolute inset-0 rounded-full border-2 border-neutral-800'}),
                         h('div',{className:'absolute inset-0 rounded-full border-2 border-t-violet-500 animate-spin'})
                       ),
-                      h('p',{className:'text-[11px] text-neutral-600'},'Compositing…')
+                      h('p',{className:'text-xs font-medium text-neutral-400'},'Creating your look…'),
+                      h('p',{className:'text-[10px] text-neutral-700'},'Generating with AI')
                     )
-                  : tryJob.result
+                  /* Result — ONLY the generated image, nothing else */
+                  : tryJob.status==='completed' && tryJob.result
                     ? h(Fragment,null,
                         h('img',{
                           key: tryJob.result,
                           src: tryJob.result,
-                          className:'absolute inset-0 w-full h-full object-contain'
+                          className:'absolute inset-0 w-full h-full object-cover',
+                          alt:'AI generated try-on'
                         }),
                         h('button',{onClick:()=>setBigImg(tryJob.result),
-                          className:'absolute bottom-2 right-2 bg-black/60 p-1.5 rounded-lg text-white border border-white/10',
-                          style:{backdropFilter:'blur(8px)'}},h(Icon,{name:'Maximize2',size:12})),
+                          className:'absolute top-2 right-2 bg-black/60 p-1.5 rounded-lg text-white border border-white/10',
+                          style:{backdropFilter:'blur(8px)'},title:'Expand'},h(Icon,{name:'Maximize2',size:12})),
                         h('a',{
-                          href: tryJob.result,
-                          download: 'tryon-result.jpg',
-                          className:'absolute bottom-2 left-2 bg-black/60 p-1.5 rounded-lg text-white border border-white/10',
-                          style:{backdropFilter:'blur(8px)'},
-                          title:'Download'
+                          href: tryJob.result, download:'tryon-result.jpg',
+                          className:'absolute top-2 left-2 bg-black/60 p-1.5 rounded-lg text-white border border-white/10',
+                          style:{backdropFilter:'blur(8px)'},title:'Download'
                         },h(Icon,{name:'Download',size:12}))
                       )
-                    : h('div',{className:'absolute inset-0 flex flex-col items-center justify-center gap-2'},
-                        h(Icon,{name:'User',size:18,className:'text-neutral-800'}),
-                        h('p',{className:'text-[11px] text-neutral-700'},'Result appears here')
+                  /* Failure */
+                  : tryJob.status==='failed'
+                    ? h('div',{className:'absolute inset-0 flex flex-col items-center justify-center gap-2'},
+                        h('div',{className:'text-xl'},'⚠️'),
+                        h('p',{className:'text-[11px] text-neutral-500'},'Generation failed'),
+                        h('button',{onClick:tryon,className:'text-[11px] text-violet-400 hover:text-violet-300 flex items-center gap-1'},
+                          h(Icon,{name:'RefreshCw',size:10}),' Try again')
                       )
+                  /* Empty — waiting for inputs */
+                  : h('div',{className:'absolute inset-0 flex flex-col items-center justify-center gap-2'},
+                      h('div',{className:'w-10 h-10 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-1'},
+                        h(Icon,{name:'Sparkles',size:16,className:'text-neutral-700'})
+                      ),
+                      h('p',{className:'text-[11px] text-neutral-700 text-center px-4'},
+                        personImg && activeGarment
+                          ? 'Starting generation…'
+                          : !personImg
+                            ? 'Upload your photo first'
+                            : 'Select a garment to begin'
+                      )
+                    )
               ),
-              h('div',{className:'space-y-1'},
-                h('button',{onClick:tryon,disabled:!personImg||!job.image||tryJob.status==='processing',
-                  className:'w-full bg-white text-black py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-1.5',
+              /* Regenerate button — only shown when result exists or failed */
+              (tryJob.status==='completed'||tryJob.status==='failed') &&
+                h('button',{onClick:tryon,
+                  className:'w-full border border-neutral-800 text-neutral-500 hover:text-neutral-300 hover:border-neutral-600 py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5',
                   style:{transition:'all .2s'}},
-                  tryJob.status==='processing'
-                    ? [h('span',{key:'s',className:'inline-block w-3.5 h-3.5 border-2 border-black/20 border-t-black rounded-full animate-spin'}),' Processing…']
-                    : [h(Icon,{key:'i',name:'Shirt',size:13}),' Preview on Photo']
-                ),
-                h('p',{className:'text-center text-[10px] text-neutral-700'},'Canvas preview · real ML segmentation coming soon')
-              )
+                  h(Icon,{name:'RefreshCw',size:11}),' Regenerate')
             )
           )
         )
