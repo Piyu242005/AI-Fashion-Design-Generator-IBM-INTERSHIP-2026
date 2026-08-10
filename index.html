@@ -102,24 +102,90 @@ const Store = {
   toggleTrack(id){ const u=this.get().map(d=>d.id===id?{...d,isTracking:!d.isTracking}:d); localStorage.setItem('ai_fashion_v2',JSON.stringify(u)); return u; }
 };
 
+/* ── PROMPT OPTIMIZER ─────────────────────────────────────────────────── */
+// Rewrites any user prompt into a clean FLUX-friendly fashion image prompt.
+// Works without Gemini — pure keyword extraction + template injection.
+const PromptOptimizer = {
+  // Strip photography/camera/lighting jargon that confuses FLUX
+  _stripJargon(p) {
+    return p
+      .replace(/\b(85mm|50mm|35mm|portrait lens|shallow depth of field|bokeh|DSLR|cinematic|photorealistic|4K|ultra-detailed|color grading|natural lighting|golden[- ]hour|warm light|soft light|high detail|realistic skin texture|detailed fabric texture|premium|professional photography|wedding photography|affectionate pose|natural pose|graceful|sophisticated)\b/gi,'')
+      .replace(/,\s*,/g,',').replace(/\s+/g,' ').trim();
+  },
+  // Extract the core fashion subject (what + who + colors)
+  _extract(p) {
+    const lower = p.toLowerCase();
+    // Detect garments
+    const garments = ['saree','lehenga','kurta','sherwani','blazer','jacket','dress','suit','co-ord','anarkali','sharara','dupatta'];
+    const found = garments.filter(g=>lower.includes(g));
+    // Detect colors
+    const colors = ['red','blue','green','yellow','orange','pink','purple','white','black','gold','silver','beige','ivory','maroon','navy','teal','emerald','crimson','deep red','royal blue'];
+    const foundColors = colors.filter(c=>lower.includes(c));
+    // Detect subject (person/couple)
+    const isCouple = lower.includes('couple') || lower.includes('two people') || lower.includes('man and woman');
+    const isWoman = lower.includes('woman') || lower.includes('girl') || lower.includes('bride') || lower.includes('she');
+    const isMan   = lower.includes('man') || lower.includes('groom') || lower.includes('he') || lower.includes('kurta');
+    return { garments:found, colors:foundColors, isCouple, isWoman, isMan };
+  },
+  optimize(userPrompt) {
+    const info = this._extract(userPrompt);
+    const clean = this._stripJargon(userPrompt);
+
+    // Build a structured FLUX prompt: subject → garment → style → quality
+    const subject = info.isCouple
+      ? 'Indian couple'
+      : info.isWoman ? 'Indian woman'
+      : info.isMan   ? 'Indian man'
+      : 'fashion model';
+
+    const garmentDesc = info.garments.length
+      ? info.garments.join(' and ')
+      : clean.split(',')[0]; // first phrase
+
+    const colorDesc = info.colors.slice(0,2).join(' and ');
+
+    const styleTag = info.garments.some(g=>['saree','lehenga','anarkali','sharara'].includes(g))
+      ? 'traditional Indian ethnic wear, intricate embroidery, studio fashion photography'
+      : 'contemporary Indian fashion, clean studio background, fashion photography';
+
+    return `${subject} wearing ${colorDesc ? colorDesc+' ' : ''}${garmentDesc}, ${styleTag}, sharp focus, high quality`;
+  }
+};
+
 /* ── AI SERVICES ──────────────────────────────────────────────────────── */
 const FashionService = {
   async spec(prompt) {
-    if (!GEMINI_KEY) return this.mock(prompt);
+    // Always build an optimized image prompt client-side first
+    const optimized_image_prompt = PromptOptimizer.optimize(prompt);
+
+    if (!GEMINI_KEY) return this.mock(prompt, optimized_image_prompt);
     try {
       const url=`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
       const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({contents:[{parts:[{text:`Fashion JSON: ${prompt}. Schema:{category,fabric,colors:[hex],sustainability_score,budget:{maximum}}`}]}],generationConfig:{responseMimeType:'application/json'}})});
+        body:JSON.stringify({
+          contents:[{parts:[{text:`Extract fashion details as JSON from this prompt: "${prompt}". Return ONLY valid JSON matching exactly: {"category":"","fabric":"","colors":["#hex1","#hex2","#hex3"],"sustainability_score":80,"budget":{"maximum":3000},"optimized_image_prompt":""} — fill optimized_image_prompt with a short clean image generation prompt describing only the clothing/outfit, max 30 words, no camera terms.`}]}],
+          generationConfig:{responseMimeType:'application/json'}
+        })});
       const d=await res.json();
       const txt=d.candidates[0].content.parts[0].text;
       const m=txt.match(/```(?:json)?\n([\s\S]*?)\n```/);
-      return JSON.parse(m?m[1]:txt);
-    } catch { return this.mock(prompt); }
+      const parsed=JSON.parse(m?m[1]:txt);
+      // Always ensure optimized_image_prompt is set — fallback to local optimizer
+      if (!parsed.optimized_image_prompt || parsed.optimized_image_prompt.length < 10)
+        parsed.optimized_image_prompt = optimized_image_prompt;
+      return parsed;
+    } catch { return this.mock(prompt, optimized_image_prompt); }
   },
-  mock:p=>({
-    category:p.toLowerCase().includes('kurta')?'Kurta':p.toLowerCase().includes('saree')?'Saree':'Jacket',
-    fabric:'Organic Cotton',colors:['#0f172a','#334155','#94a3b8'],
-    sustainability_score:85,budget:{maximum:2999},optimized_image_prompt:p
+  mock:(p, optimized)=>({
+    category:p.toLowerCase().includes('kurta')?'Kurta':p.toLowerCase().includes('saree')?'Saree':p.toLowerCase().includes('lehenga')?'Lehenga':p.toLowerCase().includes('blazer')?'Blazer':'Outfit',
+    fabric:'Silk',
+    colors:p.toLowerCase().includes('red')||p.toLowerCase().includes('maroon')?['#8B0000','#C41E3A','#FFD700']:
+           p.toLowerCase().includes('blue')?['#0f172a','#1e3a5f','#94a3b8']:
+           p.toLowerCase().includes('green')?['#14532d','#166534','#86efac']:
+           ['#0f172a','#334155','#94a3b8'],
+    sustainability_score:85,
+    budget:{maximum:4999},
+    optimized_image_prompt: optimized || PromptOptimizer.optimize(p)
   })
 };
 
@@ -534,6 +600,10 @@ function App() {
                     h('img',{src:job.image,alt:'Generated',className:'w-full h-full object-contain'})
                   ),
                   job.spec && h('div',{className:'p-4 space-y-3 border-t border-neutral-800/50'},
+                    job.spec.optimized_image_prompt && h('div',{className:'bg-neutral-900/60 border border-neutral-800/40 p-2.5 rounded-xl'},
+                      h('div',{className:'text-[10px] text-neutral-500 mb-1 flex items-center gap-1 uppercase tracking-wider'},h(Icon,{name:'Sparkles',size:9,className:'text-violet-400'}),' Sent to AI'),
+                      h('p',{className:'text-[10px] text-neutral-400 leading-relaxed italic line-clamp-2'},job.spec.optimized_image_prompt)
+                    ),
                     h('div',{className:'grid grid-cols-2 gap-2'},
                       h('div',{className:'bg-neutral-900/60 border border-neutral-800/40 p-2.5 rounded-xl'},
                         h('div',{className:'text-[10px] text-neutral-500 mb-1.5 flex items-center gap-1 uppercase tracking-wider'},h(Icon,{name:'Palette',size:10}),' Palette'),
