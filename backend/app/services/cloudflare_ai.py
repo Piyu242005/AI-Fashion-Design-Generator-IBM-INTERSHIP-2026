@@ -156,35 +156,61 @@ async def generate_fashion_image(prompt: str, model: str | None = None) -> Gener
         )
 
     # ── Parse response ──────────────────────────────────────────────────────
-    # Cloudflare FLUX.1-schnell returns raw PNG bytes (not JSON).
+    # Cloudflare Workers AI can return either:
+    #   a) JSON envelope: {"result":{"image":"<base64-jpeg>"},"success":true,...}
+    #   b) Raw image bytes  (content-type: image/png or image/jpeg)
+    # Always try JSON first — raw bytes will fail json() and we fall through.
     content_type = response.headers.get("content-type", "")
-    if "image" in content_type or len(response.content) > 1000:
-        # Raw image bytes
+
+    if "application/json" in content_type or response.content[:1] == b"{":
+        # ── JSON envelope path ───────────────────────────────────────────────
+        try:
+            data = response.json()
+            # Cloudflare wraps: {"result":{"image":"<b64>"},"success":true,...}
+            result = data.get("result", data)
+            raw_b64 = result.get("image", "")
+            if not raw_b64:
+                raise ValueError("No image field in JSON response")
+            # Normalise: already a data URI?
+            if raw_b64.startswith("data:"):
+                return GenerationResult(success=True, image_base64=raw_b64)
+            # Detect JPEG (/9j/) vs PNG (iVBOR) from the base64 prefix
+            mime = "image/jpeg" if raw_b64.startswith("/9j/") else "image/png"
+            return GenerationResult(
+                success=True,
+                image_base64=f"data:{mime};base64,{raw_b64}",
+            )
+        except Exception as exc:
+            logger.error("Could not parse Cloudflare JSON response: %s", exc)
+            return GenerationResult(
+                success=False,
+                error_code="PARSE_ERROR",
+                error_message=SAFE_ERROR_MSG,
+            )
+
+    if "image" in content_type:
+        # ── Raw bytes path ───────────────────────────────────────────────────
         b64 = base64.b64encode(response.content).decode("utf-8")
+        mime = content_type.split(";")[0].strip() or "image/png"
         return GenerationResult(
             success=True,
-            image_base64=f"data:image/png;base64,{b64}",
+            image_base64=f"data:{mime};base64,{b64}",
         )
 
-    # Fallback: try JSON envelope (Cloudflare sometimes wraps in {result: {image: "..."}})
+    # ── Unknown format: try JSON, then raw bytes ─────────────────────────────
     try:
         data = response.json()
-        # Handle both {result: {image: "base64..."}} and {image: "base64..."}
         result = data.get("result", data)
         raw_b64 = result.get("image", "")
-        if not raw_b64:
-            raise ValueError("No image field in response")
-        # Normalise — strip data URI prefix if already present
-        if raw_b64.startswith("data:"):
-            return GenerationResult(success=True, image_base64=raw_b64)
-        return GenerationResult(
-            success=True,
-            image_base64=f"data:image/png;base64,{raw_b64}",
-        )
+        if raw_b64:
+            mime = "image/jpeg" if raw_b64.startswith("/9j/") else "image/png"
+            return GenerationResult(
+                success=True,
+                image_base64=f"data:{mime};base64,{raw_b64}",
+            )
     except Exception:
-        logger.error("Could not parse Cloudflare AI response (unexpected format).")
-        return GenerationResult(
-            success=False,
-            error_code="PARSE_ERROR",
-            error_message=SAFE_ERROR_MSG,
-        )
+        pass
+
+    # Last resort: treat as raw bytes
+    b64 = base64.b64encode(response.content).decode("utf-8")
+    return GenerationResult(success=True, image_base64=f"data:image/png;base64,{b64}")
