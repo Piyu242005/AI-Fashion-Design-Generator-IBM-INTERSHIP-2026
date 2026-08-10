@@ -432,7 +432,7 @@ function App() {
 
         /* Left sidebar */
         h('aside',{className:'lg:col-span-4 xl:col-span-3'},
-          h('div',{className:'sticky top-20 bg-neutral-900/40 border border-neutral-800/50 rounded-2xl p-5 space-y-4'},
+          h('div',{className:'sticky top-20 bg-neutral-900/40 border border-neutral-800/50 rounded-2xl p-5 space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto'},
             h('div',{className:'flex items-center justify-between'},
               h('h2',{className:'text-sm font-semibold text-neutral-200 flex items-center gap-2'},h(Icon,{name:'Wand2',size:14,className:'text-violet-400'}),' Design Prompt'),
               h('button',{onClick:()=>setPrompt('Navy blue velvet blazer with intricate gold zari embroidery, formal Indian style.'),
@@ -518,7 +518,7 @@ function App() {
         /* Right output */
         h('section',{className:'lg:col-span-8 xl:col-span-9'},
           (job.status==='completed'&&job.image)
-            ? h('div',{className:'grid grid-cols-1 md:grid-cols-2 gap-5'},
+            ? h('div',{className:'grid grid-cols-1 xl:grid-cols-2 gap-5'},
 
                 /* Generated image */
                 h('div',{className:'bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden flex flex-col group relative'},
@@ -530,8 +530,8 @@ function App() {
                       className:'bg-black/60 p-2 rounded-lg text-white hover:bg-black/80 border border-white/10',
                       style:{backdropFilter:'blur(8px)'}},h(Icon,{name:ic,size:14})))
                   ),
-                  h('div',{className:'h-80 w-full bg-neutral-950 overflow-hidden'},
-                    h('img',{src:job.image,alt:'Generated',className:'w-full h-full object-cover'})
+                  h('div',{className:'w-full bg-neutral-950 overflow-hidden rounded-t-2xl',style:{aspectRatio:'3/4',maxHeight:'520px'}},
+                    h('img',{src:job.image,alt:'Generated',className:'w-full h-full object-contain'})
                   ),
                   job.spec && h('div',{className:'p-4 space-y-3 border-t border-neutral-800/50'},
                     h('div',{className:'grid grid-cols-2 gap-2'},
