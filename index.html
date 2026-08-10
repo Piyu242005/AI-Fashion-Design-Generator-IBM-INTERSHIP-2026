@@ -93,6 +93,8 @@ const BACKEND_URL  = 'https://ai-fashion-design-generator-ibm.onrender.com';
 const GEMINI_KEY   = (document.querySelector('meta[name="gemini-key"]')?.content)||'';
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const FALLBACK_IMG = 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80';
+// Cloudflare Workers AI: FLUX costs ~300 neurons per generation
+const CF_NEURONS_PER_GEN = 300;
 
 /* ── STORAGE ──────────────────────────────────────────────────────────── */
 const Store = {
@@ -100,6 +102,14 @@ const Store = {
   save(d){ const a=this.get(); const nd={...d,id:Date.now(),isTracking:false}; localStorage.setItem('ai_fashion_v2',JSON.stringify([nd,...a])); return nd; },
   del(id){ localStorage.setItem('ai_fashion_v2',JSON.stringify(this.get().filter(d=>d.id!==id))); },
   toggleTrack(id){ const u=this.get().map(d=>d.id===id?{...d,isTracking:!d.isTracking}:d); localStorage.setItem('ai_fashion_v2',JSON.stringify(u)); return u; }
+};
+
+/* ── PROMPT HISTORY ───────────────────────────────────────────────────── */
+const PromptHistory = {
+  _key: 'ai_fashion_history_v1',
+  get()  { return JSON.parse(localStorage.getItem(this._key)||'[]'); },
+  push(p){ const a=this.get().filter(x=>x!==p); const n=[p,...a].slice(0,5); localStorage.setItem(this._key,JSON.stringify(n)); },
+  clear(){ localStorage.removeItem(this._key); }
 };
 
 /* ── PROMPT OPTIMIZER ─────────────────────────────────────────────────── */
@@ -207,76 +217,69 @@ const ImageService = {
 };
 
 const ShopService = {
+  // Pool of 12 mock products — 3 are picked per generation, weighted by category
+  _pool: [
+    {name:'Classic Silk Saree',          price:2499,platform:'Myntra',   score:94,tag:'Best Match', cats:['Saree']},
+    {name:'Premium Banarasi Silk',        price:3799,platform:'Ajio',     score:91,tag:'Featured',   cats:['Saree']},
+    {name:'Kanjivaram Silk Saree',        price:4299,platform:'Tata CLiQ',score:89,tag:'Premium',    cats:['Saree']},
+    {name:'Embroidered Anarkali Kurta',   price:1899,platform:'Myntra',   score:93,tag:'Best Match', cats:['Kurta','Anarkali']},
+    {name:'Straight-Fit Cotton Kurta',    price:999, platform:'Ajio',     score:88,tag:'Popular',    cats:['Kurta']},
+    {name:'Designer Lehenga Choli',       price:5499,platform:'Tata CLiQ',score:92,tag:'Featured',   cats:['Lehenga']},
+    {name:'Bridal Lehenga Set',           price:8999,platform:'Myntra',   score:90,tag:'Premium',    cats:['Lehenga']},
+    {name:'Slim-Fit Blazer',              price:2199,platform:'Ajio',     score:87,tag:'Popular',    cats:['Blazer']},
+    {name:'Linen Co-ord Set',             price:1699,platform:'Myntra',   score:86,tag:'Trending',   cats:['Co-ord']},
+    {name:'Oversized Streetwear Jacket',  price:2899,platform:'Tata CLiQ',score:85,tag:'Trending',   cats:[]},
+    {name:'Sustainable Bamboo Dress',     price:1299,platform:'Ajio',     score:83,tag:'Eco Pick',   cats:[]},
+    {name:'Hand-Block Print Dupatta Set', price:1099,platform:'Myntra',   score:82,tag:'Artisan',    cats:[]},
+  ],
   async search(spec) {
     await new Promise(r=>setTimeout(r,400));
-    return [
-      {name:'Minimalist '+spec.category,     price:1499,platform:'Myntra',   score:92,tag:'Best Match'},
-      {name:'Premium '+spec.fabric+' Blend', price:2199,platform:'Ajio',     score:88,tag:'Popular'},
-      {name:'Urban Streetwear Concept',       price:2899,platform:'Tata CLiQ',score:85,tag:'Trending'},
-    ];
+    const cat = (spec.category||'').trim();
+    // Prefer items matching the category, fill remainder randomly
+    const matched   = this._pool.filter(p=>p.cats.includes(cat));
+    const unmatched = this._pool.filter(p=>!p.cats.includes(cat));
+    // Shuffle helpers
+    const shuffle = a=>[...a].sort(()=>Math.random()-.5);
+    const picks = [...shuffle(matched), ...shuffle(unmatched)].slice(0,3);
+    // Inject spec-derived name for first match to feel personalised
+    if (picks[0] && cat) picks[0] = {...picks[0], name:`${cat} — ${spec.fabric||'Premium'} Blend`};
+    return picks.map(({cats,...rest})=>rest);
   }
 };
 
 const TryOnService = {
-  process(personImg, garmentImg) {
-    return new Promise(resolve => {
-      const canvas = document.createElement('canvas');
-      const ctx    = canvas.getContext('2d');
-      const pImg   = new Image();
-      const gImg   = new Image();
-      pImg.crossOrigin = gImg.crossOrigin = 'anonymous';
+  // Extract a garment description from a prompt or label string
+  _describeGarment(garmentLabel) {
+    if (!garmentLabel) return 'the selected outfit';
+    const lower = garmentLabel.toLowerCase();
+    const garments = ['saree','lehenga','kurta','sherwani','blazer','jacket','dress','suit',
+                      'co-ord','anarkali','sharara','dupatta','t-shirt','shirt','jeans','top'];
+    const found = garments.filter(g => lower.includes(g));
+    return found.length ? found.join(' and ') : garmentLabel.split(',')[0].trim();
+  },
 
-      pImg.onload = () => {
-        const W = pImg.naturalWidth  || pImg.width;
-        const H = pImg.naturalHeight || pImg.height;
-        canvas.width  = W;
-        canvas.height = H;
+  // Build the FLUX prompt that describes the person wearing the garment.
+  // This produces a SINGLE realistic AI image — no canvas, no compositing, no splits.
+  _buildPrompt(garmentDesc, garmentPrompt) {
+    // Use garmentPrompt (the original Studio prompt) if available for richer context
+    const desc = garmentPrompt
+      ? this._describeGarment(garmentPrompt)
+      : garmentDesc;
+    return (
+      `A fashion model wearing ${desc}, ` +
+      `full body portrait, studio white background, ` +
+      `sharp focus, high quality fashion photography, ` +
+      `single person, no collage, no split screen, no duplicate images`
+    );
+  },
 
-        gImg.onload = () => {
-          // 1. Draw full person as base layer
-          ctx.drawImage(pImg, 0, 0, W, H);
-
-          // 2. Draw garment over torso — source-over, semi-transparent
-          //    Torso region: top=18% … bottom=85% of frame height
-          const torsoTop = H * 0.18;
-          const torsoH   = H * 0.67;           // 85% - 18%
-          const scale    = W / gImg.naturalWidth;
-          const gH       = gImg.naturalHeight * scale;
-          // Centre the garment vertically inside the torso band
-          const gY       = torsoTop + (torsoH - gH) * 0.5;
-
-          ctx.save();
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.globalAlpha = 0.88;
-          ctx.drawImage(gImg, 0, gY, W, gH);
-          ctx.restore();
-
-          // 3. Re-draw person's head/neck region on top at full opacity
-          //    so it is never obscured by the garment layer
-          const headH = H * 0.25;
-          ctx.save();
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.globalAlpha = 1;
-          ctx.drawImage(pImg, 0, 0, W, headH, 0, 0, W, headH);
-          ctx.restore();
-
-          // 4. Subtle vignette for polish
-          const vg = ctx.createRadialGradient(W/2, H/2, H*0.3, W/2, H/2, H*0.9);
-          vg.addColorStop(0, 'rgba(0,0,0,0)');
-          vg.addColorStop(1, 'rgba(0,0,0,0.15)');
-          ctx.fillStyle = vg;
-          ctx.fillRect(0, 0, W, H);
-
-          setTimeout(() => resolve(canvas.toDataURL('image/jpeg', 0.92)), 2500);
-        };
-
-        gImg.onerror = () => resolve(canvas.toDataURL('image/jpeg', 0.92));
-        gImg.src = garmentImg;
-      };
-
-      pImg.onerror = () => resolve(personImg); // fallback: return original
-      pImg.src = personImg;
-    });
+  async process(personImg, garmentImg, garmentPrompt, modelId) {
+    // Call FLUX via the backend — returns a real AI-generated image
+    // of a model wearing the garment. No canvas involved.
+    const garmentDesc = this._describeGarment(garmentPrompt || '');
+    const prompt = this._buildPrompt(garmentDesc, garmentPrompt);
+    const result = await ImageService.generate(prompt, modelId);
+    return result;
   }
 };
 
@@ -314,36 +317,80 @@ function App() {
   const [prompt,setPrompt]       = useState('');
   const [model,setModel]         = useState(IMAGE_MODELS.find(m=>m.def).id);
   const [dropOpen,setDropOpen]   = useState(false);
+  const [histOpen,setHistOpen]   = useState(false);
+  const [history,setHistory]     = useState([]);
   const [job,setJob]             = useState({status:'idle',spec:null,image:null,products:[]});
   const [bigImg,setBigImg]       = useState(null);
   const [techPack,setTechPack]   = useState(false);
-  const [personImg,setPersonImg] = useState(null);
-  const [tryJob,setTryJob]       = useState({status:'idle',result:null});
-  const [bodyAI,setBodyAI]       = useState(null);
+  const [personImg,setPersonImg]       = useState(null);
+  const [garmentUpload,setGarmentUpload] = useState(null); // user-uploaded garment image
+  const [tryJob,setTryJob]             = useState({status:'idle',result:null});
+  const [bodyAI,setBodyAI]             = useState(null);
   const [saved,setSaved]         = useState([]);
   const [savePulse,setSavePulse] = useState(false);
+  const [toast,setToast]         = useState(null);   // {msg, type:'warn'|'ok'}
+  const [neurons,setNeurons]     = useState(0);      // cumulative neurons used this session
   const fileRef = useRef(null);
   const dropRef = useRef(null);
+  const histRef = useRef(null);
 
-  useEffect(()=>{ setSaved(Store.get()); },[]);
+  useEffect(()=>{ setSaved(Store.get()); setHistory(PromptHistory.get()); },[]);
   useEffect(()=>{
-    const h=e=>{ if(dropRef.current&&!dropRef.current.contains(e.target)) setDropOpen(false); };
+    const h=e=>{
+      if(dropRef.current&&!dropRef.current.contains(e.target)) setDropOpen(false);
+      if(histRef.current&&!histRef.current.contains(e.target)) setHistOpen(false);
+    };
     document.addEventListener('mousedown',h);
     return ()=>document.removeEventListener('mousedown',h);
   },[]);
+
+  // Auto-dismiss toast after 4 s
+  useEffect(()=>{
+    if(!toast) return;
+    const t=setTimeout(()=>setToast(null),4000);
+    return ()=>clearTimeout(t);
+  },[toast]);
+
+  const showToast=(msg,type='warn')=>setToast({msg,type});
+
+  // The active garment is either a user-uploaded garment OR the AI-generated job image
+  // garmentUpload takes priority (user explicitly chose it)
+
+  // Auto-trigger try-on as soon as BOTH person photo and garment are available.
+  // Use a ref to track what combination we last ran so we don't duplicate calls.
+  const lastTryOnKey = useRef(null);
+  useEffect(()=>{
+    const garment = garmentUpload || job.image;
+    if(!personImg || !garment) return;
+    const key = `${personImg.slice(-20)}|${garment.slice(-20)}`;
+    if(lastTryOnKey.current===key) return;          // same pair — skip
+    lastTryOnKey.current = key;
+    setTryJob({status:'processing',result:null});
+    TryOnService.process(personImg, garment, job.prompt || '', model)
+      .then(result => setTryJob({status:'completed', result}))
+      .catch(()    => setTryJob({status:'failed',    result:null}));
+  },[personImg, garmentUpload, job.image]);          // re-runs when any input changes
 
   const generate = async (override=null) => {
     const p=(override||prompt).trim(); if(!p) return;
     setPrompt(p);
     if(tab!=='design') setTab('design');
     setJob({status:'processing',spec:null,image:null,products:[]});
+    // Save to history immediately
+    PromptHistory.push(p);
+    setHistory(PromptHistory.get());
     try {
       const spec=await FashionService.spec(p);
       const [image,products]=await Promise.all([
         ImageService.generate(spec.optimized_image_prompt||p,model),
         ShopService.search(spec)
       ]);
-      setJob({status:'completed',spec,image,products,prompt:p});
+      // Detect if we got a real AI image or a fallback placeholder
+      const isFallback = image===FALLBACK_IMG || image.includes('unsplash.com');
+      if(isFallback) showToast('AI image unavailable — showing placeholder','warn');
+      // Tally neurons consumed (only for successful real generations)
+      if(!isFallback) setNeurons(n=>n+CF_NEURONS_PER_GEN);
+      setJob({status:'completed',spec,image,products,prompt:p,isFallback});
     } catch { setJob({status:'failed',spec:null,image:null,products:[]}); }
   };
 
@@ -362,11 +409,26 @@ function App() {
     reader.readAsDataURL(file);
   };
 
-  const tryon=async()=>{
-    if(!personImg||!job.image) return;
+  // Manual re-trigger (e.g. "Try Again" after failure or after changing garment)
+  const tryon=()=>{
+    const garment = garmentUpload || job.image;
+    if(!personImg||!garment) return;
+    lastTryOnKey.current = null;   // clear key so useEffect re-fires
     setTryJob({status:'processing',result:null});
-    const result=await TryOnService.process(personImg,job.image);
-    setTryJob({status:'completed',result});
+    TryOnService.process(personImg, garment, job.prompt||'', model)
+      .then(result => setTryJob({status:'completed', result}))
+      .catch(()    => setTryJob({status:'failed',    result:null}));
+  };
+
+  const uploadGarment=e=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      setGarmentUpload(ev.target.result);
+      setTryJob({status:'idle',result:null});
+      lastTryOnKey.current=null;
+    };
+    reader.readAsDataURL(file);
   };
 
   const tabs=[
@@ -381,6 +443,21 @@ function App() {
   const cx=(...args)=>args.filter(Boolean).join(' ');
 
   return h('div',{className:'min-h-screen bg-[#080808] text-neutral-100 antialiased',style:{fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'}},
+
+    /* ── TOAST ── */
+    toast && h('div',{
+      className:cx(
+        'fixed bottom-5 left-1/2 z-[300] -translate-x-1/2 flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-xs font-medium shadow-2xl',
+        toast.type==='warn'
+          ? 'bg-amber-950/90 border-amber-600/40 text-amber-300'
+          : 'bg-emerald-950/90 border-emerald-600/40 text-emerald-300'
+      ),
+      style:{transform:'translateX(-50%)',backdropFilter:'blur(12px)',transition:'opacity .2s'}
+    },
+      h(Icon,{name:toast.type==='warn'?'AlertTriangle':'CheckCircle2',size:13}),
+      ' ',toast.msg,
+      h('button',{onClick:()=>setToast(null),className:'ml-2 opacity-50 hover:opacity-100'},h(Icon,{name:'X',size:12}))
+    ),
 
     /* ── LIGHTBOX ── */
     bigImg && h('div',{className:'fixed inset-0 z-[200] bg-black/96 flex items-center justify-center p-4',onClick:()=>setBigImg(null)},
@@ -513,9 +590,23 @@ function App() {
           h('div',{className:'sticky top-20 bg-neutral-900/40 border border-neutral-800/50 rounded-2xl p-5 space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto'},
             h('div',{className:'flex items-center justify-between'},
               h('h2',{className:'text-sm font-semibold text-neutral-200 flex items-center gap-2'},h(Icon,{name:'Wand2',size:14,className:'text-violet-400'}),' Design Prompt'),
-              h('button',{onClick:()=>setPrompt('Navy blue velvet blazer with intricate gold zari embroidery, formal Indian style.'),
-                className:'flex items-center gap-1 text-[11px] text-neutral-500 hover:text-neutral-300 bg-neutral-800/60 border border-neutral-700/50 px-2 py-1 rounded-lg'},
-                h(Icon,{name:'Camera',size:11}),' Sample')
+              h('div',{className:'flex items-center gap-1.5'},
+                /* History dropdown */
+                history.length>0 && h('div',{ref:histRef,className:'relative'},
+                  h('button',{type:'button',onClick:()=>setHistOpen(o=>!o),
+                    className:'flex items-center gap-1 text-[11px] text-neutral-500 hover:text-neutral-300 bg-neutral-800/60 border border-neutral-700/50 px-2 py-1 rounded-lg',title:'Recent prompts'},
+                    h(Icon,{name:'History',size:11}),' History'),
+                  histOpen && h('div',{className:'absolute right-0 top-full mt-1 w-72 bg-[#0e0e0e] border border-neutral-800/80 rounded-xl overflow-hidden shadow-2xl z-50'},
+                    history.map((hp,i)=>h('button',{key:i,type:'button',
+                      onClick:()=>{setPrompt(hp);setHistOpen(false);},
+                      className:'w-full text-left px-3.5 py-2.5 text-[11px] text-neutral-400 hover:bg-neutral-800/60 hover:text-neutral-200 border-b border-neutral-800/40 last:border-0 truncate',
+                      style:{transition:'background .15s'}},hp))
+                  )
+                ),
+                h('button',{onClick:()=>setPrompt('Navy blue velvet blazer with intricate gold zari embroidery, formal Indian style.'),
+                  className:'flex items-center gap-1 text-[11px] text-neutral-500 hover:text-neutral-300 bg-neutral-800/60 border border-neutral-700/50 px-2 py-1 rounded-lg'},
+                  h(Icon,{name:'Camera',size:11}),' Sample')
+              )
             ),
             h('form',{onSubmit:e=>{e.preventDefault();generate();},className:'space-y-3'},
               h('textarea',{value:prompt,onChange:e=>setPrompt(e.target.value),required:true,
@@ -590,8 +681,16 @@ function App() {
                       className:'bg-black/60 p-2 rounded-lg text-white hover:bg-black/80 border border-white/10',
                       style:{backdropFilter:'blur(8px)'}},h(Icon,{name:ic,size:14})))
                   ),
-                  h('div',{className:'w-full bg-neutral-950 overflow-hidden rounded-t-2xl',style:{aspectRatio:'3/4',maxHeight:'520px'}},
-                    h('img',{src:job.image,alt:'Generated',className:'w-full h-full object-contain'})
+                  h('div',{className:'relative w-full bg-neutral-950 overflow-hidden rounded-t-2xl',style:{aspectRatio:'3/4',maxHeight:'520px'}},
+                    h('img',{src:job.image,alt:'Generated',className:'w-full h-full object-contain'}),
+                    /* Fallback badge */
+                    job.isFallback && h('div',{className:'absolute top-2 left-2 bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[9px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1'},
+                      h(Icon,{name:'AlertTriangle',size:9}),' Placeholder'
+                    ),
+                    /* Neurons display */
+                    !job.isFallback && neurons>0 && h('div',{className:'absolute top-2 left-2 bg-sky-500/10 border border-sky-500/20 text-sky-400 text-[9px] font-medium px-2 py-0.5 rounded-full'},
+                      `~${CF_NEURONS_PER_GEN} neurons · ${neurons} session total`
+                    )
                   ),
                   job.spec && h('div',{className:'p-4 space-y-3 border-t border-neutral-800/50'},
                     job.spec.optimized_image_prompt && h('div',{className:'bg-neutral-900/60 border border-neutral-800/40 p-2.5 rounded-xl'},
@@ -740,31 +839,48 @@ function App() {
                 h('span',{className:'w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400'},'3'),
                 h('h3',{className:'text-xs font-semibold text-neutral-400 uppercase tracking-wider'},'Result')
               ),
-              h('div',{className:'flex-1 bg-[#080808] border border-neutral-800/60 rounded-xl flex items-center justify-center overflow-hidden min-h-[200px] relative'},
+              h('div',{className:'aspect-[3/4] bg-[#080808] border border-neutral-800/60 rounded-xl overflow-hidden relative'},
                 tryJob.status==='processing'
-                  ? h('div',{className:'text-center space-y-2'},
-                      h('div',{className:'relative w-8 h-8 mx-auto'},
+                  ? h('div',{className:'absolute inset-0 flex flex-col items-center justify-center gap-2'},
+                      h('div',{className:'relative w-8 h-8'},
                         h('div',{className:'absolute inset-0 rounded-full border-2 border-neutral-800'}),
                         h('div',{className:'absolute inset-0 rounded-full border-2 border-t-violet-500 animate-spin'})
                       ),
-                      h('p',{className:'text-[11px] text-neutral-600'},'Aligning garment…')
+                      h('p',{className:'text-[11px] text-neutral-600'},'Compositing…')
                     )
                   : tryJob.result
                     ? h(Fragment,null,
-                        h('img',{src:tryJob.result,className:'w-full h-full object-cover'}),
+                        h('img',{
+                          key: tryJob.result,
+                          src: tryJob.result,
+                          className:'absolute inset-0 w-full h-full object-contain'
+                        }),
                         h('button',{onClick:()=>setBigImg(tryJob.result),
                           className:'absolute bottom-2 right-2 bg-black/60 p-1.5 rounded-lg text-white border border-white/10',
-                          style:{backdropFilter:'blur(8px)'}},h(Icon,{name:'Maximize2',size:12}))
+                          style:{backdropFilter:'blur(8px)'}},h(Icon,{name:'Maximize2',size:12})),
+                        h('a',{
+                          href: tryJob.result,
+                          download: 'tryon-result.jpg',
+                          className:'absolute bottom-2 left-2 bg-black/60 p-1.5 rounded-lg text-white border border-white/10',
+                          style:{backdropFilter:'blur(8px)'},
+                          title:'Download'
+                        },h(Icon,{name:'Download',size:12}))
                       )
-                    : h('div',{className:'text-center space-y-2'},
-                        h(Icon,{name:'User',size:18,className:'text-neutral-800 mx-auto'}),
+                    : h('div',{className:'absolute inset-0 flex flex-col items-center justify-center gap-2'},
+                        h(Icon,{name:'User',size:18,className:'text-neutral-800'}),
                         h('p',{className:'text-[11px] text-neutral-700'},'Result appears here')
                       )
               ),
-              h('button',{onClick:tryon,disabled:!personImg||!job.image||tryJob.status==='processing',
-                className:'w-full bg-white text-black py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed',
-                style:{transition:'all .2s'}},
-                tryJob.status==='processing'?'Processing…':'Virtual Try-On')
+              h('div',{className:'space-y-1'},
+                h('button',{onClick:tryon,disabled:!personImg||!job.image||tryJob.status==='processing',
+                  className:'w-full bg-white text-black py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-1.5',
+                  style:{transition:'all .2s'}},
+                  tryJob.status==='processing'
+                    ? [h('span',{key:'s',className:'inline-block w-3.5 h-3.5 border-2 border-black/20 border-t-black rounded-full animate-spin'}),' Processing…']
+                    : [h(Icon,{key:'i',name:'Shirt',size:13}),' Preview on Photo']
+                ),
+                h('p',{className:'text-center text-[10px] text-neutral-700'},'Canvas preview · real ML segmentation coming soon')
+              )
             )
           )
         )

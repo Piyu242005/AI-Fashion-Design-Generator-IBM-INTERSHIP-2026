@@ -64,9 +64,8 @@ React displays result + shopping alternatives
 ### AI Providers
 | Role | Provider | Free? |
 |---|---|---|
-| Image generation (primary) | Cloudflare Workers AI | ✅ 10,000 neurons/day free |
-| Image generation (fallback) | HuggingFace Inference API | ✅ ~$0.10/month |
-| Fashion spec extraction | Google Gemini 2.5 Flash | ✅ Free tier |
+| Image generation | Cloudflare Workers AI | ✅ 10,000 neurons/day free |
+| Fashion spec extraction (optional) | Google Gemini 2.5 Flash | ✅ Free tier |
 
 ---
 
@@ -235,10 +234,22 @@ The `model` field is optional — defaults to `@cf/black-forest-labs/flux-1-schn
 ```json
 {
   "status": "ok",
-  "providers": {
-    "cloudflare":  { "configured": true },
-    "huggingface": { "configured": false, "model": "black-forest-labs/FLUX.1-schnell" }
-  }
+  "provider": "cloudflare",
+  "configured": true
+}
+```
+
+### `GET /api/models`
+
+```json
+{
+  "default": "@cf/black-forest-labs/flux-1-schnell",
+  "models": [
+    { "id": "@cf/black-forest-labs/flux-1-schnell",         "label": "flux-1-schnell" },
+    { "id": "@cf/bytedance/stable-diffusion-xl-lightning",  "label": "stable-diffusion-xl-lightning" },
+    { "id": "@cf/lykon/dreamshaper-8-lcm",                  "label": "dreamshaper-8-lcm" },
+    { "id": "@cf/stabilityai/stable-diffusion-xl-base-1.0", "label": "stable-diffusion-xl-base-1.0" }
+  ]
 }
 ```
 

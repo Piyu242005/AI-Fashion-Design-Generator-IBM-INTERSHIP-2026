@@ -10,14 +10,24 @@ import os
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # ── Load .env from project root (one level above /backend) ──────────────────
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 
 from app.api.design import router as design_router          # noqa: E402
 from app.services.cloudflare_ai import credentials_configured  # noqa: E402
+from app.schemas.design import ALLOWED_MODELS, DEFAULT_MODEL    # noqa: E402
+
+# ---------------------------------------------------------------------------
+# Rate limiter — 2 image generations per minute per IP
+# ---------------------------------------------------------------------------
+limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -52,6 +62,16 @@ app = FastAPI(
     version="2.0.0",
     description="AI Fashion Studio — image generation via Cloudflare Workers AI.",
     lifespan=lifespan,
+)
+
+# ── Rate limiter middleware ───────────────────────────────────────────────────
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    lambda req, exc: JSONResponse(
+        status_code=429,
+        content={"success": False, "error": {"code": "RATE_LIMITED", "message": "Too many requests. Please wait a moment and try again."}},
+    ),
 )
 
 # ── CORS ─────────────────────────────────────────────────────────────────────
@@ -93,6 +113,18 @@ def health():
         "status": "ok",
         "provider": "cloudflare",
         "configured": credentials_configured(),
+    }
+
+
+@app.get("/api/models")
+def models():
+    """Return the list of supported image generation models."""
+    return {
+        "default": DEFAULT_MODEL,
+        "models": [
+            {"id": m, "label": m.split("/")[-1]}
+            for m in sorted(ALLOWED_MODELS)
+        ],
     }
 
 

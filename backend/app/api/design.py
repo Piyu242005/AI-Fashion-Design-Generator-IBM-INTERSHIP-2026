@@ -4,8 +4,10 @@ backend/app/api/design.py — Cloudflare Workers AI only.
 from __future__ import annotations
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.schemas.design import DEFAULT_MODEL, DesignRequest, DesignResponse, ErrorDetail, ErrorResponse
 from app.services.cloudflare_ai import credentials_configured, generate_fashion_image
@@ -13,12 +15,16 @@ from app.services.cloudflare_ai import credentials_configured, generate_fashion_
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+# Re-use the limiter instance created in main.py (accessed via app.state)
+limiter = Limiter(key_func=get_remote_address)
+
 FALLBACK_URL = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80"
 
 
 @router.post("/api/design", response_model=DesignResponse,
              summary="Generate a fashion design image via Cloudflare Workers AI")
-async def generate_design(req: DesignRequest) -> JSONResponse:
+@limiter.limit("2/minute")
+async def generate_design(request: Request, req: DesignRequest) -> JSONResponse:
     if not credentials_configured():
         logger.warning("Cloudflare not configured.")
         return JSONResponse(status_code=503, content=ErrorResponse(
