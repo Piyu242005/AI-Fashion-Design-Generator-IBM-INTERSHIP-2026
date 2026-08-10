@@ -91,9 +91,8 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "null",                     # file:// origin — index.html opened directly
         # ── Production ────────────────────────────────────────────────
-        # Replace with your real deployed URLs:
-        "https://your-app.vercel.app",          # Vercel frontend URL
-        "https://your-app.onrender.com",        # Render backend self-origin (optional)
+        "https://ai-fashion-design-generator-ibm-intership-2026.vercel.app",
+        "https://ai-fashion-design-generator-ibm.onrender.com",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
