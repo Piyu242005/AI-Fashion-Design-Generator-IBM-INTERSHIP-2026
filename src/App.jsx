@@ -1,4 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
+
+/* ─── SAMPLE WARDROBE IMPORTS ─────────────────────────────────────── */
+import imgBeigeJacket      from '../SAMPLES CLOTHES/beige-moto-jacket-navy-dress.jpg';
+import imgBlackCropMaxi    from '../SAMPLES CLOTHES/black-crop-top-maxi-skirt.jpg';
+import imgBlackCropSkirt   from '../SAMPLES CLOTHES/black-crop-top-skirt-set.jpg';
+import imgBlueHoodie       from '../SAMPLES CLOTHES/blue-oversized-hoodie.jpg';
+import imgCreamHoodie      from '../SAMPLES CLOTHES/cream-oversized-hoodie.jpg';
+import imgDenimShirt       from '../SAMPLES CLOTHES/denim-shirt-beige-trousers-outfit.jpg';
+import imgMensBlackHoodie  from '../SAMPLES CLOTHES/mens-black-hoodie.jpg';
+import imgGeometricShirt   from '../SAMPLES CLOTHES/mens-geometric-print-shirt.jpg';
+import imgWhiteTshirt      from '../SAMPLES CLOTHES/mens-white-tshirt-jeans.jpg';
+import imgPinkSweater      from '../SAMPLES CLOTHES/pink-sweater-navy-jeans-outfit.jpg';
+import imgTealBlazer       from '../SAMPLES CLOTHES/teal-blazer-grey-jeans.jpg';
+import imgTealTrio         from '../SAMPLES CLOTHES/teal-khaki-black-dresses-trio.jpg';
+import imgVintageDenim     from '../SAMPLES CLOTHES/vintage-denim-jacket.jpg';
+import imgWhiteKnit        from '../SAMPLES CLOTHES/white-knit-flare-jeans-outfit.jpg';
+import imgWhiteShirt       from '../SAMPLES CLOTHES/white-shirt-long-sleeve.webp';
+import imgYellowTop        from '../SAMPLES CLOTHES/yellow-top-brown-culottes-outfit.jpg';
+
 import {
   Sparkles, Image as ImageIcon, Loader2, Download,
   Scissors, ShoppingBag, User, Upload, Layers, Trash2,
@@ -234,6 +253,35 @@ const VirtualTryOnService = {
   }
 };
 
+/* ─── SAMPLE WARDROBE ─────────────────────────────────────────────── */
+const sampleWardrobe = [
+  { id: 1,  label: "Beige Moto Jacket",         image: imgBeigeJacket,     category: "Jacket" },
+  { id: 2,  label: "Black Crop Top & Maxi",     image: imgBlackCropMaxi,   category: "Set" },
+  { id: 3,  label: "Black Crop & Skirt Set",    image: imgBlackCropSkirt,  category: "Set" },
+  { id: 4,  label: "Blue Oversized Hoodie",     image: imgBlueHoodie,      category: "Casual" },
+  { id: 5,  label: "Cream Oversized Hoodie",    image: imgCreamHoodie,     category: "Casual" },
+  { id: 6,  label: "Denim Shirt & Trousers",    image: imgDenimShirt,      category: "Casual" },
+  { id: 7,  label: "Men's Black Hoodie",        image: imgMensBlackHoodie, category: "Men" },
+  { id: 8,  label: "Geometric Print Shirt",     image: imgGeometricShirt,  category: "Men" },
+  { id: 9,  label: "White T-Shirt & Jeans",     image: imgWhiteTshirt,     category: "Men" },
+  { id: 10, label: "Pink Sweater & Navy Jeans", image: imgPinkSweater,     category: "Casual" },
+  { id: 11, label: "Teal Blazer & Grey Jeans",  image: imgTealBlazer,      category: "Formal" },
+  { id: 12, label: "Teal, Khaki & Black Trio",  image: imgTealTrio,        category: "Dress" },
+  { id: 13, label: "Vintage Denim Jacket",      image: imgVintageDenim,    category: "Jacket" },
+  { id: 14, label: "White Knit & Flare Jeans",  image: imgWhiteKnit,       category: "Casual" },
+  { id: 15, label: "White Long Sleeve Shirt",   image: imgWhiteShirt,      category: "Formal" },
+  { id: 16, label: "Yellow Top & Brown Culotte",image: imgYellowTop,       category: "Casual" },
+];
+
+const WARDROBE_CATEGORY_COLORS = {
+  "Jacket":  "bg-amber-500/15 text-amber-400 border-amber-500/30",
+  "Set":     "bg-violet-500/15 text-violet-400 border-violet-500/30",
+  "Casual":  "bg-sky-500/15 text-sky-400 border-sky-500/30",
+  "Men":     "bg-neutral-500/15 text-neutral-400 border-neutral-500/30",
+  "Formal":  "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+  "Dress":   "bg-rose-500/15 text-rose-400 border-rose-500/30",
+};
+
 /* ─── RUNWAY DATA ─────────────────────────────────────────────────── */
 const runwayData = [
   {
@@ -319,6 +367,7 @@ export default function App() {
   const [bodyAnalysis, setBodyAnalysis]   = useState(null);
   const [savedDesigns, setSavedDesigns]   = useState([]);
   const [savePulse, setSavePulse]         = useState(false);
+  const [wardrobeFilter, setWardrobeFilter] = useState('All');
   const fileInputRef = useRef(null);
   const modelDropRef = useRef(null);
 
@@ -593,6 +642,73 @@ export default function App() {
                 ))}
               </div>
             </div>
+
+            {/* Sample Wardrobe */}
+            <div id="sample-wardrobe">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-base font-semibold text-neutral-200 flex items-center gap-2">
+                  <Layers size={15} className="text-violet-400" /> Sample Wardrobe
+                </h2>
+                <span className="text-xs text-neutral-600">{sampleWardrobe.length} pieces · click to try on →</span>
+              </div>
+
+              {/* Category filter pills */}
+              <div className="flex flex-wrap gap-2 mb-5">
+                {['All', ...Array.from(new Set(sampleWardrobe.map(w => w.category)))].map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setWardrobeFilter(cat)}
+                    className={`text-[11px] font-medium px-3 py-1 rounded-full border transition-all
+                      ${wardrobeFilter === cat
+                        ? 'bg-white text-black border-white'
+                        : 'bg-neutral-800/50 text-neutral-400 border-neutral-700/50 hover:text-white hover:border-neutral-600'}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {sampleWardrobe
+                  .filter(w => wardrobeFilter === 'All' || w.category === wardrobeFilter)
+                  .map(item => (
+                    <div
+                      key={item.id}
+                      className="group relative bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden hover:border-neutral-700/80 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40 cursor-pointer"
+                      onClick={() => { setDesignJob(prev => ({ ...prev, image: item.image })); setActiveTab('tryon'); }}
+                    >
+                      {/* Image */}
+                      <div className="h-52 w-full overflow-hidden bg-neutral-950">
+                        <img
+                          src={item.image}
+                          alt={item.label}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          onError={e => { e.target.src = FALLBACK_IMAGE; }}
+                        />
+                      </div>
+
+                      {/* Category badge */}
+                      <div className="absolute top-2.5 left-2.5">
+                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${WARDROBE_CATEGORY_COLORS[item.category] || 'bg-neutral-500/15 text-neutral-400 border-neutral-500/30'}`}>
+                          {item.category}
+                        </span>
+                      </div>
+
+                      {/* Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                      {/* Bottom label + CTA */}
+                      <div className="absolute bottom-0 inset-x-0 p-3 translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
+                        <p className="text-[11px] text-white font-medium leading-snug mb-2 line-clamp-1">{item.label}</p>
+                        <button className="w-full bg-white/15 backdrop-blur-md text-white border border-white/20 py-1.5 rounded-lg text-[10px] font-semibold hover:bg-white hover:text-black transition-all flex items-center justify-center gap-1">
+                          <User size={9} /> Try On
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
           </div>
         )}
 
