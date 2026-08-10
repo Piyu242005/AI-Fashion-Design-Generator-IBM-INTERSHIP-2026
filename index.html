@@ -5,842 +5,719 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Fashion Studio</title>
 
-  <!-- Tailwind CSS Play CDN (no build step needed) -->
+  <!-- Tailwind CSS Play CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          animation: { 'spin-slow': 'spin 1.5s linear infinite' }
-        }
-      }
-    }
-  </script>
 
-  <!-- Lucide icons — pinned to a stable version with known UMD format -->
+  <!-- Lucide icons — UMD build, pinned version -->
   <script src="https://unpkg.com/lucide@0.474.0/dist/umd/lucide.min.js"></script>
 
-  <!-- React 18 + ReactDOM + Babel (JSX in browser) -->
+  <!-- React 18 + ReactDOM — NO Babel, NO JSX, plain createElement -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; background: #080808; }
 
-    /* line-clamp — webkit prefix + standard property for full compatibility */
-    .line-clamp-1 {
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
-      line-clamp: 1;
-      overflow: hidden;
-    }
-    .line-clamp-2 {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      line-clamp: 2;
-      overflow: hidden;
-    }
+    .line-clamp-1 { display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden; }
+    .line-clamp-2 { display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .animate-spin  { animation: spin 1s linear infinite; }
-    .animate-pulse { animation: pulse 2s cubic-bezier(.4,0,.6,1) infinite; }
-    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+    @keyframes pulse  { 0%,100%{opacity:1}50%{opacity:.5} }
+    .animate-spin     { animation: spin  1s   linear infinite; }
+    .animate-pulse    { animation: pulse 2s   cubic-bezier(.4,0,.6,1) infinite; }
+    .spin-slow        { animation: spin  1.5s linear infinite; }
 
-    ::-webkit-scrollbar       { width: 4px; }
-    ::-webkit-scrollbar-track { background: #111; }
-    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    ::-webkit-scrollbar       { width:4px }
+    ::-webkit-scrollbar-track { background:#111 }
+    ::-webkit-scrollbar-thumb { background:#333;border-radius:4px }
 
-    /* Loading splash shown before React mounts */
     #loading-splash {
-      position: fixed; inset: 0;
-      background: #080808;
-      display: flex; align-items: center; justify-content: center;
-      flex-direction: column; gap: 16px;
-      z-index: 9999;
-      transition: opacity .3s;
+      position:fixed;inset:0;background:#080808;
+      display:flex;align-items:center;justify-content:center;
+      flex-direction:column;gap:16px;z-index:9999;transition:opacity .3s;
     }
     #loading-splash .ring {
-      width: 36px; height: 36px; border-radius: 50%;
-      border: 2px solid #222;
-      border-top-color: #a78bfa;
-      animation: spin .8s linear infinite;
+      width:36px;height:36px;border-radius:50%;
+      border:2px solid #222;border-top-color:#a78bfa;
+      animation:spin .8s linear infinite;
     }
-    #loading-splash p { color: #525252; font-size: 13px; font-family: system-ui, sans-serif; margin: 0; }
+    #loading-splash p { color:#525252;font-size:13px;font-family:system-ui,sans-serif;margin:0; }
   </style>
 </head>
 <body>
-  <!-- Shown while CDN scripts + Babel compile; hidden once React mounts -->
   <div id="loading-splash">
     <div class="ring"></div>
     <p>Loading AI Fashion Studio…</p>
   </div>
   <div id="root"></div>
 
-<script type="text/babel" data-presets="react">
-const { useState, useRef, useEffect } = React;
+<script>
+/* ─────────────────────────────────────────────────────────────────────────
+   Pure React.createElement — no Babel, no JSX, loads instantly
+───────────────────────────────────────────────────────────────────────── */
+const { useState, useRef, useEffect, createElement: h, Fragment } = React;
 
-/* ── Hide loading splash once React is ready ─────────────────────── */
+/* ── Hide splash ──────────────────────────────────────────────────────── */
 function hideSplash() {
   const el = document.getElementById('loading-splash');
-  if (el) { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }
+  if (el) { el.style.opacity='0'; setTimeout(()=>el.remove(),300); }
 }
 
-/* ── Lucide icon wrapper ─────────────────────────────────────────── */
-// lucide UMD exposes every icon as a named export that is an array:
-//   lucide.Sparkles = ["svg", { ...svgAttrs }, [ [childTag, childAttrs], ... ]]
-// We convert that tree to JSX elements at render time — no DOM mutations,
-// no useEffect, no race conditions, works on first paint.
-function Icon({ name, size = 16, className = "" }) {
-  if (!window.lucide) return <span style={{display:'inline-block',width:size,height:size}} />;
-
-  // PascalCase the name to match lucide's export keys (e.g. "arrowRight" → "ArrowRight")
-  const key = name.charAt(0).toUpperCase() + name.slice(1);
-  const iconDef = window.lucide[key] || window.lucide['HelpCircle'];
-  if (!iconDef || !Array.isArray(iconDef)) return <span style={{display:'inline-block',width:size,height:size}} />;
-
-  // iconDef = ["svg", defaultAttrs, [ [tag, attrs], ... ]]
-  const children = iconDef[2] || [];
-
-  const renderChild = ([tag, attrs], i) => {
-    // attrs may contain camelCase or kebab-case keys; React needs camelCase
-    const fixed = {};
-    for (const [k, v] of Object.entries(attrs || {})) {
-      // convert stroke-width → strokeWidth, stroke-linecap → strokeLinecap etc.
-      fixed[k.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = v;
-    }
-    if (tag === 'path')     return <path key={i} {...fixed} />;
-    if (tag === 'circle')   return <circle key={i} {...fixed} />;
-    if (tag === 'line')     return <line key={i} {...fixed} />;
-    if (tag === 'rect')     return <rect key={i} {...fixed} />;
-    if (tag === 'polyline') return <polyline key={i} {...fixed} />;
-    if (tag === 'polygon')  return <polygon key={i} {...fixed} />;
-    if (tag === 'ellipse')  return <ellipse key={i} {...fixed} />;
+/* ── Lucide icon (pure JS, no JSX) ───────────────────────────────────── */
+function Icon({ name, size=16, className='' }) {
+  if (!window.lucide) return h('span',{style:{display:'inline-block',width:size,height:size}});
+  const key = name.charAt(0).toUpperCase()+name.slice(1);
+  const def = window.lucide[key]||window.lucide['HelpCircle'];
+  if (!def||!Array.isArray(def)) return h('span',{style:{display:'inline-block',width:size,height:size}});
+  const children = (def[2]||[]).map(([tag,attrs],i)=>{
+    const fixed={};
+    for(const [k,v] of Object.entries(attrs||{}))
+      fixed[k.replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]=v;
+    if(['path','circle','line','rect','polyline','polygon','ellipse'].includes(tag))
+      return h(tag,{key:i,...fixed});
     return null;
-  };
-
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={`inline-block shrink-0 ${className}`}
-      style={{ verticalAlign: 'middle' }}
-    >
-      {children.map(renderChild)}
-    </svg>
-  );
+  });
+  return h('svg',{
+    xmlns:'http://www.w3.org/2000/svg',width:size,height:size,
+    viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',
+    strokeWidth:2,strokeLinecap:'round',strokeLinejoin:'round',
+    className:`inline-block shrink-0 ${className}`,
+    style:{verticalAlign:'middle'}
+  },...children);
 }
 
-/* ── CONFIG ──────────────────────────────────────────────────────── */
-const BACKEND_URL   = "http://localhost:8000";
-// Gemini key (optional): paste your key here, or set it via a <meta> tag:
-//   <meta name="gemini-key" content="AIza...">
-const GEMINI_KEY    = (document.querySelector('meta[name="gemini-key"]')?.content) || "";
-const GEMINI_MODEL  = "gemini-2.5-flash";
-const FALLBACK_IMG  = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80";
+/* ── CONFIG ───────────────────────────────────────────────────────────── */
+const BACKEND_URL  = 'http://localhost:8000';
+// Gemini key: paste here OR add <meta name="gemini-key" content="AIza..."> in <head>
+const GEMINI_KEY   = (document.querySelector('meta[name="gemini-key"]')?.content)||'';
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const FALLBACK_IMG = 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80';
 
-/* ── STORAGE ─────────────────────────────────────────────────────── */
-const StorageService = {
-  get: () => JSON.parse(localStorage.getItem('ai_fashion_v2') || '[]'),
-  save(design) {
-    const cols = this.get();
-    const nd = { ...design, id: Date.now(), isTracking: false };
-    localStorage.setItem('ai_fashion_v2', JSON.stringify([nd, ...cols]));
-    return nd;
-  },
-  delete(id) {
-    localStorage.setItem('ai_fashion_v2', JSON.stringify(this.get().filter(d => d.id !== id)));
-  },
-  toggleTrack(id) {
-    const updated = this.get().map(d => d.id === id ? { ...d, isTracking: !d.isTracking } : d);
-    localStorage.setItem('ai_fashion_v2', JSON.stringify(updated));
-    return updated;
-  }
+/* ── STORAGE ──────────────────────────────────────────────────────────── */
+const Store = {
+  get:()=>JSON.parse(localStorage.getItem('ai_fashion_v2')||'[]'),
+  save(d){ const a=this.get(); const nd={...d,id:Date.now(),isTracking:false}; localStorage.setItem('ai_fashion_v2',JSON.stringify([nd,...a])); return nd; },
+  del(id){ localStorage.setItem('ai_fashion_v2',JSON.stringify(this.get().filter(d=>d.id!==id))); },
+  toggleTrack(id){ const u=this.get().map(d=>d.id===id?{...d,isTracking:!d.isTracking}:d); localStorage.setItem('ai_fashion_v2',JSON.stringify(u)); return u; }
 };
 
-/* ── AI SERVICES ─────────────────────────────────────────────────── */
+/* ── AI SERVICES ──────────────────────────────────────────────────────── */
 const FashionService = {
   async spec(prompt) {
     if (!GEMINI_KEY) return this.mock(prompt);
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
-      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ contents:[{parts:[{text:`Fashion JSON: ${prompt}. Schema:{category,fabric,colors:[hex],sustainability_score,budget:{maximum}}`}]}], generationConfig:{responseMimeType:"application/json"} })
-      });
-      const d = await res.json();
-      const txt = d.candidates[0].content.parts[0].text;
-      const m = txt.match(/```(?:json)?\n([\s\S]*?)\n```/);
-      return JSON.parse(m ? m[1] : txt);
+      const url=`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`;
+      const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{parts:[{text:`Fashion JSON: ${prompt}. Schema:{category,fabric,colors:[hex],sustainability_score,budget:{maximum}}`}]}],generationConfig:{responseMimeType:'application/json'}})});
+      const d=await res.json();
+      const txt=d.candidates[0].content.parts[0].text;
+      const m=txt.match(/```(?:json)?\n([\s\S]*?)\n```/);
+      return JSON.parse(m?m[1]:txt);
     } catch { return this.mock(prompt); }
   },
-  mock: p => ({
-    category: p.toLowerCase().includes('kurta') ? 'Kurta' : p.toLowerCase().includes('saree') ? 'Saree' : 'Jacket',
-    fabric: 'Organic Cotton', colors: ['#0f172a','#334155','#94a3b8'],
-    sustainability_score: 85, budget: { maximum: 2999 }, optimized_image_prompt: p
+  mock:p=>({
+    category:p.toLowerCase().includes('kurta')?'Kurta':p.toLowerCase().includes('saree')?'Saree':'Jacket',
+    fabric:'Organic Cotton',colors:['#0f172a','#334155','#94a3b8'],
+    sustainability_score:85,budget:{maximum:2999},optimized_image_prompt:p
   })
 };
 
 const ImageService = {
   async generate(prompt, modelId) {
-    // ── Primary: Cloudflare Workers AI via /api/design ──────────────
     try {
-      const body = { prompt };
-      if (modelId) body.model = modelId;
-      const res = await fetch(`${BACKEND_URL}/api/design`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (res.ok) {
-        const d = await res.json();
-        // DesignResponse: { success: true, image: "data:image/png;base64,…" }
-        if (d.success && d.image) return d.image;
-      } else {
-        // ErrorResponse from Cloudflare route: { success: false, error: { code, message } }
-        // Legacy HTTPException from HuggingFace route: { detail: { fallback_url } }
-        const err = await res.json().catch(() => ({}));
-        if (err?.detail?.fallback_url) return err.detail.fallback_url;
-        // Cloudflare route returns ErrorResponse (no fallback_url) — fall through to HF route
-      }
-    } catch {
-      // Backend not running — fall through to HuggingFace legacy route
-    }
-    // ── Fallback: HuggingFace legacy route /api/generate-image ──────
+      const body={prompt}; if(modelId) body.model=modelId;
+      const res=await fetch(`${BACKEND_URL}/api/design`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(res.ok){ const d=await res.json(); if(d.success&&d.image) return d.image; }
+      else { const e=await res.json().catch(()=>({})); if(e?.detail?.fallback_url) return e.detail.fallback_url; }
+    } catch {}
     try {
-      const res = await fetch(`${BACKEND_URL}/api/generate-image`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-      if (res.ok) {
-        const d = await res.json();
-        if (d.image_base64) return d.image_base64;
-      } else {
-        const e = await res.json().catch(() => ({}));
-        if (e?.detail?.fallback_url) return e.detail.fallback_url;
-      }
-    } catch {
-      // HuggingFace route also unavailable — use static fallback
-    }
+      const res=await fetch(`${BACKEND_URL}/api/generate-image`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+      if(res.ok){ const d=await res.json(); if(d.image_base64) return d.image_base64; }
+      else { const e=await res.json().catch(()=>({})); if(e?.detail?.fallback_url) return e.detail.fallback_url; }
+    } catch {}
     return FALLBACK_IMG;
   }
 };
 
 const ShopService = {
   async search(spec) {
-    await new Promise(r => setTimeout(r, 400));
+    await new Promise(r=>setTimeout(r,400));
     return [
-      { name: "Minimalist " + spec.category, price: 1499, platform: "Myntra", score: 92, tag: "Best Match" },
-      { name: "Premium " + spec.fabric + " Blend", price: 2199, platform: "Ajio", score: 88, tag: "Popular" },
-      { name: "Urban Streetwear Concept", price: 2899, platform: "Tata CLiQ", score: 85, tag: "Trending" }
+      {name:'Minimalist '+spec.category,     price:1499,platform:'Myntra',   score:92,tag:'Best Match'},
+      {name:'Premium '+spec.fabric+' Blend', price:2199,platform:'Ajio',     score:88,tag:'Popular'},
+      {name:'Urban Streetwear Concept',       price:2899,platform:'Tata CLiQ',score:85,tag:'Trending'},
     ];
   }
 };
 
 const TryOnService = {
-  async process(personImg, garmentImg) {
-    return new Promise(resolve => setTimeout(() => {
-      const canvas = document.createElement('canvas'), scratch = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const pImg = new Image(), gImg = new Image();
-      pImg.crossOrigin = gImg.crossOrigin = "anonymous";
-      pImg.onload = () => {
-        const W = pImg.width, H = pImg.height;
-        canvas.width = scratch.width = W; canvas.height = scratch.height = H;
-        gImg.onload = () => {
-          ctx.drawImage(pImg, 0, 0, W, H);
-          const sc = scratch.getContext('2d');
-          const torsoTop = H * 0.18, torsoH = H * 0.67;
-          const gW = W, gH = gW / (gImg.width / gImg.height);
-          sc.drawImage(gImg, 0, torsoTop - (gH - torsoH) * 0.15, gW, gH);
-          ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = 0.82;
-          ctx.drawImage(scratch, 0, 0); ctx.restore();
-          ctx.drawImage(pImg, 0, 0, W, H * 0.22, 0, 0, W, H * 0.22);
-          const vg = ctx.createRadialGradient(W/2, H/2, H*0.3, W/2, H/2, H*0.85);
-          vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.18)');
-          ctx.fillStyle = vg; ctx.fillRect(0,0,W,H);
-          resolve(canvas.toDataURL('image/jpeg', 0.92));
+  process(personImg, garmentImg) {
+    return new Promise(resolve=>setTimeout(()=>{
+      const canvas=document.createElement('canvas'),scratch=document.createElement('canvas');
+      const ctx=canvas.getContext('2d');
+      const pImg=new Image(),gImg=new Image();
+      pImg.crossOrigin=gImg.crossOrigin='anonymous';
+      pImg.onload=()=>{
+        const W=pImg.width,H=pImg.height;
+        canvas.width=scratch.width=W; canvas.height=scratch.height=H;
+        gImg.onload=()=>{
+          ctx.drawImage(pImg,0,0,W,H);
+          const sc=scratch.getContext('2d');
+          const torsoTop=H*.18,torsoH=H*.67,gW=W,gH=gW/(gImg.width/gImg.height);
+          sc.drawImage(gImg,0,torsoTop-(gH-torsoH)*.15,gW,gH);
+          ctx.save(); ctx.globalCompositeOperation='multiply'; ctx.globalAlpha=.82;
+          ctx.drawImage(scratch,0,0); ctx.restore();
+          ctx.drawImage(pImg,0,0,W,H*.22,0,0,W,H*.22);
+          const vg=ctx.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,H*.85);
+          vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.18)');
+          ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+          resolve(canvas.toDataURL('image/jpeg',.92));
         };
-        gImg.src = garmentImg;
+        gImg.src=garmentImg;
       };
-      pImg.src = personImg;
-    }, 2500));
+      pImg.src=personImg;
+    },2500));
   }
 };
 
-/* ── DATA ────────────────────────────────────────────────────────── */
-const IMAGE_MODELS = [
-  { id:"@cf/black-forest-labs/flux-1-schnell",            label:"FLUX.1 Schnell",   badge:"Fast",    bc:"text-sky-400 bg-sky-400/10 border-sky-400/20",    desc:"Best quality/speed for fashion renders", def:true },
-  { id:"@cf/stabilityai/stable-diffusion-xl-base-1.0",    label:"SDXL Base 1.0",    badge:"Detail",  bc:"text-violet-400 bg-violet-400/10 border-violet-400/20", desc:"Higher detail, slightly slower" },
-  { id:"@cf/lykon/dreamshaper-8-lcm",                     label:"DreamShaper 8",    badge:"Art",     bc:"text-rose-400 bg-rose-400/10 border-rose-400/20",   desc:"Painterly, creative illustrations" },
-  { id:"@cf/bytedance/stable-diffusion-xl-lightning",     label:"SDXL Lightning",   badge:"Fastest", bc:"text-emerald-400 bg-emerald-400/10 border-emerald-400/20", desc:"Ultra-fast 4-step generation" },
+/* ── DATA ─────────────────────────────────────────────────────────────── */
+const IMAGE_MODELS=[
+  {id:'@cf/black-forest-labs/flux-1-schnell',         label:'FLUX.1 Schnell', badge:'Fast',    bc:'text-sky-400 bg-sky-400/10 border-sky-400/20',         desc:'Best quality/speed for fashion renders',def:true},
+  {id:'@cf/stabilityai/stable-diffusion-xl-base-1.0', label:'SDXL Base 1.0',  badge:'Detail',  bc:'text-violet-400 bg-violet-400/10 border-violet-400/20', desc:'Higher detail, slightly slower'},
+  {id:'@cf/lykon/dreamshaper-8-lcm',                  label:'DreamShaper 8',  badge:'Art',     bc:'text-rose-400 bg-rose-400/10 border-rose-400/20',       desc:'Painterly, creative illustrations'},
+  {id:'@cf/bytedance/stable-diffusion-xl-lightning',  label:'SDXL Lightning', badge:'Fastest', bc:'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',desc:'Ultra-fast 4-step generation'},
 ];
 
-const RUNWAY = [
-  { id:1, prompt:"Cyberpunk streetwear jacket with neon accents",             image:"https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&q=80", tag:"Trending", designer:"Studio AI",   likes:284 },
-  { id:2, prompt:"Indo-western fusion lehenga, minimalist beige",             image:"https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&q=80", tag:"Featured", designer:"Runway AI",   likes:521 },
-  { id:3, prompt:"Sustainable bamboo fabric summer dress",                     image:"https://images.unsplash.com/photo-1515347619362-e5fdffdc8fb8?w=800&q=80", tag:"Eco Pick", designer:"Green Studio", likes:193 },
-  { id:4, prompt:"Royal Rajasthani bandhani kurta in indigo with gold print",  image:"https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=800&q=80", tag:"New",      designer:"Heritage AI",  likes:412 },
-  { id:5, prompt:"Oversized linen co-ord set, soft terracotta tones",          image:"https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&q=80", tag:"Minimal",  designer:"Form Studio",  likes:337 },
-  { id:6, prompt:"Contemporary silk saree with geometric motif border",        image:"https://images.unsplash.com/photo-1617137968427-85924c800a22?w=800&q=80", tag:"Classic",  designer:"Loom AI",      likes:609 },
+const RUNWAY=[
+  {id:1,prompt:'Cyberpunk streetwear jacket with neon accents',            image:'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&q=80',tag:'Trending',designer:'Studio AI',  likes:284},
+  {id:2,prompt:'Indo-western fusion lehenga, minimalist beige',            image:'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&q=80',tag:'Featured',designer:'Runway AI',  likes:521},
+  {id:3,prompt:'Sustainable bamboo fabric summer dress',                    image:'https://images.unsplash.com/photo-1515347619362-e5fdffdc8fb8?w=800&q=80',tag:'Eco Pick',designer:'Green Studio',likes:193},
+  {id:4,prompt:'Royal Rajasthani bandhani kurta in indigo with gold print', image:'https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=800&q=80',tag:'New',     designer:'Heritage AI', likes:412},
+  {id:5,prompt:'Oversized linen co-ord set, soft terracotta tones',         image:'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&q=80',tag:'Minimal', designer:'Form Studio', likes:337},
+  {id:6,prompt:'Contemporary silk saree with geometric motif border',       image:'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=800&q=80',tag:'Classic', designer:'Loom AI',     likes:609},
 ];
-const TAG_CLS = { Trending:"bg-rose-500/15 text-rose-400 border-rose-500/30", Featured:"bg-violet-500/15 text-violet-400 border-violet-500/30", "Eco Pick":"bg-emerald-500/15 text-emerald-400 border-emerald-500/30", New:"bg-sky-500/15 text-sky-400 border-sky-500/30", Minimal:"bg-neutral-500/15 text-neutral-400 border-neutral-500/30", Classic:"bg-amber-500/15 text-amber-400 border-amber-500/30" };
-const STATS = [{ v:"48K+", l:"Designs Generated" },{ v:"12K", l:"Active Designers" },{ v:"87/100", l:"Avg. Eco Score" },{ v:"200+", l:"Indian Styles" }];
+const TAG_CLS={
+  Trending:'bg-rose-500/15 text-rose-400 border-rose-500/30',
+  Featured:'bg-violet-500/15 text-violet-400 border-violet-500/30',
+  'Eco Pick':'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+  New:'bg-sky-500/15 text-sky-400 border-sky-500/30',
+  Minimal:'bg-neutral-500/15 text-neutral-400 border-neutral-500/30',
+  Classic:'bg-amber-500/15 text-amber-400 border-amber-500/30',
+};
+const STATS=[{v:'48K+',l:'Designs Generated'},{v:'12K',l:'Active Designers'},{v:'87/100',l:'Avg. Eco Score'},{v:'200+',l:'Indian Styles'}];
 
-/* ═══════════════════════════════════════════════════════════════════
-   APP
-══════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   APP COMPONENT
+═══════════════════════════════════════════════════════════════════════ */
 function App() {
-  const [tab, setTab]           = useState('runway');
-  const [prompt, setPrompt]     = useState('');
-  const [model, setModel]       = useState(IMAGE_MODELS.find(m=>m.def).id);
-  const [dropOpen, setDropOpen] = useState(false);
-  const [job, setJob]           = useState({ status:'idle', spec:null, image:null, products:[] });
-  const [bigImg, setBigImg]     = useState(null);
-  const [techPack, setTechPack] = useState(false);
-  const [personImg, setPersonImg]   = useState(null);
-  const [tryJob, setTryJob]         = useState({ status:'idle', result:null });
-  const [bodyAI, setBodyAI]         = useState(null);
-  const [saved, setSaved]           = useState([]);
-  const [savePulse, setSavePulse]   = useState(false);
-  const fileRef  = useRef(null);
-  const dropRef  = useRef(null);
+  const [tab,setTab]             = useState('runway');
+  const [prompt,setPrompt]       = useState('');
+  const [model,setModel]         = useState(IMAGE_MODELS.find(m=>m.def).id);
+  const [dropOpen,setDropOpen]   = useState(false);
+  const [job,setJob]             = useState({status:'idle',spec:null,image:null,products:[]});
+  const [bigImg,setBigImg]       = useState(null);
+  const [techPack,setTechPack]   = useState(false);
+  const [personImg,setPersonImg] = useState(null);
+  const [tryJob,setTryJob]       = useState({status:'idle',result:null});
+  const [bodyAI,setBodyAI]       = useState(null);
+  const [saved,setSaved]         = useState([]);
+  const [savePulse,setSavePulse] = useState(false);
+  const fileRef = useRef(null);
+  const dropRef = useRef(null);
 
-  useEffect(() => { setSaved(StorageService.get()); }, []);
-  useEffect(() => {
-    const h = e => { if (dropRef.current && !dropRef.current.contains(e.target)) setDropOpen(false); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, []);
+  useEffect(()=>{ setSaved(Store.get()); },[]);
+  useEffect(()=>{
+    const h=e=>{ if(dropRef.current&&!dropRef.current.contains(e.target)) setDropOpen(false); };
+    document.addEventListener('mousedown',h);
+    return ()=>document.removeEventListener('mousedown',h);
+  },[]);
 
-  const generate = async (override = null) => {
-    const p = (override || prompt).trim();
-    if (!p) return;
+  const generate = async (override=null) => {
+    const p=(override||prompt).trim(); if(!p) return;
     setPrompt(p);
-    if (tab !== 'design') setTab('design');
-    setJob({ status:'processing', spec:null, image:null, products:[] });
+    if(tab!=='design') setTab('design');
+    setJob({status:'processing',spec:null,image:null,products:[]});
     try {
-      const spec = await FashionService.spec(p);
-      const [image, products] = await Promise.all([
-        ImageService.generate(spec.optimized_image_prompt || p, model),
+      const spec=await FashionService.spec(p);
+      const [image,products]=await Promise.all([
+        ImageService.generate(spec.optimized_image_prompt||p,model),
         ShopService.search(spec)
       ]);
-      setJob({ status:'completed', spec, image, products, prompt: p });
-    } catch { setJob({ status:'failed', spec:null, image:null, products:[] }); }
+      setJob({status:'completed',spec,image,products,prompt:p});
+    } catch { setJob({status:'failed',spec:null,image:null,products:[]}); }
   };
 
-  const saveDesign = () => {
-    StorageService.save({ image: job.image, prompt: job.prompt, spec: job.spec });
-    setSaved(StorageService.get());
-    setSavePulse(true); setTimeout(() => setSavePulse(false), 1200);
+  const saveDesign=()=>{
+    Store.save({image:job.image,prompt:job.prompt,spec:job.spec});
+    setSaved(Store.get()); setSavePulse(true); setTimeout(()=>setSavePulse(false),1200);
   };
 
-  const uploadPerson = e => {
-    const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
+  const uploadPerson=e=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
       setPersonImg(ev.target.result); setBodyAI(null);
-      setTimeout(() => setBodyAI({ shape:'Athletic / Rectangle', tips:'Structured shoulders and a cinched waist will complement your proportions.' }), 2200);
+      setTimeout(()=>setBodyAI({shape:'Athletic / Rectangle',tips:'Structured shoulders and a cinched waist will complement your proportions.'}),2200);
     };
     reader.readAsDataURL(file);
   };
 
-  const tryon = async () => {
-    if (!personImg || !job.image) return;
-    setTryJob({ status:'processing', result:null });
-    const result = await TryOnService.process(personImg, job.image);
-    setTryJob({ status:'completed', result });
+  const tryon=async()=>{
+    if(!personImg||!job.image) return;
+    setTryJob({status:'processing',result:null});
+    const result=await TryOnService.process(personImg,job.image);
+    setTryJob({status:'completed',result});
   };
 
-  const tabs = [
-    { id:'runway',     label:'Runway',                  icon:'Activity'  },
-    { id:'design',     label:'Studio',                  icon:'Sparkles'  },
-    { id:'tryon',      label:'Try-On',                  icon:'User'      },
-    { id:'collection', label:`Saved · ${saved.length}`, icon:'Layers'    },
+  const tabs=[
+    {id:'runway',     label:'Runway',                 icon:'Activity'},
+    {id:'design',     label:'Studio',                 icon:'Sparkles'},
+    {id:'tryon',      label:'Try-On',                 icon:'User'},
+    {id:'collection', label:`Saved · ${saved.length}`,icon:'Layers'},
   ];
-  const activeModel = IMAGE_MODELS.find(m => m.id === model);
+  const activeModel=IMAGE_MODELS.find(m=>m.id===model);
 
-  return (
-    <div className="min-h-screen bg-[#080808] text-neutral-100 antialiased" style={{fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'}}>
+  /* helper: clx(cond, yes, no) */
+  const cx=(...args)=>args.filter(Boolean).join(' ');
 
-      {/* LIGHTBOX */}
-      {bigImg && (
-        <div className="fixed inset-0 z-[200] bg-black/96 flex items-center justify-center p-4" onClick={() => setBigImg(null)}>
-          <button className="absolute top-5 right-5 bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-full border border-white/10">
-            <Icon name="X" size={20} />
-          </button>
-          <img src={bigImg} className="max-w-[90vw] max-h-[90vh] rounded-2xl object-contain shadow-2xl" onClick={e=>e.stopPropagation()} />
-        </div>
-      )}
+  return h('div',{className:'min-h-screen bg-[#080808] text-neutral-100 antialiased',style:{fontFamily:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif'}},
 
-      {/* TECH PACK */}
-      {techPack && job.spec && (
-        <div className="fixed inset-0 z-[200] bg-black/85 flex items-center justify-center p-4">
-          <div className="bg-[#0e0e0e] border border-neutral-800/80 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-neutral-800/60 bg-[#0a0a0a]">
-              <h2 className="font-semibold text-sm flex items-center gap-2 text-neutral-200">
-                <Icon name="FileText" size={15} className="text-violet-400" /> Manufacturing Tech Pack
-              </h2>
-              <button onClick={() => setTechPack(false)} className="text-neutral-500 hover:text-white p-1"><Icon name="X" size={18} /></button>
-            </div>
-            <div className="p-6 space-y-5">
-              <div className="grid grid-cols-2 gap-3">
-                {[["Primary Fabric", job.spec.fabric||"Unknown"],["Category",job.spec.category||"Apparel"],["Color Codes",job.spec.colors?.join(", ")||"N/A"],["Est. Cost",`₹${((job.spec.budget?.maximum||0)*0.4).toFixed(0)}`]].map(([l,v])=>(
-                  <div key={l} className="bg-neutral-900/60 border border-neutral-800/60 p-3 rounded-xl">
-                    <span className="text-neutral-500 text-[10px] uppercase tracking-wider block mb-1">{l}</span>
-                    <span className="text-neutral-200 text-sm font-medium">{v}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="bg-neutral-900/40 border border-neutral-800/50 p-4 rounded-xl">
-                <h4 className="text-xs font-semibold text-neutral-300 mb-2 uppercase tracking-wider">Construction Notes</h4>
-                <ul className="space-y-1.5 text-xs text-neutral-500 list-disc pl-4">
-                  <li>Standard 1.5 cm seam allowance on all panels.</li>
-                  <li>Eco-friendly dyes — target Eco Score: <span className="text-emerald-400">{job.spec.sustainability_score||80}/100</span>.</li>
-                  <li className="text-neutral-600 italic line-clamp-1">Derived from: "{job.prompt}"</li>
-                </ul>
-              </div>
-              <button onClick={()=>setTechPack(false)} className="w-full bg-white text-black py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100">
-                Download PDF <span className="text-neutral-400 font-normal">(Simulated)</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    /* ── LIGHTBOX ── */
+    bigImg && h('div',{className:'fixed inset-0 z-[200] bg-black/96 flex items-center justify-center p-4',onClick:()=>setBigImg(null)},
+      h('button',{className:'absolute top-5 right-5 bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-full border border-white/10'},h(Icon,{name:'X',size:20})),
+      h('img',{src:bigImg,className:'max-w-[90vw] max-h-[90vh] rounded-2xl object-contain shadow-2xl',onClick:e=>e.stopPropagation()})
+    ),
 
-      {/* NAV */}
-      <nav className="sticky top-0 z-50 border-b border-neutral-900/80 bg-[#080808]/90" style={{backdropFilter:'blur(24px)'}}>
-        <div className="max-w-7xl mx-auto px-5 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="bg-white text-black p-1.5 rounded-lg"><Icon name="Scissors" size={15} /></div>
-            <span className="font-semibold text-[15px] tracking-tight hidden sm:block">AI Fashion Studio</span>
-            <span className="ml-1 text-[10px] font-medium text-violet-400 bg-violet-400/10 border border-violet-400/20 px-1.5 py-0.5 rounded-md hidden sm:inline">BETA</span>
-          </div>
-          <div className="flex items-center gap-0.5 bg-neutral-900/60 border border-neutral-800/60 p-1 rounded-xl overflow-x-auto">
-            {tabs.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)}
-                className={`relative px-3.5 py-1.5 rounded-lg text-[13px] font-medium flex items-center gap-1.5 whitespace-nowrap transition-all ${tab===t.id?'bg-neutral-800 text-white':'text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/40'}`}>
-                <Icon name={t.icon} size={13} /> {t.label}
-                {t.id==='collection' && saved.length>0 && tab!=='collection' && (
-                  <span className="absolute -top-1 -right-1 bg-violet-500 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">{saved.length>9?'9+':saved.length}</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      </nav>
+    /* ── TECH PACK MODAL ── */
+    (techPack&&job.spec) && h('div',{className:'fixed inset-0 z-[200] bg-black/85 flex items-center justify-center p-4'},
+      h('div',{className:'bg-[#0e0e0e] border border-neutral-800/80 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl'},
+        h('div',{className:'flex justify-between items-center px-6 py-4 border-b border-neutral-800/60 bg-[#0a0a0a]'},
+          h('h2',{className:'font-semibold text-sm flex items-center gap-2 text-neutral-200'},h(Icon,{name:'FileText',size:15,className:'text-violet-400'}),' Manufacturing Tech Pack'),
+          h('button',{onClick:()=>setTechPack(false),className:'text-neutral-500 hover:text-white p-1'},h(Icon,{name:'X',size:18}))
+        ),
+        h('div',{className:'p-6 space-y-5'},
+          h('div',{className:'grid grid-cols-2 gap-3'},
+            [['Primary Fabric',job.spec.fabric||'Unknown'],['Category',job.spec.category||'Apparel'],
+             ['Color Codes',(job.spec.colors||[]).join(', ')||'N/A'],['Est. Cost',`₹${((job.spec.budget?.maximum||0)*0.4).toFixed(0)}`]]
+            .map(([l,v])=>h('div',{key:l,className:'bg-neutral-900/60 border border-neutral-800/60 p-3 rounded-xl'},
+              h('span',{className:'text-neutral-500 text-[10px] uppercase tracking-wider block mb-1'},l),
+              h('span',{className:'text-neutral-200 text-sm font-medium'},v)
+            ))
+          ),
+          h('div',{className:'bg-neutral-900/40 border border-neutral-800/50 p-4 rounded-xl'},
+            h('h4',{className:'text-xs font-semibold text-neutral-300 mb-2 uppercase tracking-wider'},'Construction Notes'),
+            h('ul',{className:'space-y-1.5 text-xs text-neutral-500 list-disc pl-4'},
+              h('li',null,'Standard 1.5 cm seam allowance on all panels.'),
+              h('li',null,'Eco-friendly dyes — target Eco Score: ',h('span',{className:'text-emerald-400'},`${job.spec.sustainability_score||80}/100`),'.'),
+              h('li',{className:'text-neutral-600 italic line-clamp-1'},`Derived from: "${job.prompt||''}"`)
+            )
+          ),
+          h('button',{onClick:()=>setTechPack(false),className:'w-full bg-white text-black py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100'},
+            'Download PDF ',h('span',{className:'text-neutral-400 font-normal'},'(Simulated)')
+          )
+        )
+      )
+    ),
 
-      <main className="max-w-7xl mx-auto px-5 py-8">
+    /* ── NAV ── */
+    h('nav',{className:'sticky top-0 z-50 border-b border-neutral-900/80 bg-[#080808]/90',style:{backdropFilter:'blur(24px)'}},
+      h('div',{className:'max-w-7xl mx-auto px-5 h-14 flex items-center justify-between'},
+        h('div',{className:'flex items-center gap-2.5'},
+          h('div',{className:'bg-white text-black p-1.5 rounded-lg'},h(Icon,{name:'Scissors',size:15})),
+          h('span',{className:'font-semibold text-[15px] tracking-tight hidden sm:block'},'AI Fashion Studio'),
+          h('span',{className:'ml-1 text-[10px] font-medium text-violet-400 bg-violet-400/10 border border-violet-400/20 px-1.5 py-0.5 rounded-md hidden sm:inline'},'BETA')
+        ),
+        h('div',{className:'flex items-center gap-0.5 bg-neutral-900/60 border border-neutral-800/60 p-1 rounded-xl overflow-x-auto'},
+          tabs.map(t=>h('button',{key:t.id,onClick:()=>setTab(t.id),
+            className:cx('relative px-3.5 py-1.5 rounded-lg text-[13px] font-medium flex items-center gap-1.5 whitespace-nowrap transition-all',
+              tab===t.id?'bg-neutral-800 text-white':'text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/40')},
+            h(Icon,{name:t.icon,size:13}),' ',t.label,
+            (t.id==='collection'&&saved.length>0&&tab!=='collection')&&
+              h('span',{className:'absolute -top-1 -right-1 bg-violet-500 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center'},
+                saved.length>9?'9+':saved.length)
+          ))
+        )
+      )
+    ),
 
-        {/* ══ RUNWAY ══ */}
-        {tab === 'runway' && (
-          <div className="space-y-10">
-            {/* Hero */}
-            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-neutral-900 via-[#0e0e0e] to-neutral-900 border border-neutral-800/60 p-10 md:p-14 text-center">
-              <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage:'linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)',backgroundSize:'40px 40px'}} />
-              <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-medium px-3 py-1.5 rounded-full mb-5">
-                  <Icon name="Zap" size={11} /> AI-Powered Fashion Intelligence
-                </div>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight tracking-tight">Design. Try. Wear.</h1>
-                <p className="text-neutral-400 text-base max-w-lg mx-auto mb-8 leading-relaxed">Describe any outfit in plain language — our AI renders it, suggests real alternatives, and lets you try it on.</p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <button onClick={() => setTab('design')} className="inline-flex items-center justify-center gap-2 bg-white text-black px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100">
-                    <Icon name="Wand2" size={15} /> Open Studio <Icon name="ArrowRight" size={13} />
-                  </button>
-                  <button onClick={() => document.getElementById('rg')?.scrollIntoView({behavior:'smooth'})} className="inline-flex items-center justify-center gap-2 bg-neutral-800/60 text-neutral-300 border border-neutral-700/60 px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-neutral-800">
-                    Browse Inspiration
-                  </button>
-                </div>
-              </div>
-            </div>
-            {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {STATS.map(s => (
-                <div key={s.l} className="bg-neutral-900/50 border border-neutral-800/50 rounded-2xl p-4 text-center">
-                  <div className="text-xl font-bold text-white mb-0.5">{s.v}</div>
-                  <div className="text-[11px] text-neutral-500">{s.l}</div>
-                </div>
-              ))}
-            </div>
-            {/* Grid */}
-            <div id="rg">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-base font-semibold text-neutral-200 flex items-center gap-2"><Icon name="TrendingUp" size={15} className="text-violet-400" /> Trending Concepts</h2>
-                <span className="text-xs text-neutral-600">Click any card to remix →</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {RUNWAY.map(item => (
-                  <div key={item.id} className="group relative bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden" style={{transition:'all .3s'}}>
-                    <div className="h-72 w-full overflow-hidden bg-neutral-950">
-                      <img src={item.image} alt={item.prompt} className="w-full h-full object-cover" style={{transition:'transform .7s'}}
-                        onError={e => { e.target.src = FALLBACK_IMG; }} />
-                    </div>
-                    <div className="absolute top-3 left-3">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${TAG_CLS[item.tag]||TAG_CLS.Minimal}`}>{item.tag}</span>
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80" />
-                    <div className="absolute bottom-0 inset-x-0 p-4">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <div className="w-4 h-4 rounded-full bg-neutral-700 flex items-center justify-center"><Icon name="User" size={8} className="text-neutral-300" /></div>
-                        <span className="text-[10px] text-neutral-400">{item.designer}</span>
-                        <span className="ml-auto text-[10px] text-neutral-500 flex items-center gap-0.5">
-                          <Icon name="Star" size={9} className="text-amber-400" /> {item.likes}
-                        </span>
-                      </div>
-                      <p className="text-xs text-neutral-200 leading-snug mb-3 line-clamp-2">{item.prompt}</p>
-                      <button onClick={() => generate(item.prompt)} className="w-full bg-white/15 text-white border border-white/20 py-2 rounded-xl text-xs font-semibold hover:bg-white hover:text-black flex items-center justify-center gap-1.5" style={{backdropFilter:'blur(8px)',transition:'all .2s'}}>
-                        <Icon name="Sparkles" size={11} /> Remix in Studio
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+    /* ── MAIN ── */
+    h('main',{className:'max-w-7xl mx-auto px-5 py-8'},
 
-        {/* ══ DESIGN STUDIO ══ */}
-        {tab === 'design' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left panel */}
-            <aside className="lg:col-span-4 xl:col-span-3">
-              <div className="sticky top-20 bg-neutral-900/40 border border-neutral-800/50 rounded-2xl p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-neutral-200 flex items-center gap-2"><Icon name="Wand2" size={14} className="text-violet-400" /> Design Prompt</h2>
-                  <button onClick={() => setPrompt("Navy blue velvet blazer with intricate gold zari embroidery, formal Indian style.")}
-                    className="flex items-center gap-1 text-[11px] text-neutral-500 hover:text-neutral-300 bg-neutral-800/60 border border-neutral-700/50 px-2 py-1 rounded-lg">
-                    <Icon name="Camera" size={11} /> Sample
-                  </button>
-                </div>
-                <form onSubmit={e => { e.preventDefault(); generate(); }} className="space-y-3">
-                  <textarea value={prompt} onChange={e => setPrompt(e.target.value)} required
-                    placeholder="e.g. A minimalist black cotton kurta with subtle white embroidery under ₹3000..."
-                    className="w-full h-32 p-3.5 bg-[#080808] border border-neutral-800/80 rounded-xl resize-none focus:outline-none focus:border-neutral-600 text-sm text-neutral-300 placeholder:text-neutral-700 leading-relaxed"
-                    style={{transition:'border-color .2s'}} />
+      /* ══ RUNWAY ══ */
+      tab==='runway' && h('div',{className:'space-y-10'},
 
-                  {/* Model Selector */}
-                  <div ref={dropRef} className="relative">
-                    <p className="text-[10px] text-neutral-600 uppercase tracking-wider mb-1.5 flex items-center gap-1"><Icon name="Cpu" size={9} /> AI Model</p>
-                    <button type="button" onClick={() => setDropOpen(o => !o)}
-                      className="w-full flex items-center justify-between bg-[#080808] border border-neutral-800/80 hover:border-neutral-600 rounded-xl px-3 py-2.5"
-                      style={{transition:'border-color .2s'}}>
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${activeModel?.bc}`}>{activeModel?.badge}</span>
-                        <span className="text-sm text-neutral-200 font-medium truncate">{activeModel?.label}</span>
-                        <span className="text-[10px] text-neutral-600 shrink-0">{activeModel?.provider||'Cloudflare'}</span>
-                      </div>
-                      <Icon name="ChevronDown" size={13} className={`text-neutral-500 shrink-0 ml-1 ${dropOpen?'rotate-180':''}`} style={{transition:'transform .2s'}} />
-                    </button>
-                    {dropOpen && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-[#0e0e0e] border border-neutral-800/80 rounded-xl overflow-hidden shadow-2xl z-50">
-                        {IMAGE_MODELS.map(m => (
-                          <button key={m.id} type="button" onClick={() => { setModel(m.id); setDropOpen(false); }}
-                            className={`w-full flex items-start gap-3 px-3.5 py-3 text-left border-b border-neutral-800/40 last:border-0 hover:bg-neutral-800/60 ${model===m.id?'bg-neutral-800/40':''}`}
-                            style={{transition:'background .15s'}}>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-0.5">
-                                <span className="text-sm text-neutral-200 font-medium">{m.label}</span>
-                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${m.bc}`}>{m.badge}</span>
-                              </div>
-                              <p className="text-[11px] text-neutral-600">{m.desc}</p>
-                            </div>
-                            {model===m.id && <div className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 shrink-0" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+        /* Hero */
+        h('div',{className:'relative rounded-3xl overflow-hidden bg-gradient-to-br from-neutral-900 via-[#0e0e0e] to-neutral-900 border border-neutral-800/60 p-10 md:p-14 text-center'},
+          h('div',{className:'absolute inset-0 opacity-[0.03]',style:{backgroundImage:'linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)',backgroundSize:'40px 40px'}}),
+          h('div',{className:'relative z-10'},
+            h('div',{className:'inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-medium px-3 py-1.5 rounded-full mb-5'},
+              h(Icon,{name:'Zap',size:11}),' AI-Powered Fashion Intelligence'),
+            h('h1',{className:'text-4xl md:text-5xl font-bold text-white mb-4 leading-tight tracking-tight'},'Design. Try. Wear.'),
+            h('p',{className:'text-neutral-400 text-base max-w-lg mx-auto mb-8 leading-relaxed'},'Describe any outfit in plain language — our AI renders it, suggests real alternatives, and lets you try it on.'),
+            h('div',{className:'flex flex-col sm:flex-row gap-3 justify-center'},
+              h('button',{onClick:()=>setTab('design'),className:'inline-flex items-center justify-center gap-2 bg-white text-black px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100'},
+                h(Icon,{name:'Wand2',size:15}),' Open Studio ',h(Icon,{name:'ArrowRight',size:13})),
+              h('button',{onClick:()=>document.getElementById('rg')?.scrollIntoView({behavior:'smooth'}),
+                className:'inline-flex items-center justify-center gap-2 bg-neutral-800/60 text-neutral-300 border border-neutral-700/60 px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-neutral-800'},
+                'Browse Inspiration')
+            )
+          )
+        ),
 
-                  <button type="submit" disabled={job.status==='processing'}
-                    className="w-full bg-white text-black py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-neutral-100 disabled:opacity-40"
-                    style={{transition:'all .2s'}}>
-                    {job.status==='processing'
-                      ? <><span className="inline-block w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" /> Rendering…</>
-                      : <><Icon name="Sparkles" size={15} /> Generate Design</>}
-                  </button>
-                </form>
+        /* Stats */
+        h('div',{className:'grid grid-cols-2 sm:grid-cols-4 gap-3'},
+          STATS.map(s=>h('div',{key:s.l,className:'bg-neutral-900/50 border border-neutral-800/50 rounded-2xl p-4 text-center'},
+            h('div',{className:'text-xl font-bold text-white mb-0.5'},s.v),
+            h('div',{className:'text-[11px] text-neutral-500'},s.l)
+          ))
+        ),
 
-                {/* Quick Styles */}
-                <div>
-                  <p className="text-[10px] text-neutral-600 uppercase tracking-wider mb-2">Quick Styles</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {["Saree","Kurta","Blazer","Co-ord","Lehenga"].map(s => (
-                      <button key={s} onClick={() => setPrompt(`A premium ${s.toLowerCase()} with contemporary design`)}
-                        className="text-[11px] px-2.5 py-1 bg-neutral-800/60 border border-neutral-700/40 text-neutral-400 rounded-lg hover:text-white hover:border-neutral-600"
-                        style={{transition:'all .15s'}}>{s}</button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </aside>
+        /* Runway grid */
+        h('div',{id:'rg'},
+          h('div',{className:'flex items-center justify-between mb-5'},
+            h('h2',{className:'text-base font-semibold text-neutral-200 flex items-center gap-2'},h(Icon,{name:'TrendingUp',size:15,className:'text-violet-400'}),' Trending Concepts'),
+            h('span',{className:'text-xs text-neutral-600'},'Click any card to remix →')
+          ),
+          h('div',{className:'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'},
+            RUNWAY.map(item=>h('div',{key:item.id,className:'group relative bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden',style:{transition:'all .3s'}},
+              h('div',{className:'h-72 w-full overflow-hidden bg-neutral-950'},
+                h('img',{src:item.image,alt:item.prompt,className:'w-full h-full object-cover',style:{transition:'transform .7s'},onError:e=>{e.target.src=FALLBACK_IMG;}})
+              ),
+              h('div',{className:'absolute top-3 left-3'},
+                h('span',{className:`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${TAG_CLS[item.tag]||TAG_CLS.Minimal}`},item.tag)
+              ),
+              h('div',{className:'absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80'}),
+              h('div',{className:'absolute bottom-0 inset-x-0 p-4'},
+                h('div',{className:'flex items-center gap-1.5 mb-2'},
+                  h('div',{className:'w-4 h-4 rounded-full bg-neutral-700 flex items-center justify-center'},h(Icon,{name:'User',size:8,className:'text-neutral-300'})),
+                  h('span',{className:'text-[10px] text-neutral-400'},item.designer),
+                  h('span',{className:'ml-auto text-[10px] text-neutral-500 flex items-center gap-0.5'},h(Icon,{name:'Star',size:9,className:'text-amber-400'}),' ',item.likes)
+                ),
+                h('p',{className:'text-xs text-neutral-200 leading-snug mb-3 line-clamp-2'},item.prompt),
+                h('button',{onClick:()=>generate(item.prompt),
+                  className:'w-full bg-white/15 text-white border border-white/20 py-2 rounded-xl text-xs font-semibold hover:bg-white hover:text-black flex items-center justify-center gap-1.5',
+                  style:{backdropFilter:'blur(8px)',transition:'all .2s'}},
+                  h(Icon,{name:'Sparkles',size:11}),' Remix in Studio')
+              )
+            ))
+          )
+        )
+      ),
 
-            {/* Right: output */}
-            <section className="lg:col-span-8 xl:col-span-9">
-              {job.status==='completed' && job.image ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* Generated image card */}
-                  <div className="bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden flex flex-col group relative">
-                    <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 z-10" style={{transition:'opacity .2s'}}>
-                      {[['RefreshCw','Regenerate',()=>generate()],['Download','Download',()=>{const a=document.createElement('a');a.href=job.image;a.download='design.png';a.click();}],['Maximize2','Expand',()=>setBigImg(job.image)]].map(([ic,ti,ac])=>(
-                        <button key={ti} onClick={ac} title={ti} className="bg-black/60 p-2 rounded-lg text-white hover:bg-black/80 border border-white/10" style={{backdropFilter:'blur(8px)'}}><Icon name={ic} size={14} /></button>
-                      ))}
-                    </div>
-                    <div className="h-80 w-full bg-neutral-950 overflow-hidden">
-                      <img src={job.image} alt="Generated" className="w-full h-full object-cover" />
-                    </div>
-                    {job.spec && (
-                      <div className="p-4 space-y-3 border-t border-neutral-800/50">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="bg-neutral-900/60 border border-neutral-800/40 p-2.5 rounded-xl">
-                            <div className="text-[10px] text-neutral-500 mb-1.5 flex items-center gap-1 uppercase tracking-wider"><Icon name="Palette" size={10} /> Palette</div>
-                            <div className="flex gap-1.5 flex-wrap">
-                              {job.spec.colors?.slice(0,5).map(c => <div key={c} className="w-5 h-5 rounded-full border-2 border-neutral-700/60" style={{backgroundColor:c}} title={c} />)}
-                            </div>
-                          </div>
-                          <div className="bg-neutral-900/60 border border-neutral-800/40 p-2.5 rounded-xl">
-                            <div className="text-[10px] text-neutral-500 mb-1.5 flex items-center gap-1 uppercase tracking-wider"><Icon name="Leaf" size={10} className="text-emerald-500" /> Eco Score</div>
-                            <div className="flex items-end gap-1">
-                              <span className="text-lg font-bold text-emerald-400 leading-none">{job.spec.sustainability_score||80}</span>
-                              <span className="text-[10px] text-neutral-600 mb-0.5">/100</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button onClick={saveDesign} className={`py-2.5 rounded-xl text-xs font-semibold border ${savePulse?'bg-emerald-500/20 border-emerald-500/40 text-emerald-400':'bg-neutral-800/60 border-neutral-700/40 text-neutral-300 hover:bg-neutral-800'}`} style={{transition:'all .2s'}}>
-                            {savePulse ? '✓ Saved!' : 'Save Design'}
-                          </button>
-                          <button onClick={() => setTab('tryon')} className="py-2.5 rounded-xl text-xs font-semibold bg-white text-black hover:bg-neutral-100" style={{transition:'all .2s'}}>Try On →</button>
-                        </div>
-                        <button onClick={() => setTechPack(true)} className="w-full border border-dashed border-neutral-700/50 text-neutral-500 hover:text-neutral-300 hover:border-neutral-600 py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5" style={{transition:'all .2s'}}>
-                          <Icon name="FileText" size={11} /> Generate Tech Pack
-                        </button>
-                      </div>
-                    )}
-                  </div>
+      /* ══ DESIGN STUDIO ══ */
+      tab==='design' && h('div',{className:'grid grid-cols-1 lg:grid-cols-12 gap-6'},
 
-                  {/* Shopping */}
-                  <div className="bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden flex flex-col">
-                    <div className="px-5 py-3.5 border-b border-neutral-800/50 flex items-center justify-between">
-                      <span className="text-sm font-semibold text-neutral-200 flex items-center gap-2"><Icon name="ShoppingBag" size={13} className="text-violet-400" /> Buy Similar</span>
-                      <span className="text-[10px] text-neutral-600">AI-matched · 3 results</span>
-                    </div>
-                    <div className="p-4 space-y-3">
-                      {job.products.map((p,i) => (
-                        <div key={i} className="bg-[#080808] border border-neutral-800/50 hover:border-neutral-700 rounded-xl p-4" style={{transition:'all .2s'}}>
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="text-sm font-medium text-neutral-200 flex-1 pr-2">{p.name}</h4>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${p.score>=90?'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20':'text-amber-400 bg-amber-500/10 border border-amber-500/20'}`}>{p.score}%</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <span className="text-[11px] text-neutral-600 block">{p.platform}</span>
-                              <span className="text-neutral-100 font-bold text-base">₹{p.price.toLocaleString('en-IN')}</span>
-                            </div>
-                            <div className="flex flex-col items-end gap-1">
-                              <span className="text-[9px] text-violet-400 bg-violet-400/10 border border-violet-400/20 px-2 py-0.5 rounded-full">{p.tag}</span>
-                              <button className="text-[11px] text-neutral-500 hover:text-white flex items-center gap-0.5"><span>View</span> <Icon name="ChevronRight" size={10} /></button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-neutral-900/30 border border-neutral-800/40 rounded-2xl min-h-[480px] flex flex-col items-center justify-center text-center p-12">
-                  {job.status==='processing' ? (
-                    <div className="space-y-4">
-                      <div className="relative mx-auto w-12 h-12">
-                        <div className="absolute inset-0 rounded-full border-2 border-neutral-800" />
-                        <div className="absolute inset-0 rounded-full border-2 border-t-violet-500 animate-spin" />
-                      </div>
-                      <p className="text-sm text-neutral-500">Generating your design…</p>
-                      <p className="text-xs text-neutral-700">This may take a few seconds</p>
-                    </div>
-                  ) : job.status==='failed' ? (
-                    <div className="space-y-3">
-                      <div className="text-2xl">⚠️</div>
-                      <p className="text-sm text-neutral-400">Generation failed. Please try again.</p>
-                      <button onClick={() => generate()} className="text-xs text-violet-400 hover:text-violet-300">Retry</button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="w-12 h-12 bg-neutral-800/60 rounded-2xl flex items-center justify-center mx-auto"><Icon name="Sparkles" size={20} className="text-neutral-600" /></div>
-                      <p className="text-sm text-neutral-500">Describe your design and hit Generate</p>
-                      <p className="text-xs text-neutral-700">Works in mock mode — no API key needed</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </section>
-          </div>
-        )}
+        /* Left sidebar */
+        h('aside',{className:'lg:col-span-4 xl:col-span-3'},
+          h('div',{className:'sticky top-20 bg-neutral-900/40 border border-neutral-800/50 rounded-2xl p-5 space-y-4'},
+            h('div',{className:'flex items-center justify-between'},
+              h('h2',{className:'text-sm font-semibold text-neutral-200 flex items-center gap-2'},h(Icon,{name:'Wand2',size:14,className:'text-violet-400'}),' Design Prompt'),
+              h('button',{onClick:()=>setPrompt('Navy blue velvet blazer with intricate gold zari embroidery, formal Indian style.'),
+                className:'flex items-center gap-1 text-[11px] text-neutral-500 hover:text-neutral-300 bg-neutral-800/60 border border-neutral-700/50 px-2 py-1 rounded-lg'},
+                h(Icon,{name:'Camera',size:11}),' Sample')
+            ),
+            h('form',{onSubmit:e=>{e.preventDefault();generate();},className:'space-y-3'},
+              h('textarea',{value:prompt,onChange:e=>setPrompt(e.target.value),required:true,
+                placeholder:'e.g. A minimalist black cotton kurta with subtle white embroidery under ₹3000…',
+                className:'w-full h-32 p-3.5 bg-[#080808] border border-neutral-800/80 rounded-xl resize-none focus:outline-none focus:border-neutral-600 text-sm text-neutral-300 placeholder:text-neutral-700 leading-relaxed',
+                style:{transition:'border-color .2s'}}),
 
-        {/* ══ TRY-ON ══ */}
-        {tab === 'tryon' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-semibold text-neutral-200">Virtual Try-On Room</h2>
-                <p className="text-xs text-neutral-600 mt-0.5">Upload your photo · select a design · see the result</p>
-              </div>
-              {!job.image && (
-                <button onClick={() => setTab('design')} className="text-xs text-violet-400 flex items-center gap-1 bg-violet-400/10 border border-violet-400/20 px-3 py-1.5 rounded-lg">
-                  <Icon name="Sparkles" size={11} /> Generate a design first
-                </button>
-              )}
-            </div>
-            <div className="bg-neutral-900/40 border border-neutral-800/50 rounded-2xl p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Step 1 */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400">1</span>
-                    <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Your Photo</h3>
-                    {personImg && !bodyAI && <span className="ml-auto inline-block w-3 h-3 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />}
-                  </div>
-                  <div onClick={() => fileRef.current?.click()} className="aspect-[3/4] bg-[#080808] border-2 border-dashed border-neutral-800 hover:border-neutral-600 rounded-xl flex items-center justify-center cursor-pointer overflow-hidden" style={{transition:'border-color .2s'}}>
-                    {personImg ? <img src={personImg} className="w-full h-full object-cover" /> : (
-                      <div className="text-center space-y-2">
-                        <Icon name="Upload" size={18} className="text-neutral-700 mx-auto" />
-                        <p className="text-[11px] text-neutral-700">Click to upload</p>
-                      </div>
-                    )}
-                    <input type="file" ref={fileRef} onChange={uploadPerson} className="hidden" accept="image/*" />
-                  </div>
-                  {bodyAI && (
-                    <div className="bg-emerald-500/5 border border-emerald-500/20 p-3 rounded-xl text-xs space-y-1">
-                      <div className="text-emerald-400 font-semibold flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Body Analysis Complete
-                      </div>
-                      <p className="text-neutral-400">Type: {bodyAI.shape}</p>
-                      <p className="text-neutral-600 text-[10px] leading-relaxed">{bodyAI.tips}</p>
-                    </div>
-                  )}
-                </div>
-                {/* Step 2 */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400">2</span>
-                    <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Garment</h3>
-                  </div>
-                  <div className="aspect-[3/4] bg-[#080808] border border-neutral-800/60 rounded-xl flex items-center justify-center overflow-hidden">
-                    {job.image ? <img src={job.image} className="w-full h-full object-cover" /> : (
-                      <div className="text-center space-y-2"><Icon name="Image" size={18} className="text-neutral-800 mx-auto" /><p className="text-[11px] text-neutral-700">No design yet</p></div>
-                    )}
-                  </div>
-                </div>
-                {/* Step 3 */}
-                <div className="space-y-3 flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400">3</span>
-                    <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Result</h3>
-                  </div>
-                  <div className="flex-1 bg-[#080808] border border-neutral-800/60 rounded-xl flex items-center justify-center overflow-hidden min-h-[200px] relative">
-                    {tryJob.status==='processing' ? (
-                      <div className="text-center space-y-2">
-                        <div className="relative w-8 h-8 mx-auto">
-                          <div className="absolute inset-0 rounded-full border-2 border-neutral-800" />
-                          <div className="absolute inset-0 rounded-full border-2 border-t-violet-500 animate-spin" />
-                        </div>
-                        <p className="text-[11px] text-neutral-600">Aligning garment…</p>
-                      </div>
-                    ) : tryJob.result ? (
-                      <>
-                        <img src={tryJob.result} className="w-full h-full object-cover" />
-                        <button onClick={() => setBigImg(tryJob.result)} className="absolute bottom-2 right-2 bg-black/60 p-1.5 rounded-lg text-white border border-white/10" style={{backdropFilter:'blur(8px)'}}>
-                          <Icon name="Maximize2" size={12} />
-                        </button>
-                      </>
-                    ) : (
-                      <div className="text-center space-y-2"><Icon name="User" size={18} className="text-neutral-800 mx-auto" /><p className="text-[11px] text-neutral-700">Result appears here</p></div>
-                    )}
-                  </div>
-                  <button onClick={tryon} disabled={!personImg||!job.image||tryJob.status==='processing'}
-                    className="w-full bg-white text-black py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed"
-                    style={{transition:'all .2s'}}>
-                    {tryJob.status==='processing' ? 'Processing…' : 'Virtual Try-On'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+              /* Model selector */
+              h('div',{ref:dropRef,className:'relative'},
+                h('p',{className:'text-[10px] text-neutral-600 uppercase tracking-wider mb-1.5 flex items-center gap-1'},h(Icon,{name:'Cpu',size:9}),' AI Model'),
+                h('button',{type:'button',onClick:()=>setDropOpen(o=>!o),
+                  className:'w-full flex items-center justify-between bg-[#080808] border border-neutral-800/80 hover:border-neutral-600 rounded-xl px-3 py-2.5',
+                  style:{transition:'border-color .2s'}},
+                  h('div',{className:'flex items-center gap-2 min-w-0'},
+                    h('span',{className:`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${activeModel?.bc}`},activeModel?.badge),
+                    h('span',{className:'text-sm text-neutral-200 font-medium truncate'},activeModel?.label),
+                    h('span',{className:'text-[10px] text-neutral-600 shrink-0'},'Cloudflare')
+                  ),
+                  h(Icon,{name:'ChevronDown',size:13,className:`text-neutral-500 shrink-0 ml-1 ${dropOpen?'rotate-180':''}`,style:{transition:'transform .2s'}})
+                ),
+                dropOpen && h('div',{className:'absolute top-full left-0 right-0 mt-1 bg-[#0e0e0e] border border-neutral-800/80 rounded-xl overflow-hidden shadow-2xl z-50'},
+                  IMAGE_MODELS.map(m=>h('button',{key:m.id,type:'button',onClick:()=>{setModel(m.id);setDropOpen(false);},
+                    className:cx('w-full flex items-start gap-3 px-3.5 py-3 text-left border-b border-neutral-800/40 last:border-0 hover:bg-neutral-800/60',model===m.id?'bg-neutral-800/40':''),
+                    style:{transition:'background .15s'}},
+                    h('div',{className:'flex-1 min-w-0'},
+                      h('div',{className:'flex items-center gap-2 mb-0.5'},
+                        h('span',{className:'text-sm text-neutral-200 font-medium'},m.label),
+                        h('span',{className:`text-[9px] font-bold px-1.5 py-0.5 rounded border ${m.bc}`},m.badge)
+                      ),
+                      h('p',{className:'text-[11px] text-neutral-600'},m.desc)
+                    ),
+                    model===m.id && h('div',{className:'w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 shrink-0'})
+                  ))
+                )
+              ),
 
-        {/* ══ COLLECTION ══ */}
-        {tab === 'collection' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-semibold text-neutral-200">Saved Designs</h2>
-                <p className="text-xs text-neutral-600 mt-0.5">{saved.length} design{saved.length!==1?'s':''} · price alerts enabled</p>
-              </div>
-              {saved.length>0 && <button onClick={() => setTab('design')} className="text-xs text-neutral-500 hover:text-neutral-300">+ New design</button>}
-            </div>
-            {saved.length===0 ? (
-              <div className="bg-neutral-900/30 border border-neutral-800/40 rounded-2xl p-16 text-center">
-                <div className="w-12 h-12 bg-neutral-800/60 rounded-2xl flex items-center justify-center mx-auto mb-4"><Icon name="Layers" size={20} className="text-neutral-600" /></div>
-                <p className="text-sm text-neutral-500 mb-1">No designs saved yet</p>
-                <p className="text-xs text-neutral-700 mb-4">Generate a design and hit "Save Design" to build your collection</p>
-                <button onClick={() => setTab('design')} className="inline-flex items-center gap-2 text-xs text-violet-400 bg-violet-400/10 border border-violet-400/20 px-4 py-2 rounded-lg hover:bg-violet-400/20">
-                  <Icon name="Sparkles" size={11} /> Go to Studio
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {saved.map(d => (
-                  <div key={d.id} className="bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden flex flex-col group" style={{transition:'all .3s'}}>
-                    <div className="h-52 overflow-hidden bg-neutral-950 relative">
-                      <img src={d.image} className="w-full h-full object-cover" style={{transition:'transform .5s'}} />
-                      <button onClick={() => setBigImg(d.image)} className="absolute top-2 right-2 bg-black/50 p-1.5 rounded-lg text-white/70 hover:text-white border border-white/10 opacity-0 group-hover:opacity-100" style={{backdropFilter:'blur(4px)',transition:'opacity .2s'}}>
-                        <Icon name="Maximize2" size={12} />
-                      </button>
-                    </div>
-                    <div className="p-3.5 flex flex-col gap-2.5 flex-1">
-                      <p className="text-[11px] text-neutral-400 line-clamp-2 leading-relaxed flex-1">{d.prompt}</p>
-                      {d.spec && (
-                        <div className="flex gap-1 items-center">
-                          {d.spec.colors?.slice(0,4).map(c => <div key={c} className="w-3 h-3 rounded-full border border-neutral-700/60" style={{backgroundColor:c}} />)}
-                          <span className="ml-auto text-[10px] text-emerald-500">{d.spec.sustainability_score||80}/100 eco</span>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between pt-2 border-t border-neutral-800/40">
-                        <button onClick={() => setSaved(StorageService.toggleTrack(d.id))} className={`flex items-center gap-1 text-[10px] font-medium ${d.isTracking?'text-emerald-400':'text-neutral-600 hover:text-neutral-400'}`}>
-                          <Icon name={d.isTracking?'BellRing':'Bell'} size={11} /> {d.isTracking?'Tracking':'Track'}
-                        </button>
-                        <div className="flex gap-2.5 items-center">
-                          <button onClick={() => generate(d.prompt)} className="text-neutral-600 hover:text-violet-400" title="Remix" style={{transition:'color .15s'}}><Icon name="RefreshCw" size={12} /></button>
-                          <button onClick={() => { StorageService.delete(d.id); setSaved(StorageService.get()); }} className="text-neutral-700 hover:text-red-400" title="Delete" style={{transition:'color .15s'}}><Icon name="Trash2" size={12} /></button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </main>
-    </div>
+              h('button',{type:'submit',disabled:job.status==='processing',
+                className:'w-full bg-white text-black py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-neutral-100 disabled:opacity-40',
+                style:{transition:'all .2s'}},
+                job.status==='processing'
+                  ? [h('span',{key:'s',className:'inline-block w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin'}),' Rendering…']
+                  : [h(Icon,{key:'i',name:'Sparkles',size:15}),' Generate Design']
+              )
+            ),
+
+            /* Quick styles */
+            h('div',null,
+              h('p',{className:'text-[10px] text-neutral-600 uppercase tracking-wider mb-2'},'Quick Styles'),
+              h('div',{className:'flex flex-wrap gap-1.5'},
+                ['Saree','Kurta','Blazer','Co-ord','Lehenga'].map(s=>
+                  h('button',{key:s,onClick:()=>setPrompt(`A premium ${s.toLowerCase()} with contemporary design`),
+                    className:'text-[11px] px-2.5 py-1 bg-neutral-800/60 border border-neutral-700/40 text-neutral-400 rounded-lg hover:text-white hover:border-neutral-600',
+                    style:{transition:'all .15s'}},s)
+                )
+              )
+            )
+          )
+        ),
+
+        /* Right output */
+        h('section',{className:'lg:col-span-8 xl:col-span-9'},
+          (job.status==='completed'&&job.image)
+            ? h('div',{className:'grid grid-cols-1 md:grid-cols-2 gap-5'},
+
+                /* Generated image */
+                h('div',{className:'bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden flex flex-col group relative'},
+                  h('div',{className:'absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 z-10',style:{transition:'opacity .2s'}},
+                    [['RefreshCw','Regenerate',()=>generate()],
+                     ['Download','Download',()=>{const a=document.createElement('a');a.href=job.image;a.download='design.png';a.click();}],
+                     ['Maximize2','Expand',()=>setBigImg(job.image)]]
+                    .map(([ic,ti,ac])=>h('button',{key:ti,onClick:ac,title:ti,
+                      className:'bg-black/60 p-2 rounded-lg text-white hover:bg-black/80 border border-white/10',
+                      style:{backdropFilter:'blur(8px)'}},h(Icon,{name:ic,size:14})))
+                  ),
+                  h('div',{className:'h-80 w-full bg-neutral-950 overflow-hidden'},
+                    h('img',{src:job.image,alt:'Generated',className:'w-full h-full object-cover'})
+                  ),
+                  job.spec && h('div',{className:'p-4 space-y-3 border-t border-neutral-800/50'},
+                    h('div',{className:'grid grid-cols-2 gap-2'},
+                      h('div',{className:'bg-neutral-900/60 border border-neutral-800/40 p-2.5 rounded-xl'},
+                        h('div',{className:'text-[10px] text-neutral-500 mb-1.5 flex items-center gap-1 uppercase tracking-wider'},h(Icon,{name:'Palette',size:10}),' Palette'),
+                        h('div',{className:'flex gap-1.5 flex-wrap'},
+                          (job.spec.colors||[]).slice(0,5).map(c=>h('div',{key:c,className:'w-5 h-5 rounded-full border-2 border-neutral-700/60',style:{backgroundColor:c},title:c}))
+                        )
+                      ),
+                      h('div',{className:'bg-neutral-900/60 border border-neutral-800/40 p-2.5 rounded-xl'},
+                        h('div',{className:'text-[10px] text-neutral-500 mb-1.5 flex items-center gap-1 uppercase tracking-wider'},h(Icon,{name:'Leaf',size:10,className:'text-emerald-500'}),' Eco Score'),
+                        h('div',{className:'flex items-end gap-1'},
+                          h('span',{className:'text-lg font-bold text-emerald-400 leading-none'},job.spec.sustainability_score||80),
+                          h('span',{className:'text-[10px] text-neutral-600 mb-0.5'},'/100')
+                        )
+                      )
+                    ),
+                    h('div',{className:'grid grid-cols-2 gap-2'},
+                      h('button',{onClick:saveDesign,
+                        className:cx('py-2.5 rounded-xl text-xs font-semibold border',savePulse?'bg-emerald-500/20 border-emerald-500/40 text-emerald-400':'bg-neutral-800/60 border-neutral-700/40 text-neutral-300 hover:bg-neutral-800'),
+                        style:{transition:'all .2s'}},savePulse?'✓ Saved!':'Save Design'),
+                      h('button',{onClick:()=>setTab('tryon'),className:'py-2.5 rounded-xl text-xs font-semibold bg-white text-black hover:bg-neutral-100',style:{transition:'all .2s'}},'Try On →')
+                    ),
+                    h('button',{onClick:()=>setTechPack(true),
+                      className:'w-full border border-dashed border-neutral-700/50 text-neutral-500 hover:text-neutral-300 hover:border-neutral-600 py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5',
+                      style:{transition:'all .2s'}},
+                      h(Icon,{name:'FileText',size:11}),' Generate Tech Pack')
+                  )
+                ),
+
+                /* Shopping */
+                h('div',{className:'bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden flex flex-col'},
+                  h('div',{className:'px-5 py-3.5 border-b border-neutral-800/50 flex items-center justify-between'},
+                    h('span',{className:'text-sm font-semibold text-neutral-200 flex items-center gap-2'},h(Icon,{name:'ShoppingBag',size:13,className:'text-violet-400'}),' Buy Similar'),
+                    h('span',{className:'text-[10px] text-neutral-600'},'AI-matched · 3 results')
+                  ),
+                  h('div',{className:'p-4 space-y-3'},
+                    job.products.map((p,i)=>h('div',{key:i,className:'bg-[#080808] border border-neutral-800/50 hover:border-neutral-700 rounded-xl p-4',style:{transition:'all .2s'}},
+                      h('div',{className:'flex items-start justify-between mb-2'},
+                        h('h4',{className:'text-sm font-medium text-neutral-200 flex-1 pr-2'},p.name),
+                        h('span',{className:cx('text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0',p.score>=90?'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20':'text-amber-400 bg-amber-500/10 border border-amber-500/20')},`${p.score}%`)
+                      ),
+                      h('div',{className:'flex items-center justify-between'},
+                        h('div',null,
+                          h('span',{className:'text-[11px] text-neutral-600 block'},p.platform),
+                          h('span',{className:'text-neutral-100 font-bold text-base'},`₹${p.price.toLocaleString('en-IN')}`)
+                        ),
+                        h('div',{className:'flex flex-col items-end gap-1'},
+                          h('span',{className:'text-[9px] text-violet-400 bg-violet-400/10 border border-violet-400/20 px-2 py-0.5 rounded-full'},p.tag),
+                          h('button',{className:'text-[11px] text-neutral-500 hover:text-white flex items-center gap-0.5'},
+                            'View ',h(Icon,{name:'ChevronRight',size:10}))
+                        )
+                      )
+                    ))
+                  )
+                )
+              )
+            : h('div',{className:'bg-neutral-900/30 border border-neutral-800/40 rounded-2xl min-h-[480px] flex flex-col items-center justify-center text-center p-12'},
+                job.status==='processing'
+                  ? h('div',{className:'space-y-4'},
+                      h('div',{className:'relative mx-auto w-12 h-12'},
+                        h('div',{className:'absolute inset-0 rounded-full border-2 border-neutral-800'}),
+                        h('div',{className:'absolute inset-0 rounded-full border-2 border-t-violet-500 animate-spin'})
+                      ),
+                      h('p',{className:'text-sm text-neutral-500'},'Generating your design…'),
+                      h('p',{className:'text-xs text-neutral-700'},'This may take a few seconds')
+                    )
+                  : job.status==='failed'
+                    ? h('div',{className:'space-y-3'},
+                        h('div',{className:'text-2xl'},'⚠️'),
+                        h('p',{className:'text-sm text-neutral-400'},'Generation failed. Please try again.'),
+                        h('button',{onClick:()=>generate(),className:'text-xs text-violet-400 hover:text-violet-300'},'Retry')
+                      )
+                    : h('div',{className:'space-y-3'},
+                        h('div',{className:'w-12 h-12 bg-neutral-800/60 rounded-2xl flex items-center justify-center mx-auto'},h(Icon,{name:'Sparkles',size:20,className:'text-neutral-600'})),
+                        h('p',{className:'text-sm text-neutral-500'},'Describe your design and hit Generate'),
+                        h('p',{className:'text-xs text-neutral-700'},'Works in mock mode — no API key needed')
+                      )
+              )
+        )
+      ),
+
+      /* ══ TRY-ON ══ */
+      tab==='tryon' && h('div',{className:'space-y-6'},
+        h('div',{className:'flex items-center justify-between'},
+          h('div',null,
+            h('h2',{className:'text-base font-semibold text-neutral-200'},'Virtual Try-On Room'),
+            h('p',{className:'text-xs text-neutral-600 mt-0.5'},'Upload your photo · select a design · see the result')
+          ),
+          !job.image && h('button',{onClick:()=>setTab('design'),
+            className:'text-xs text-violet-400 flex items-center gap-1 bg-violet-400/10 border border-violet-400/20 px-3 py-1.5 rounded-lg'},
+            h(Icon,{name:'Sparkles',size:11}),' Generate a design first')
+        ),
+        h('div',{className:'bg-neutral-900/40 border border-neutral-800/50 rounded-2xl p-6'},
+          h('div',{className:'grid grid-cols-1 md:grid-cols-3 gap-6'},
+
+            /* Step 1 — Your Photo */
+            h('div',{className:'space-y-3'},
+              h('div',{className:'flex items-center gap-2'},
+                h('span',{className:'w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400'},'1'),
+                h('h3',{className:'text-xs font-semibold text-neutral-400 uppercase tracking-wider'},'Your Photo'),
+                (personImg&&!bodyAI) && h('span',{className:'ml-auto inline-block w-3 h-3 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin'})
+              ),
+              h('div',{onClick:()=>fileRef.current?.click(),
+                className:'aspect-[3/4] bg-[#080808] border-2 border-dashed border-neutral-800 hover:border-neutral-600 rounded-xl flex items-center justify-center cursor-pointer overflow-hidden',
+                style:{transition:'border-color .2s'}},
+                personImg
+                  ? h('img',{src:personImg,className:'w-full h-full object-cover'})
+                  : h('div',{className:'text-center space-y-2'},
+                      h(Icon,{name:'Upload',size:18,className:'text-neutral-700 mx-auto'}),
+                      h('p',{className:'text-[11px] text-neutral-700'},'Click to upload')
+                    ),
+                h('input',{type:'file',ref:fileRef,onChange:uploadPerson,className:'hidden',accept:'image/*'})
+              ),
+              bodyAI && h('div',{className:'bg-emerald-500/5 border border-emerald-500/20 p-3 rounded-xl text-xs space-y-1'},
+                h('div',{className:'text-emerald-400 font-semibold flex items-center gap-1.5'},
+                  h('span',{className:'w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse'}),' Body Analysis Complete'),
+                h('p',{className:'text-neutral-400'},`Type: ${bodyAI.shape}`),
+                h('p',{className:'text-neutral-600 text-[10px] leading-relaxed'},bodyAI.tips)
+              )
+            ),
+
+            /* Step 2 — Garment */
+            h('div',{className:'space-y-3'},
+              h('div',{className:'flex items-center gap-2'},
+                h('span',{className:'w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400'},'2'),
+                h('h3',{className:'text-xs font-semibold text-neutral-400 uppercase tracking-wider'},'Garment')
+              ),
+              h('div',{className:'aspect-[3/4] bg-[#080808] border border-neutral-800/60 rounded-xl flex items-center justify-center overflow-hidden'},
+                job.image
+                  ? h('img',{src:job.image,className:'w-full h-full object-cover'})
+                  : h('div',{className:'text-center space-y-2'},
+                      h(Icon,{name:'Image',size:18,className:'text-neutral-800 mx-auto'}),
+                      h('p',{className:'text-[11px] text-neutral-700'},'No design yet')
+                    )
+              )
+            ),
+
+            /* Step 3 — Result */
+            h('div',{className:'space-y-3 flex flex-col'},
+              h('div',{className:'flex items-center gap-2'},
+                h('span',{className:'w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400'},'3'),
+                h('h3',{className:'text-xs font-semibold text-neutral-400 uppercase tracking-wider'},'Result')
+              ),
+              h('div',{className:'flex-1 bg-[#080808] border border-neutral-800/60 rounded-xl flex items-center justify-center overflow-hidden min-h-[200px] relative'},
+                tryJob.status==='processing'
+                  ? h('div',{className:'text-center space-y-2'},
+                      h('div',{className:'relative w-8 h-8 mx-auto'},
+                        h('div',{className:'absolute inset-0 rounded-full border-2 border-neutral-800'}),
+                        h('div',{className:'absolute inset-0 rounded-full border-2 border-t-violet-500 animate-spin'})
+                      ),
+                      h('p',{className:'text-[11px] text-neutral-600'},'Aligning garment…')
+                    )
+                  : tryJob.result
+                    ? h(Fragment,null,
+                        h('img',{src:tryJob.result,className:'w-full h-full object-cover'}),
+                        h('button',{onClick:()=>setBigImg(tryJob.result),
+                          className:'absolute bottom-2 right-2 bg-black/60 p-1.5 rounded-lg text-white border border-white/10',
+                          style:{backdropFilter:'blur(8px)'}},h(Icon,{name:'Maximize2',size:12}))
+                      )
+                    : h('div',{className:'text-center space-y-2'},
+                        h(Icon,{name:'User',size:18,className:'text-neutral-800 mx-auto'}),
+                        h('p',{className:'text-[11px] text-neutral-700'},'Result appears here')
+                      )
+              ),
+              h('button',{onClick:tryon,disabled:!personImg||!job.image||tryJob.status==='processing',
+                className:'w-full bg-white text-black py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed',
+                style:{transition:'all .2s'}},
+                tryJob.status==='processing'?'Processing…':'Virtual Try-On')
+            )
+          )
+        )
+      ),
+
+      /* ══ COLLECTION ══ */
+      tab==='collection' && h('div',{className:'space-y-6'},
+        h('div',{className:'flex items-center justify-between'},
+          h('div',null,
+            h('h2',{className:'text-base font-semibold text-neutral-200'},'Saved Designs'),
+            h('p',{className:'text-xs text-neutral-600 mt-0.5'},`${saved.length} design${saved.length!==1?'s':''} · price alerts enabled`)
+          ),
+          saved.length>0 && h('button',{onClick:()=>setTab('design'),className:'text-xs text-neutral-500 hover:text-neutral-300'},'+ New design')
+        ),
+        saved.length===0
+          ? h('div',{className:'bg-neutral-900/30 border border-neutral-800/40 rounded-2xl p-16 text-center'},
+              h('div',{className:'w-12 h-12 bg-neutral-800/60 rounded-2xl flex items-center justify-center mx-auto mb-4'},h(Icon,{name:'Layers',size:20,className:'text-neutral-600'})),
+              h('p',{className:'text-sm text-neutral-500 mb-1'},'No designs saved yet'),
+              h('p',{className:'text-xs text-neutral-700 mb-4'},'Generate a design and hit "Save Design" to build your collection'),
+              h('button',{onClick:()=>setTab('design'),className:'inline-flex items-center gap-2 text-xs text-violet-400 bg-violet-400/10 border border-violet-400/20 px-4 py-2 rounded-lg hover:bg-violet-400/20'},
+                h(Icon,{name:'Sparkles',size:11}),' Go to Studio')
+            )
+          : h('div',{className:'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'},
+              saved.map(d=>h('div',{key:d.id,className:'bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden flex flex-col group',style:{transition:'all .3s'}},
+                h('div',{className:'h-52 overflow-hidden bg-neutral-950 relative'},
+                  h('img',{src:d.image,className:'w-full h-full object-cover',style:{transition:'transform .5s'}}),
+                  h('button',{onClick:()=>setBigImg(d.image),
+                    className:'absolute top-2 right-2 bg-black/50 p-1.5 rounded-lg text-white/70 hover:text-white border border-white/10 opacity-0 group-hover:opacity-100',
+                    style:{backdropFilter:'blur(4px)',transition:'opacity .2s'}},h(Icon,{name:'Maximize2',size:12}))
+                ),
+                h('div',{className:'p-3.5 flex flex-col gap-2.5 flex-1'},
+                  h('p',{className:'text-[11px] text-neutral-400 line-clamp-2 leading-relaxed flex-1'},d.prompt),
+                  d.spec && h('div',{className:'flex gap-1 items-center'},
+                    (d.spec.colors||[]).slice(0,4).map(c=>h('div',{key:c,className:'w-3 h-3 rounded-full border border-neutral-700/60',style:{backgroundColor:c}})),
+                    h('span',{className:'ml-auto text-[10px] text-emerald-500'},`${d.spec.sustainability_score||80}/100 eco`)
+                  ),
+                  h('div',{className:'flex items-center justify-between pt-2 border-t border-neutral-800/40'},
+                    h('button',{onClick:()=>setSaved(Store.toggleTrack(d.id)),
+                      className:cx('flex items-center gap-1 text-[10px] font-medium',d.isTracking?'text-emerald-400':'text-neutral-600 hover:text-neutral-400')},
+                      h(Icon,{name:d.isTracking?'BellRing':'Bell',size:11}),' ',d.isTracking?'Tracking':'Track'),
+                    h('div',{className:'flex gap-2.5 items-center'},
+                      h('button',{onClick:()=>generate(d.prompt),className:'text-neutral-600 hover:text-violet-400',title:'Remix',style:{transition:'color .15s'}},h(Icon,{name:'RefreshCw',size:12})),
+                      h('button',{onClick:()=>{Store.del(d.id);setSaved(Store.get());},className:'text-neutral-700 hover:text-red-400',title:'Delete',style:{transition:'color .15s'}},h(Icon,{name:'Trash2',size:12}))
+                    )
+                  )
+                )
+              ))
+            )
+      )
+    )
   );
 }
 
-// Hide the loading splash once React renders successfully
+/* ── Mount ────────────────────────────────────────────────────────────── */
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
-// Use a short timeout so the first paint completes before removing the splash
-setTimeout(hideSplash, 150);
+root.render(React.createElement(App));
+setTimeout(hideSplash, 80);
 </script>
 </body>
 </html>
