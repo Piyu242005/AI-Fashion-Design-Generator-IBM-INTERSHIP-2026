@@ -4,7 +4,7 @@
 
 **Describe any outfit. AI renders it. Try it on.**
 
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Cloudflare Workers AI](https://img.shields.io/badge/Cloudflare-Workers_AI-F38020?style=flat&logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/workers-ai/)
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
@@ -54,10 +54,10 @@ React displays result + shopping alternatives
 ## Screenshots
 
 ### Dashboard — Runway & Trending Concepts
-![AI Fashion Studio Dashboard](DASHBOARD.jpeg)
+![AI Fashion Studio Dashboard](public/screenshots/DASHBOARD.jpeg)
 
 ### Studio — Generated Design Output
-![Generated Design Output](generated%20output.png)
+![Generated Design Output](public/screenshots/generated-output.png)
 
 ---
 
@@ -115,12 +115,13 @@ Select any model from the **AI Model** dropdown in the Studio tab:
 ```
 IBM-INTERSHIP-2026/
 ├── src/
-│   ├── App.jsx          # Main React component (all UI)
+│   ├── App.jsx          # Main React component (all UI, ~1200 lines)
 │   ├── main.jsx         # React root mount
 │   └── index.css        # Tailwind v4 entry
+│
 ├── backend/
 │   ├── app/
-│   │   ├── main.py              # FastAPI app + CORS + startup validation
+│   │   ├── main.py              # FastAPI app + CORS + rate limiting
 │   │   ├── api/
 │   │   │   └── design.py        # POST /api/design router
 │   │   ├── services/
@@ -128,13 +129,25 @@ IBM-INTERSHIP-2026/
 │   │   └── schemas/
 │   │       └── design.py        # Pydantic models + model allowlist
 │   ├── tests/
-│   │   └── test_design.py       # 7 unit tests (fully mocked)
+│   │   └── test_design.py       # Unit tests (fully mocked)
 │   └── requirements.txt
+│
+├── api/                 # Vercel serverless functions (alternative deploy)
+│   ├── design.py        # POST /api/design
+│   └── health.py        # GET /api/health
+│
+├── samples/             # Sample wardrobe images (16 outfits, imported by src/App.jsx)
+│
+├── public/
+│   └── screenshots/     # README screenshots
+│
 ├── index.html           # Vite entry point
 ├── vite.config.js       # Vite + Tailwind v4 + React plugin
+├── vercel.json          # Vercel deployment config
 ├── .env.example         # Template — copy to .env
 ├── .gitignore
-└── README.md
+├── README.md
+└── README-API-SETUP.md  # Detailed API / environment setup guide
 ```
 
 ---

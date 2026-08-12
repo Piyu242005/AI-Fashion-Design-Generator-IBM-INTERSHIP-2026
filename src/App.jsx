@@ -1,22 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 /* ─── SAMPLE WARDROBE IMPORTS ─────────────────────────────────────── */
-import imgBeigeJacket      from '../SAMPLES CLOTHES/beige-moto-jacket-navy-dress.jpg';
-import imgBlackCropMaxi    from '../SAMPLES CLOTHES/black-crop-top-maxi-skirt.jpg';
-import imgBlackCropSkirt   from '../SAMPLES CLOTHES/black-crop-top-skirt-set.jpg';
-import imgBlueHoodie       from '../SAMPLES CLOTHES/blue-oversized-hoodie.jpg';
-import imgCreamHoodie      from '../SAMPLES CLOTHES/cream-oversized-hoodie.jpg';
-import imgDenimShirt       from '../SAMPLES CLOTHES/denim-shirt-beige-trousers-outfit.jpg';
-import imgMensBlackHoodie  from '../SAMPLES CLOTHES/mens-black-hoodie.jpg';
-import imgGeometricShirt   from '../SAMPLES CLOTHES/mens-geometric-print-shirt.jpg';
-import imgWhiteTshirt      from '../SAMPLES CLOTHES/mens-white-tshirt-jeans.jpg';
-import imgPinkSweater      from '../SAMPLES CLOTHES/pink-sweater-navy-jeans-outfit.jpg';
-import imgTealBlazer       from '../SAMPLES CLOTHES/teal-blazer-grey-jeans.jpg';
-import imgTealTrio         from '../SAMPLES CLOTHES/teal-khaki-black-dresses-trio.jpg';
-import imgVintageDenim     from '../SAMPLES CLOTHES/vintage-denim-jacket.jpg';
-import imgWhiteKnit        from '../SAMPLES CLOTHES/white-knit-flare-jeans-outfit.jpg';
-import imgWhiteShirt       from '../SAMPLES CLOTHES/white-shirt-long-sleeve.webp';
-import imgYellowTop        from '../SAMPLES CLOTHES/yellow-top-brown-culottes-outfit.jpg';
+import imgBeigeJacket      from '../samples/beige-moto-jacket-navy-dress.jpg';
+import imgBlackCropMaxi    from '../samples/black-crop-top-maxi-skirt.jpg';
+import imgBlackCropSkirt   from '../samples/black-crop-top-skirt-set.jpg';
+import imgBlueHoodie       from '../samples/blue-oversized-hoodie.jpg';
+import imgCreamHoodie      from '../samples/cream-oversized-hoodie.jpg';
+import imgDenimShirt       from '../samples/denim-shirt-beige-trousers-outfit.jpg';
+import imgMensBlackHoodie  from '../samples/mens-black-hoodie.jpg';
+import imgGeometricShirt   from '../samples/mens-geometric-print-shirt.jpg';
+import imgWhiteTshirt      from '../samples/mens-white-tshirt-jeans.jpg';
+import imgPinkSweater      from '../samples/pink-sweater-navy-jeans-outfit.jpg';
+import imgTealBlazer       from '../samples/teal-blazer-grey-jeans.jpg';
+import imgTealTrio         from '../samples/teal-khaki-black-dresses-trio.jpg';
+import imgVintageDenim     from '../samples/vintage-denim-jacket.jpg';
+import imgWhiteKnit        from '../samples/white-knit-flare-jeans-outfit.jpg';
+import imgWhiteShirt       from '../samples/white-shirt-long-sleeve.webp';
+import imgYellowTop        from '../samples/yellow-top-brown-culottes-outfit.jpg';
 
 import {
   Sparkles, Image as ImageIcon, Loader2, Download,
