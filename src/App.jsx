@@ -104,7 +104,84 @@ const ImageGenerationService = {
 };
 
 const ProductSearchService  = { async searchSimilarProducts(_spec) { return []; } };
-const VirtualTryOnService   = { async processTryOn(_p, _g) { return { resultImage: null }; } };
+
+/* ─── ONLINE GARMENTS FOR QUICK-PICK IN TRY-ON ───────────────────── */
+// Stable Unsplash photo URLs — clean garment / outfit shots on plain or
+// minimal backgrounds, ideal for the IDM-VTON model.
+const ONLINE_GARMENTS = [
+  {
+    id: "og1",
+    label: "White Oversized Tee",
+    category: "Casual",
+    url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80",
+  },
+  {
+    id: "og2",
+    label: "Classic Black Dress",
+    category: "Dress",
+    url: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=400&q=80",
+  },
+  {
+    id: "og3",
+    label: "Navy Blazer",
+    category: "Formal",
+    url: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&q=80",
+  },
+  {
+    id: "og4",
+    label: "Olive Cargo Jacket",
+    category: "Jacket",
+    url: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80",
+  },
+  {
+    id: "og5",
+    label: "Grey Hoodie",
+    category: "Casual",
+    url: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&q=80",
+  },
+  {
+    id: "og6",
+    label: "Floral Midi Dress",
+    category: "Dress",
+    url: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&q=80",
+  },
+  {
+    id: "og7",
+    label: "Striped Linen Shirt",
+    category: "Casual",
+    url: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&q=80",
+  },
+  {
+    id: "og8",
+    label: "Slim-Fit Jeans",
+    category: "Casual",
+    url: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&q=80",
+  },
+  {
+    id: "og9",
+    label: "Red Turtleneck",
+    category: "Casual",
+    url: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80",
+  },
+  {
+    id: "og10",
+    label: "Beige Trench Coat",
+    category: "Jacket",
+    url: "https://images.unsplash.com/photo-1548454782-15b189d129ab?w=400&q=80",
+  },
+  {
+    id: "og11",
+    label: "Pastel Kurta",
+    category: "Ethnic",
+    url: "https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=400&q=80",
+  },
+  {
+    id: "og12",
+    label: "Denim Jacket",
+    category: "Jacket",
+    url: "https://images.unsplash.com/photo-1542295669297-4d352b042bca?w=400&q=80",
+  },
+];
 
 /* ─── WARDROBE DATA ───────────────────────────────────────────────── */
 const sampleWardrobe = [
@@ -133,6 +210,7 @@ const CAT_COLORS = {
   Men:    "bg-neutral-500/20 text-neutral-300 border-neutral-500/30",
   Formal: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
   Dress:  "bg-rose-500/20 text-rose-300 border-rose-500/30",
+  Ethnic: "bg-orange-500/20 text-orange-300 border-orange-500/30",
 };
 
 const QUICK_PROMPTS = [
@@ -989,6 +1067,62 @@ export default function App() {
                 </div>
               </div>
             </div>
+
+            {/* ── Quick-Pick Garments ───────────────────────────────────── */}
+            <div className="bg-white/2 border border-white/6 rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-xs font-semibold text-neutral-300 uppercase tracking-widest">Quick-Pick Garments</p>
+                  <p className="text-[10px] text-neutral-600 mt-0.5">Click any garment to set it as the try-on item</p>
+                </div>
+                {designJob.image && (
+                  <button
+                    onClick={() => setDesignJob(prev => ({ ...prev, image: null }))}
+                    className="text-[10px] text-neutral-700 hover:text-neutral-400 flex items-center gap-1 transition-colors"
+                  >
+                    <X size={9} /> Clear
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                {ONLINE_GARMENTS.map(g => {
+                  const isSelected = designJob.image === g.url;
+                  return (
+                    <button
+                      key={g.id}
+                      onClick={() => setDesignJob(prev => ({ ...prev, image: g.url }))}
+                      className={`group relative rounded-xl overflow-hidden border transition-all focus:outline-none
+                        ${isSelected
+                          ? 'border-violet-500/70 ring-2 ring-violet-500/30'
+                          : 'border-white/8 hover:border-white/24'}`}
+                    >
+                      <div className="aspect-[3/4] bg-black/30">
+                        <img
+                          src={g.url}
+                          alt={g.label}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                      </div>
+                      {isSelected && (
+                        <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-violet-500 rounded-full flex items-center justify-center shadow-lg">
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <path d="M2 5l2 2 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                      )}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4">
+                        <p className="text-[9px] text-white font-medium leading-tight truncate">{g.label}</p>
+                        <span className={`inline-block mt-0.5 text-[8px] px-1 py-px rounded border ${CAT_COLORS[g.category] || CAT_COLORS.Casual}`}>
+                          {g.category}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
           </div>
         )}
 
