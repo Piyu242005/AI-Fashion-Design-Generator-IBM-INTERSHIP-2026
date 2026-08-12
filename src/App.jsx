@@ -29,7 +29,10 @@ import {
 /* ─── CONFIG ──────────────────────────────────────────────────────── */
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 const GEMINI_MODEL   = import.meta.env.VITE_GEMINI_MODEL   || "gemini-2.5-flash";
-const BACKEND_URL    = import.meta.env.VITE_BACKEND_URL    || "http://localhost:8000";
+// On Vercel the API functions are co-hosted at the same origin, so the
+// default is "" (relative URLs like /api/try-on).  Override with
+// VITE_BACKEND_URL only when running a separate backend (e.g. local dev).
+const BACKEND_URL    = import.meta.env.VITE_BACKEND_URL    ?? "";
 
 /* ─── STORAGE ─────────────────────────────────────────────────────── */
 const StorageService = {
@@ -233,12 +236,17 @@ export default function App() {
       if (res.ok && data.success && data.image) {
         setTryOnJob({ status: 'completed', resultImage: data.image, statusMsg: '' });
       } else {
-        const msg = data?.error?.message || 'Virtual try-on failed. Please try again.';
+        const code = data?.error?.code || '';
+        const rawMsg = data?.error?.message || 'Virtual try-on failed. Please try again.';
+        // For sleeping-space errors, surface a clear retry hint
+        const msg = (code === 'SPACE_LOADING' || code === 'SPACE_UNAVAILABLE')
+          ? rawMsg + ' (The AI space may be waking up — wait ~30 s then retry.)'
+          : rawMsg;
         setTryOnJob({ status: 'failed', resultImage: null, statusMsg: msg });
       }
     } catch (err) {
       console.warn('[TryOn] request failed:', err.message);
-      setTryOnJob({ status: 'failed', resultImage: null, statusMsg: 'Connection error. Is the backend running?' });
+      setTryOnJob({ status: 'failed', resultImage: null, statusMsg: 'Connection error — is the backend running?' });
     }
   };
 
@@ -946,7 +954,7 @@ export default function App() {
                           <X size={16} className="text-red-400" />
                         </div>
                         <p className="text-xs text-red-400 font-medium">Try-On Failed</p>
-                        <p className="text-[10px] text-neutral-700 leading-relaxed px-2">{tryOnJob.statusMsg}</p>
+                        <p className="text-[10px] text-neutral-400 leading-relaxed px-2">{tryOnJob.statusMsg}</p>
                       </div>
                     ) : tryOnJob.resultImage ? (
                       <>

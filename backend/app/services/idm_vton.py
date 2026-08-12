@@ -22,6 +22,10 @@ Official API signature (from "Use via API" page):
 Environment variables (set in .env):
     HF_TOKEN    — Hugging Face READ token  (for higher ZeroGPU quota)
     HF_SPACE_ID — defaults to "yisol/IDM-VTON"
+
+ZeroGPU spaces go to sleep after inactivity. The client will retry the
+connection up to CONNECT_RETRIES times with a short back-off to give the
+space time to wake up before giving up.
 """
 
 from __future__ import annotations
@@ -30,6 +34,7 @@ import base64
 import logging
 import os
 import tempfile
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -38,7 +43,12 @@ logger = logging.getLogger(__name__)
 
 # Read once at import time; FastAPI restarts pick up new values.
 SPACE_ID = os.getenv("HF_SPACE_ID", "yisol/IDM-VTON")
-SAFE_MSG = "Virtual try-on failed. Please try again."
+SAFE_MSG  = "Virtual try-on failed. Please try again."
+
+# How many times to retry connecting to the Space when it is sleeping/loading.
+# Each attempt waits CONNECT_RETRY_DELAY seconds before the next try.
+CONNECT_RETRIES     = 3
+CONNECT_RETRY_DELAY = 10   # seconds between connection retries
 
 
 # ---------------------------------------------------------------------------
@@ -56,6 +66,21 @@ class TryOnResult:
 def hf_configured() -> bool:
     """Return True when a HF token is present."""
     return bool(os.getenv("HF_TOKEN", "").strip())
+
+
+def _is_space_sleeping(exc: Exception) -> bool:
+    """Return True when the exception looks like a sleeping/loading Space."""
+    msg = str(exc).lower()
+    return (
+        "loading" in msg
+        or "503" in msg
+        or "unavailable" in msg
+        or "space is sleeping" in msg
+        or "waking up" in msg
+        or "starting" in msg
+        or "connection" in msg
+        or "connect" in msg
+    )
 
 
 async def run_tryon(
@@ -100,11 +125,45 @@ async def run_tryon(
         person_path.write_bytes(person_bytes)
         garment_path.write_bytes(garment_bytes)
 
-        # ── Connect to Space ────────────────────────────────────────────────
-        try:
-            client = Client(SPACE_ID, hf_token=hf_token)
-        except Exception as exc:
-            logger.error("Cannot connect to HF Space %s: %s", SPACE_ID, type(exc).__name__)
+        # ── Connect to Space (with retry for sleeping ZeroGPU spaces) ───────
+        client = None
+        last_connect_exc: Exception | None = None
+
+        for attempt in range(1, CONNECT_RETRIES + 1):
+            try:
+                logger.info(
+                    "Connecting to HF Space %s (attempt %d/%d)…",
+                    SPACE_ID, attempt, CONNECT_RETRIES,
+                )
+                client = Client(SPACE_ID, hf_token=hf_token)
+                last_connect_exc = None
+                break   # success
+            except Exception as exc:
+                last_connect_exc = exc
+                logger.warning(
+                    "HF Space connect attempt %d/%d failed: %s — %s",
+                    attempt, CONNECT_RETRIES, type(exc).__name__, str(exc)[:120],
+                )
+                if attempt < CONNECT_RETRIES:
+                    logger.info("Waiting %d s before retry (Space may be waking up)…", CONNECT_RETRY_DELAY)
+                    time.sleep(CONNECT_RETRY_DELAY)
+
+        if client is None:
+            exc = last_connect_exc
+            err_str = str(exc).lower() if exc else ""
+            logger.error(
+                "Cannot connect to HF Space %s after %d attempts: %s",
+                SPACE_ID, CONNECT_RETRIES, type(exc).__name__ if exc else "unknown",
+            )
+            if _is_space_sleeping(exc) if exc else False:
+                return TryOnResult(
+                    success=False,
+                    error_code="SPACE_LOADING",
+                    error_message=(
+                        "The IDM-VTON space is waking up from sleep. "
+                        "Please wait 30–60 seconds and try again."
+                    ),
+                )
             return TryOnResult(
                 success=False,
                 error_code="SPACE_UNAVAILABLE",

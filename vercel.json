@@ -5,6 +5,10 @@
   "rewrites": [
     { "source": "/api/design",  "destination": "/api/design.py"  },
     { "source": "/api/health",  "destination": "/api/health.py"  },
+    { "source": "/api/try-on",  "destination": "/api/try-on.py"  },
     { "source": "/(.*)",        "destination": "/index.html"     }
-  ]
+  ],
+  "functions": {
+    "api/try-on.py": { "maxDuration": 120 }
+  }
 }
