@@ -151,7 +151,8 @@ export default function App() {
   const [expandedImage, setExpandedImage] = useState(null);
   const [showTechPack, setShowTechPack]   = useState(false);
   const [personImage, setPersonImage]     = useState(null);
-  const [tryOnJob, setTryOnJob]           = useState({ status: 'idle', resultImage: null });
+  const [personFile, setPersonFile]       = useState(null);   // raw File for FormData
+  const [tryOnJob, setTryOnJob]           = useState({ status: 'idle', resultImage: null, statusMsg: '' });
   const [savedDesigns, setSavedDesigns]   = useState([]);
   const [savePulse, setSavePulse]         = useState(false);
   const [wardrobeFilter, setWardrobeFilter] = useState('All');
@@ -198,16 +199,47 @@ export default function App() {
   const handlePersonUpload = e => {
     const file = e.target.files[0];
     if (!file) return;
+    setPersonFile(file);
     const reader = new FileReader();
     reader.onload = ev => setPersonImage(ev.target.result);
     reader.readAsDataURL(file);
   };
 
   const handleTryOn = async () => {
-    if (!personImage || !designJob.image) return;
-    setTryOnJob({ status: 'processing', resultImage: null });
-    const result = await VirtualTryOnService.processTryOn(personImage, designJob.image);
-    setTryOnJob({ status: 'completed', resultImage: result.resultImage });
+    if (!personFile || !designJob.image) return;
+
+    setTryOnJob({ status: 'processing', resultImage: null, statusMsg: 'Uploading images…' });
+
+    try {
+      // Convert the garment data-URI back to a Blob for FormData
+      const garmentResp = await fetch(designJob.image);
+      const garmentBlob = await garmentResp.blob();
+
+      setTryOnJob(j => ({ ...j, statusMsg: 'Queuing AI try-on…' }));
+
+      const form = new FormData();
+      form.append('person',  personFile,  personFile.name  || 'person.jpg');
+      form.append('garment', garmentBlob, 'garment.jpg');
+
+      setTryOnJob(j => ({ ...j, statusMsg: 'AI is processing — this may take ~30 s…' }));
+
+      const res = await fetch(`${BACKEND_URL}/api/try-on`, {
+        method: 'POST',
+        body: form,
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success && data.image) {
+        setTryOnJob({ status: 'completed', resultImage: data.image, statusMsg: '' });
+      } else {
+        const msg = data?.error?.message || 'Virtual try-on failed. Please try again.';
+        setTryOnJob({ status: 'failed', resultImage: null, statusMsg: msg });
+      }
+    } catch (err) {
+      console.warn('[TryOn] request failed:', err.message);
+      setTryOnJob({ status: 'failed', resultImage: null, statusMsg: 'Connection error. Is the backend running?' });
+    }
   };
 
   const NAV_TABS = [
@@ -850,7 +882,7 @@ export default function App() {
                   </div>
                   {personImage && (
                     <button
-                      onClick={() => { setPersonImage(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                      onClick={() => { setPersonImage(null); setPersonFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
                       className="w-full text-[11px] text-neutral-700 hover:text-neutral-400 bg-white/3 border border-white/6 py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5"
                     >
                       <X size={10} /> Remove photo
@@ -897,12 +929,24 @@ export default function App() {
                   </div>
                   <div className="flex-1 min-h-[220px] bg-black/30 border border-white/8 rounded-2xl overflow-hidden flex items-center justify-center relative">
                     {tryOnJob.status === 'processing' ? (
-                      <div className="text-center space-y-3">
+                      <div className="text-center space-y-3 p-4">
                         <div className="relative w-10 h-10 mx-auto">
                           <div className="absolute inset-0 rounded-full border border-white/6" />
                           <div className="absolute inset-0 rounded-full border-t border-violet-500 animate-spin" />
+                          <div className="absolute inset-2 rounded-full border-t border-indigo-400 animate-spin" style={{ animationDuration: '1.4s', animationDirection: 'reverse' }} />
                         </div>
-                        <p className="text-xs text-neutral-600">Processing…</p>
+                        <p className="text-xs text-neutral-400 font-medium">{tryOnJob.statusMsg || 'Processing…'}</p>
+                        <div className="w-32 h-1 bg-white/5 rounded-full overflow-hidden mx-auto">
+                          <div className="h-full shimmer-bg rounded-full" />
+                        </div>
+                      </div>
+                    ) : tryOnJob.status === 'failed' ? (
+                      <div className="text-center space-y-3 p-4">
+                        <div className="w-10 h-10 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-center mx-auto">
+                          <X size={16} className="text-red-400" />
+                        </div>
+                        <p className="text-xs text-red-400 font-medium">Try-On Failed</p>
+                        <p className="text-[10px] text-neutral-700 leading-relaxed px-2">{tryOnJob.statusMsg}</p>
                       </div>
                     ) : tryOnJob.resultImage ? (
                       <>
@@ -925,10 +969,14 @@ export default function App() {
                   </div>
                   <button
                     onClick={handleTryOn}
-                    disabled={!personImage || !designJob.image || tryOnJob.status === 'processing'}
+                    disabled={!personFile || !designJob.image || tryOnJob.status === 'processing'}
                     className="w-full bg-white text-black py-3 rounded-xl text-sm font-bold hover:bg-neutral-100 disabled:opacity-25 disabled:cursor-not-allowed active:scale-95 transition-all"
                   >
-                    {tryOnJob.status === 'processing' ? 'Processing…' : 'Virtual Try-On'}
+                    {tryOnJob.status === 'processing'
+                      ? <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" /> {tryOnJob.statusMsg || 'Processing…'}</span>
+                      : tryOnJob.status === 'failed'
+                        ? 'Retry Try-On'
+                        : 'Virtual Try-On'}
                   </button>
                 </div>
               </div>
@@ -1040,6 +1088,34 @@ export default function App() {
         )}
 
       </main>
+
+      {/* ── FOOTER ────────────────────────────────────────────────── */}
+      <footer className="border-t border-white/5 mt-4">
+        <div className="max-w-7xl mx-auto px-5 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          {/* Brand */}
+          <div className="flex items-center gap-2 select-none">
+            <div className="w-5 h-5 bg-white rounded-md flex items-center justify-center">
+              <Scissors size={10} className="text-black" />
+            </div>
+            <span className="text-xs font-semibold text-neutral-400 tracking-tight">Studio AI</span>
+          </div>
+
+          {/* Credit */}
+          <p className="text-xs text-neutral-700 text-center">
+            Designed &amp; built by{' '}
+            <span className="text-neutral-300 font-semibold">Piyush Ramteke</span>
+            {' '}·{' '}
+            <span className="text-neutral-600">IBM Internship 2026</span>
+          </p>
+
+          {/* Badge */}
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] text-neutral-700 font-medium">AI Fashion Studio</span>
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }

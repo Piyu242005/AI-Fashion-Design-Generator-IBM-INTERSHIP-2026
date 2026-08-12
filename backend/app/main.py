@@ -21,7 +21,9 @@ from slowapi.errors import RateLimitExceeded
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 
 from app.api.design import router as design_router          # noqa: E402
+from app.api.tryon  import router as tryon_router           # noqa: E402
 from app.services.cloudflare_ai import credentials_configured  # noqa: E402
+from app.services.idm_vton import hf_configured             # noqa: E402
 from app.schemas.design import ALLOWED_MODELS, DEFAULT_MODEL    # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -44,13 +46,17 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     cf_ok = credentials_configured()
+    hf_ok = hf_configured()
     logger.info("=" * 50)
     logger.info("AI Fashion Studio API  v2.0.0")
     logger.info("  Cloudflare Workers AI : %s", "CONFIGURED" if cf_ok else "NOT CONFIGURED")
-    logger.info("  Route: POST /api/design")
+    logger.info("  HuggingFace IDM-VTON  : %s", "CONFIGURED" if hf_ok else "NOT CONFIGURED (unauthenticated)")
+    logger.info("  Routes: POST /api/design  |  POST /api/try-on")
     logger.info("=" * 50)
     if not cf_ok:
         logger.warning("Set CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN in .env")
+    if not hf_ok:
+        logger.warning("Set HF_TOKEN in .env for authenticated IDM-VTON access (higher quota).")
     yield
 
 
@@ -96,7 +102,8 @@ app.add_middleware(
 )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
-app.include_router(design_router)   # POST /api/design  (Cloudflare)
+app.include_router(design_router)   # POST /api/design   (Cloudflare)
+app.include_router(tryon_router)    # POST /api/try-on   (IDM-VTON)
 
 
 # ---------------------------------------------------------------------------
@@ -111,8 +118,10 @@ def root():
 def health():
     return {
         "status": "ok",
-        "provider": "cloudflare",
-        "configured": credentials_configured(),
+        "providers": {
+            "cloudflare": {"configured": credentials_configured()},
+            "idm_vton":   {"configured": hf_configured(), "space": "yisol/IDM-VTON"},
+        },
     }
 
 
