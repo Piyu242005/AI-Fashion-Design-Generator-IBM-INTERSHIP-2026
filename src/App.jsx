@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-/* ─── SAMPLE WARDROBE URLS (served from /public/samples/) ─────────── */
+/* ─── SAMPLE WARDROBE URLS ────────────────────────────────────────── */
 const imgBeigeJacket      = '/samples/beige-moto-jacket-navy-dress.jpg';
 const imgBlackCropMaxi    = '/samples/black-crop-top-maxi-skirt.jpg';
 const imgBlackCropSkirt   = '/samples/black-crop-top-skirt-set.jpg';
@@ -22,8 +22,8 @@ import {
   Sparkles, Image as ImageIcon, Loader2, Download,
   Scissors, ShoppingBag, User, Upload, Layers, Trash2,
   Maximize2, RefreshCw, X, Camera, Palette, Leaf, FileText,
-  Bell, BellRing, Activity, Wand2, ChevronRight, Star,
-  TrendingUp, Zap, ArrowRight, Cpu, ChevronDown
+  Bell, BellRing, Activity, Wand2, ChevronRight,
+  Zap, ArrowRight, Cpu, Plus
 } from 'lucide-react';
 
 /* ─── CONFIG ──────────────────────────────────────────────────────── */
@@ -74,200 +74,115 @@ const FashionIntelligenceService = {
   }
 };
 
-/* ─── IMAGE MODELS CATALOGUE ──────────────────────────────────────── */
+/* ─── IMAGE MODELS ────────────────────────────────────────────────── */
 export const IMAGE_MODELS = [
-  {
-    id: "@cf/black-forest-labs/flux-1-schnell",
-    label: "FLUX.1 Schnell",
-    provider: "Cloudflare",
-    badge: "Fast",
-    badgeColor: "text-sky-400 bg-sky-400/10 border-sky-400/20",
-    description: "Best quality/speed for fashion renders",
-    default: true,
-  },
-  {
-    id: "@cf/stabilityai/stable-diffusion-xl-base-1.0",
-    label: "SDXL Base 1.0",
-    provider: "Cloudflare",
-    badge: "Detailed",
-    badgeColor: "text-violet-400 bg-violet-400/10 border-violet-400/20",
-    description: "Higher detail, slightly slower",
-    default: false,
-  },
-  {
-    id: "@cf/lykon/dreamshaper-8-lcm",
-    label: "DreamShaper 8",
-    provider: "Cloudflare",
-    badge: "Artistic",
-    badgeColor: "text-rose-400 bg-rose-400/10 border-rose-400/20",
-    description: "Painterly, creative fashion illustrations",
-    default: false,
-  },
-  {
-    id: "@cf/bytedance/stable-diffusion-xl-lightning",
-    label: "SDXL Lightning",
-    provider: "Cloudflare",
-    badge: "Fastest",
-    badgeColor: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
-    description: "Ultra-fast 4-step generation",
-    default: false,
-  },
+  { id: "@cf/black-forest-labs/flux-1-schnell",          label: "FLUX.1 Schnell", provider: "Cloudflare", badge: "Fast",    badgeColor: "text-sky-400 bg-sky-400/10 border-sky-400/20",       description: "Best quality/speed for fashion renders", default: true  },
+  { id: "@cf/stabilityai/stable-diffusion-xl-base-1.0",  label: "SDXL Base 1.0",  provider: "Cloudflare", badge: "Detail",  badgeColor: "text-violet-400 bg-violet-400/10 border-violet-400/20", description: "Higher detail, slightly slower",          default: false },
+  { id: "@cf/lykon/dreamshaper-8-lcm",                   label: "DreamShaper 8",  provider: "Cloudflare", badge: "Art",     badgeColor: "text-rose-400 bg-rose-400/10 border-rose-400/20",     description: "Painterly, creative fashion illustrations", default: false },
+  { id: "@cf/bytedance/stable-diffusion-xl-lightning",   label: "SDXL Lightning", provider: "Cloudflare", badge: "⚡ Fast", badgeColor: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20", description: "Ultra-fast 4-step generation",          default: false },
 ];
 
-const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80";
-
 const ImageGenerationService = {
-  /**
-   * Primary route  : POST /api/design          → Cloudflare (model selectable)
-   * Fallback route : POST /api/generate-image  → HuggingFace FLUX.1-schnell
-   * Both routes live in the FastAPI backend — the token NEVER touches the browser.
-   */
   async generate(optimizedPrompt, modelId = null) {
-    // ── 1. Try Cloudflare via /api/design ──────────────────────────────
     try {
       const body = { prompt: optimizedPrompt };
       if (modelId) body.model = modelId;
-      const res = await fetch(`${BACKEND_URL}/api/design`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.image) return data.image;
-      } else {
-        const err = await res.json().catch(() => ({}));
-        // 503 = backend not configured → fall through to HF route
-        if (res.status !== 503) {
-          console.warn('[ImageGen] Cloudflare error:', err?.error?.code);
-        }
-      }
-    } catch (e) {
-      console.warn('[ImageGen] /api/design unreachable, trying HF fallback:', e.message);
-    }
-
-    // ── 2. Fallback: HuggingFace /api/generate-image ──────────────────
+      const res = await fetch(`${BACKEND_URL}/api/design`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (res.ok) { const data = await res.json(); if (data.success && data.image) return data.image; }
+      else { const err = await res.json().catch(() => ({})); if (res.status !== 503) console.warn('[ImageGen] CF error:', err?.error?.code); }
+    } catch (e) { console.warn('[ImageGen] /api/design unreachable:', e.message); }
     try {
-      const res = await fetch(`${BACKEND_URL}/api/generate-image`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: optimizedPrompt }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.image_base64) return data.image_base64;
-      } else {
-        const err = await res.json().catch(() => ({}));
-        if (err?.detail?.fallback_url) return err.detail.fallback_url;
-      }
-    } catch (e) {
-      console.warn('[ImageGen] /api/generate-image also unreachable:', e.message);
-    }
-
-    // ── 3. Final fallback: static placeholder ─────────────────────────
-    return FALLBACK_IMAGE;
+      const res = await fetch(`${BACKEND_URL}/api/generate-image`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: optimizedPrompt }) });
+      if (res.ok) { const data = await res.json(); if (data.image_base64) return data.image_base64; }
+      else { const err = await res.json().catch(() => ({})); if (err?.detail?.fallback_url) return err.detail.fallback_url; }
+    } catch (e) { console.warn('[ImageGen] /api/generate-image unreachable:', e.message); }
+    return null;
   }
 };
 
-const ProductSearchService = {
-  async searchSimilarProducts(_spec) {
-    return [];
-  }
-};
+const ProductSearchService  = { async searchSimilarProducts(_spec) { return []; } };
+const VirtualTryOnService   = { async processTryOn(_p, _g) { return { resultImage: null }; } };
 
-const VirtualTryOnService = {
-  async processTryOn(_personImage, _garmentImage) {
-    return { resultImage: null };
-  }
-};
-
-/* ─── SAMPLE WARDROBE ─────────────────────────────────────────────── */
+/* ─── WARDROBE DATA ───────────────────────────────────────────────── */
 const sampleWardrobe = [
-  { id: 1,  label: "Beige Moto Jacket",         image: imgBeigeJacket,     category: "Jacket" },
-  { id: 2,  label: "Black Crop Top & Maxi",     image: imgBlackCropMaxi,   category: "Set" },
-  { id: 3,  label: "Black Crop & Skirt Set",    image: imgBlackCropSkirt,  category: "Set" },
-  { id: 4,  label: "Blue Oversized Hoodie",     image: imgBlueHoodie,      category: "Casual" },
-  { id: 5,  label: "Cream Oversized Hoodie",    image: imgCreamHoodie,     category: "Casual" },
-  { id: 6,  label: "Denim Shirt & Trousers",    image: imgDenimShirt,      category: "Casual" },
-  { id: 7,  label: "Men's Black Hoodie",        image: imgMensBlackHoodie, category: "Men" },
-  { id: 8,  label: "Geometric Print Shirt",     image: imgGeometricShirt,  category: "Men" },
-  { id: 9,  label: "White T-Shirt & Jeans",     image: imgWhiteTshirt,     category: "Men" },
-  { id: 10, label: "Pink Sweater & Navy Jeans", image: imgPinkSweater,     category: "Casual" },
-  { id: 11, label: "Teal Blazer & Grey Jeans",  image: imgTealBlazer,      category: "Formal" },
-  { id: 12, label: "Teal, Khaki & Black Trio",  image: imgTealTrio,        category: "Dress" },
-  { id: 13, label: "Vintage Denim Jacket",      image: imgVintageDenim,    category: "Jacket" },
-  { id: 14, label: "White Knit & Flare Jeans",  image: imgWhiteKnit,       category: "Casual" },
-  { id: 15, label: "White Long Sleeve Shirt",   image: imgWhiteShirt,      category: "Formal" },
-  { id: 16, label: "Yellow Top & Brown Culotte",image: imgYellowTop,       category: "Casual" },
+  { id: 1,  label: "Beige Moto Jacket",          image: imgBeigeJacket,     category: "Jacket" },
+  { id: 2,  label: "Black Crop Top & Maxi",      image: imgBlackCropMaxi,   category: "Set"    },
+  { id: 3,  label: "Black Crop & Skirt Set",     image: imgBlackCropSkirt,  category: "Set"    },
+  { id: 4,  label: "Blue Oversized Hoodie",      image: imgBlueHoodie,      category: "Casual" },
+  { id: 5,  label: "Cream Oversized Hoodie",     image: imgCreamHoodie,     category: "Casual" },
+  { id: 6,  label: "Denim Shirt & Trousers",     image: imgDenimShirt,      category: "Casual" },
+  { id: 7,  label: "Men's Black Hoodie",         image: imgMensBlackHoodie, category: "Men"    },
+  { id: 8,  label: "Geometric Print Shirt",      image: imgGeometricShirt,  category: "Men"    },
+  { id: 9,  label: "White T-Shirt & Jeans",      image: imgWhiteTshirt,     category: "Men"    },
+  { id: 10, label: "Pink Sweater & Navy Jeans",  image: imgPinkSweater,     category: "Casual" },
+  { id: 11, label: "Teal Blazer & Grey Jeans",   image: imgTealBlazer,      category: "Formal" },
+  { id: 12, label: "Teal, Khaki & Black Trio",   image: imgTealTrio,        category: "Dress"  },
+  { id: 13, label: "Vintage Denim Jacket",       image: imgVintageDenim,    category: "Jacket" },
+  { id: 14, label: "White Knit & Flare Jeans",   image: imgWhiteKnit,       category: "Casual" },
+  { id: 15, label: "White Long Sleeve Shirt",    image: imgWhiteShirt,      category: "Formal" },
+  { id: 16, label: "Yellow Top & Brown Culotte", image: imgYellowTop,       category: "Casual" },
 ];
 
-const WARDROBE_CATEGORY_COLORS = {
-  "Jacket":  "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  "Set":     "bg-violet-500/15 text-violet-400 border-violet-500/30",
-  "Casual":  "bg-sky-500/15 text-sky-400 border-sky-500/30",
-  "Men":     "bg-neutral-500/15 text-neutral-400 border-neutral-500/30",
-  "Formal":  "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-  "Dress":   "bg-rose-500/15 text-rose-400 border-rose-500/30",
+const CAT_COLORS = {
+  Jacket: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+  Set:    "bg-violet-500/20 text-violet-300 border-violet-500/30",
+  Casual: "bg-sky-500/20 text-sky-300 border-sky-500/30",
+  Men:    "bg-neutral-500/20 text-neutral-300 border-neutral-500/30",
+  Formal: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+  Dress:  "bg-rose-500/20 text-rose-300 border-rose-500/30",
 };
 
-/* ─── RUNWAY DATA ─────────────────────────────────────────────────── */
-const runwayData = [];
-
-const TAG_COLORS = {
-  "Trending": "bg-rose-500/15 text-rose-400 border-rose-500/30",
-  "Featured": "bg-violet-500/15 text-violet-400 border-violet-500/30",
-  "Eco Pick": "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-  "New":      "bg-sky-500/15 text-sky-400 border-sky-500/30",
-  "Minimal":  "bg-neutral-500/15 text-neutral-400 border-neutral-500/30",
-  "Classic":  "bg-amber-500/15 text-amber-400 border-amber-500/30",
-};
-
+const QUICK_PROMPTS = [
+  { label: "Saree",   prompt: "An elegant silk saree with contemporary geometric border in deep teal and gold" },
+  { label: "Kurta",   prompt: "A minimalist cotton kurta with subtle white embroidery, earthy tones, under ₹2500" },
+  { label: "Blazer",  prompt: "A structured oversized blazer in camel wool with gold buttons, street style" },
+  { label: "Co-ord",  prompt: "A linen co-ord set in soft terracotta, relaxed fit, summer-ready" },
+  { label: "Lehenga", prompt: "A lightweight lehenga in blush pink with intricate mirror work and modern silhouette" },
+];
 
 /* ════════════════════════════════════════════════════════════════════
    MAIN APP
 ═══════════════════════════════════════════════════════════════════ */
 export default function App() {
-  const [activeTab, setActiveTab]   = useState('runway');
-  const [prompt, setPrompt]         = useState("");
+  const [activeTab, setActiveTab]         = useState('runway');
+  const [prompt, setPrompt]               = useState('');
   const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS.find(m => m.default).id);
-  const [modelDropOpen, setModelDropOpen] = useState(false);
-  const [designJob, setDesignJob]   = useState({ status: 'idle', spec: null, image: null, products: [] });
+  const [designJob, setDesignJob]         = useState({ status: 'idle', spec: null, image: null, products: [] });
   const [expandedImage, setExpandedImage] = useState(null);
   const [showTechPack, setShowTechPack]   = useState(false);
   const [personImage, setPersonImage]     = useState(null);
   const [tryOnJob, setTryOnJob]           = useState({ status: 'idle', resultImage: null });
-  const [bodyAnalysis, setBodyAnalysis]   = useState(null);
   const [savedDesigns, setSavedDesigns]   = useState([]);
   const [savePulse, setSavePulse]         = useState(false);
   const [wardrobeFilter, setWardrobeFilter] = useState('All');
-  const fileInputRef = useRef(null);
-  const modelDropRef = useRef(null);
-
-  // Close model dropdown when clicking outside
-  useEffect(() => {
-    const handler = (e) => {
-      if (modelDropRef.current && !modelDropRef.current.contains(e.target))
-        setModelDropOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  const fileInputRef  = useRef(null);
+  const promptRef     = useRef(null);
 
   useEffect(() => { setSavedDesigns(StorageService.getCollections()); }, []);
 
+  /* ── scroll lock when modal open ── */
+  useEffect(() => {
+    document.body.style.overflow = (expandedImage || showTechPack) ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [expandedImage, showTechPack]);
+
   const handleGenerateDesign = async (overridePrompt = null) => {
-    const targetPrompt = overridePrompt || prompt;
-    if (!targetPrompt.trim()) return;
-    setPrompt(targetPrompt);
+    const p = overridePrompt || prompt;
+    if (!p.trim()) return;
+    setPrompt(p);
     if (activeTab !== 'design') setActiveTab('design');
     setDesignJob({ status: 'processing', spec: null, image: null, products: [] });
     try {
-      const spec = await FashionIntelligenceService.extractSpecification(targetPrompt);
+      const spec = await FashionIntelligenceService.extractSpecification(p);
       const [image, products] = await Promise.all([
-        ImageGenerationService.generate(spec.optimized_image_prompt || targetPrompt, selectedModel),
-        ProductSearchService.searchSimilarProducts(spec)
+        ImageGenerationService.generate(spec.optimized_image_prompt || p, selectedModel),
+        ProductSearchService.searchSimilarProducts(spec),
       ]);
-      setDesignJob({ status: 'completed', spec, image, products, prompt: targetPrompt });
+      if (!image) {
+        setDesignJob({ status: 'failed', spec: null, image: null, products: [] });
+      } else {
+        setDesignJob({ status: 'completed', spec, image, products, prompt: p });
+      }
     } catch {
       setDesignJob({ status: 'failed', spec: null, image: null, products: [] });
     }
@@ -277,17 +192,14 @@ export default function App() {
     StorageService.saveDesign({ image: designJob.image, prompt: designJob.prompt, spec: designJob.spec });
     setSavedDesigns(StorageService.getCollections());
     setSavePulse(true);
-    setTimeout(() => setSavePulse(false), 1200);
+    setTimeout(() => setSavePulse(false), 1400);
   };
 
-  const handlePersonUpload = (e) => {
+  const handlePersonUpload = e => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      setPersonImage(ev.target.result);
-      setBodyAnalysis(null);
-    };
+    reader.onload = ev => setPersonImage(ev.target.result);
     reader.readAsDataURL(file);
   };
 
@@ -298,71 +210,136 @@ export default function App() {
     setTryOnJob({ status: 'completed', resultImage: result.resultImage });
   };
 
-  const tabs = [
-    { id: 'runway',     label: 'Runway',               icon: Activity  },
-    { id: 'design',     label: 'Studio',               icon: Sparkles  },
-    { id: 'tryon',      label: 'Try-On',               icon: User      },
-    { id: 'collection', label: `Saved · ${savedDesigns.length}`, icon: Layers },
+  const NAV_TABS = [
+    { id: 'runway',     label: 'Runway',   icon: Activity  },
+    { id: 'design',     label: 'Studio',   icon: Sparkles  },
+    { id: 'tryon',      label: 'Try-On',   icon: User      },
+    { id: 'collection', label: 'Collection', icon: Layers  },
   ];
 
-  /* ── RENDER ────────────────────────────────────────────────────── */
+  /* ────────────────────────────────────────────────────────────────
+     RENDER
+  ──────────────────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-[#080808] text-neutral-100 font-sans antialiased selection:bg-violet-900/40">
+    <div className="min-h-screen bg-[#050505] text-neutral-100 font-sans antialiased selection:bg-violet-900/40">
 
-      {/* ── LIGHTBOX ─────────────────────────────────────────────── */}
+      {/* ── GLOBAL STYLES ─────────────────────────────────────────── */}
+      <style>{`
+        @keyframes fade-up   { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
+        @keyframes fade-in   { from { opacity:0 } to { opacity:1 } }
+        @keyframes shimmer   { from { background-position:200% 0 } to { background-position:-200% 0 } }
+        @keyframes pulse-dot { 0%,100% { opacity:1 } 50% { opacity:.3 } }
+        .anim-fade-up  { animation: fade-up  .35s cubic-bezier(.16,1,.3,1) both }
+        .anim-fade-in  { animation: fade-in  .25s ease both }
+        .shimmer-bg {
+          background: linear-gradient(90deg, #1a1a1a 25%, #252525 50%, #1a1a1a 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.6s infinite;
+        }
+        .glass {
+          background: rgba(255,255,255,0.03);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+        }
+        .card-hover {
+          transition: transform .22s cubic-bezier(.16,1,.3,1), border-color .2s, box-shadow .2s;
+        }
+        .card-hover:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 20px 60px rgba(0,0,0,.5);
+        }
+        textarea:focus { border-color: rgba(139,92,246,.5) !important; box-shadow: 0 0 0 3px rgba(139,92,246,.08); }
+        ::-webkit-scrollbar { width:5px; height:5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background:#333; border-radius:9999px; }
+      `}</style>
+
+      {/* ── LIGHTBOX ──────────────────────────────────────────────── */}
       {expandedImage && (
         <div
-          className="fixed inset-0 z-[200] bg-black/96 backdrop-blur-xl flex items-center justify-center p-4"
+          className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6 anim-fade-in"
           onClick={() => setExpandedImage(null)}
         >
-          <button className="absolute top-5 right-5 bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-full transition-colors border border-white/10">
-            <X size={20} />
+          <button
+            className="absolute top-5 right-5 w-10 h-10 bg-white/8 hover:bg-white/15 text-white rounded-full flex items-center justify-center transition-colors border border-white/10"
+            onClick={() => setExpandedImage(null)}
+          >
+            <X size={18} />
           </button>
           <img
             src={expandedImage} alt="Expanded"
-            className="max-w-[90vw] max-h-[90vh] rounded-2xl object-contain shadow-2xl ring-1 ring-white/10"
+            className="max-w-[88vw] max-h-[88vh] rounded-2xl object-contain ring-1 ring-white/10 anim-fade-up"
             onClick={e => e.stopPropagation()}
           />
         </div>
       )}
 
-      {/* ── TECH PACK MODAL ──────────────────────────────────────── */}
+      {/* ── TECH PACK MODAL ───────────────────────────────────────── */}
       {showTechPack && designJob.spec && (
-        <div className="fixed inset-0 z-[200] bg-black/85 backdrop-blur-lg flex items-center justify-center p-4">
-          <div className="bg-[#0e0e0e] border border-neutral-800/80 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl ring-1 ring-white/5">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-neutral-800/60 bg-[#0a0a0a]">
-              <h2 className="font-semibold text-sm flex items-center gap-2 text-neutral-200">
-                <FileText size={15} className="text-violet-400" /> Manufacturing Tech Pack
-              </h2>
-              <button onClick={() => setShowTechPack(false)} className="text-neutral-500 hover:text-white transition-colors p-1">
-                <X size={18} />
+        <div
+          className="fixed inset-0 z-[300] bg-black/80 backdrop-blur-xl flex items-center justify-center p-5 anim-fade-in"
+          onClick={() => setShowTechPack(false)}
+        >
+          <div
+            className="bg-[#0d0d0d] border border-white/8 rounded-3xl w-full max-w-lg shadow-2xl anim-fade-up overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/6">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 bg-violet-500/15 rounded-lg flex items-center justify-center">
+                  <FileText size={13} className="text-violet-400" />
+                </div>
+                <span className="font-semibold text-sm text-white">Tech Pack</span>
+              </div>
+              <button
+                onClick={() => setShowTechPack(false)}
+                className="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-neutral-400 hover:text-white transition-colors"
+              >
+                <X size={14} />
               </button>
             </div>
-            <div className="p-6 space-y-5">
+            {/* Body */}
+            <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: "Primary Fabric",    value: designJob.spec.fabric || "Unknown" },
-                  { label: "Category",          value: designJob.spec.category || "Apparel" },
-                  { label: "Color Codes (HEX)", value: designJob.spec.colors?.join(", ") || "N/A" },
-                  { label: "Est. Cost Price",   value: `₹${(designJob.spec.budget?.maximum * 0.4 || 0).toFixed(0)}` },
+                  { label: "Fabric",        value: designJob.spec.fabric || "—"          },
+                  { label: "Category",      value: designJob.spec.category || "Apparel"  },
+                  { label: "Color Palette", value: designJob.spec.colors?.join(", ") || "—" },
+                  { label: "Est. Cost",     value: `₹${(designJob.spec.budget?.maximum * 0.4 || 0).toFixed(0)}` },
                 ].map(f => (
-                  <div key={f.label} className="bg-neutral-900/60 border border-neutral-800/60 p-3 rounded-xl">
-                    <span className="text-neutral-500 text-[10px] uppercase tracking-wider block mb-1">{f.label}</span>
-                    <span className="text-neutral-200 text-sm font-medium">{f.value}</span>
+                  <div key={f.label} className="bg-white/3 border border-white/6 rounded-xl p-3.5">
+                    <span className="text-neutral-600 text-[10px] uppercase tracking-widest block mb-1.5">{f.label}</span>
+                    <span className="text-neutral-200 text-sm font-medium leading-snug">{f.value}</span>
                   </div>
                 ))}
               </div>
-              <div className="bg-neutral-900/40 border border-neutral-800/50 p-4 rounded-xl">
-                <h4 className="text-xs font-semibold text-neutral-300 mb-2 uppercase tracking-wider">Construction Notes</h4>
+              {/* Eco bar */}
+              <div className="bg-emerald-500/6 border border-emerald-500/15 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
+                    <Leaf size={11} /> Sustainability Score
+                  </span>
+                  <span className="text-sm font-bold text-emerald-300">{designJob.spec.sustainability_score || 80}/100</span>
+                </div>
+                <div className="h-1.5 bg-emerald-950/60 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-400 rounded-full transition-all duration-700"
+                    style={{ width: `${designJob.spec.sustainability_score || 80}%` }}
+                  />
+                </div>
+              </div>
+              <div className="bg-white/3 border border-white/6 rounded-xl p-4">
+                <p className="text-[10px] text-neutral-600 uppercase tracking-widest mb-2">Construction Notes</p>
                 <ul className="space-y-1.5 text-xs text-neutral-500 list-disc pl-4">
                   <li>Standard 1.5 cm seam allowance on all panels.</li>
-                  <li>Use eco-friendly dyes — target Eco Score: <span className="text-emerald-400">{designJob.spec.sustainability_score || 80}/100</span>.</li>
-                  <li className="text-neutral-600 italic line-clamp-1">Derived from: "{designJob.prompt}"</li>
+                  <li>Eco-friendly dyes recommended for target score.</li>
+                  <li className="text-neutral-700 italic line-clamp-1">"{designJob.prompt}"</li>
                 </ul>
               </div>
               <button
                 onClick={() => setShowTechPack(false)}
-                className="w-full bg-white text-black py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100 transition-colors"
+                className="w-full bg-white text-black py-3 rounded-xl text-sm font-semibold hover:bg-neutral-100 active:scale-[.98] transition-all"
               >
                 Close
               </button>
@@ -371,33 +348,39 @@ export default function App() {
         </div>
       )}
 
-      {/* ── NAV ──────────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 border-b border-neutral-900/80 bg-[#080808]/90 backdrop-blur-2xl">
+      {/* ── NAV ───────────────────────────────────────────────────── */}
+      <nav className="sticky top-0 z-50 bg-[#050505]/85 backdrop-blur-2xl border-b border-white/5">
+        {/* Accent line */}
+        <div className="h-px bg-gradient-to-r from-transparent via-violet-500/40 to-transparent" />
         <div className="max-w-7xl mx-auto px-5 h-14 flex items-center justify-between">
+
           {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="bg-white text-black p-1.5 rounded-lg">
-              <Scissors size={15} />
+          <div className="flex items-center gap-2.5 select-none">
+            <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center shadow-lg">
+              <Scissors size={13} className="text-black" />
             </div>
-            <span className="font-semibold text-[15px] tracking-tight hidden sm:block">AI Fashion Studio</span>
-            <span className="ml-1 text-[10px] font-medium text-violet-400 bg-violet-400/10 border border-violet-400/20 px-1.5 py-0.5 rounded-md hidden sm:inline">BETA</span>
+            <div className="hidden sm:flex items-baseline gap-1.5">
+              <span className="font-bold text-[15px] tracking-tight text-white">Studio</span>
+              <span className="text-[15px] font-light text-neutral-500 tracking-tight">AI</span>
+            </div>
+            <span className="text-[9px] font-bold text-violet-400 bg-violet-400/10 border border-violet-400/20 px-1.5 py-0.5 rounded tracking-widest hidden sm:inline">BETA</span>
           </div>
 
           {/* Tabs */}
-          <div className="flex items-center gap-0.5 bg-neutral-900/60 border border-neutral-800/60 p-1 rounded-xl">
-            {tabs.map(tab => (
+          <div className="flex items-center gap-0.5 p-1 bg-white/4 border border-white/6 rounded-xl">
+            {NAV_TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative px-3.5 py-1.5 rounded-lg text-[13px] font-medium flex items-center gap-1.5 transition-all duration-200 whitespace-nowrap
+                className={`relative px-3.5 py-1.5 rounded-lg text-[12.5px] font-medium flex items-center gap-1.5 transition-all duration-200 whitespace-nowrap
                   ${activeTab === tab.id
-                    ? 'bg-neutral-800 text-white shadow-sm'
-                    : 'text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800/40'}`}
+                    ? 'bg-white text-black shadow-md'
+                    : 'text-neutral-500 hover:text-neutral-200 hover:bg-white/5'}`}
               >
-                <tab.icon size={13} />
-                {tab.label}
+                <tab.icon size={12} />
+                <span className="hidden sm:inline">{tab.label}</span>
                 {tab.id === 'collection' && savedDesigns.length > 0 && activeTab !== 'collection' && (
-                  <span className="absolute -top-1 -right-1 bg-violet-500 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-1.5 bg-violet-500 text-white text-[8px] font-bold rounded-full min-w-[14px] h-3.5 flex items-center justify-center px-0.5">
                     {savedDesigns.length > 9 ? '9+' : savedDesigns.length}
                   </span>
                 )}
@@ -407,163 +390,144 @@ export default function App() {
         </div>
       </nav>
 
-      {/* ── MAIN ─────────────────────────────────────────────────── */}
+      {/* ── MAIN ──────────────────────────────────────────────────── */}
       <main className="max-w-7xl mx-auto px-5 py-8">
 
-        {/* ════════════ RUNWAY ════════════ */}
+        {/* ══════════════════════════ RUNWAY ══════════════════════════ */}
         {activeTab === 'runway' && (
-          <div className="space-y-10">
+          <div className="space-y-12 anim-fade-up">
 
-            {/* Hero */}
-            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-neutral-900 via-[#0e0e0e] to-neutral-900 border border-neutral-800/60 p-10 md:p-14 text-center">
-              {/* Subtle grid texture */}
-              <div className="absolute inset-0 opacity-[0.03]"
-                style={{ backgroundImage: 'linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)', backgroundSize: '40px 40px' }} />
-              <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-medium px-3 py-1.5 rounded-full mb-5">
-                  <Zap size={11} /> AI-Powered Fashion Intelligence
+            {/* ── HERO ─────────────────────────────────────────────── */}
+            <div className="relative rounded-3xl overflow-hidden border border-white/6 min-h-[360px] flex items-center">
+              {/* layered bg */}
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-950/30 via-[#080808] to-[#080808]" />
+              <div className="absolute inset-0 opacity-[0.025]"
+                style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '28px 28px' }} />
+              {/* glow orb */}
+              <div className="absolute -top-32 -left-32 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-32 right-0 w-72 h-72 bg-indigo-600/8 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="relative z-10 w-full px-8 md:px-16 py-14 text-center">
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 text-violet-300 text-[11px] font-semibold px-3.5 py-1.5 rounded-full mb-6 tracking-wide">
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-[pulse-dot_1.5s_ease_infinite]" />
+                  AI-Powered Fashion Intelligence
                 </div>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight tracking-tight">
-                  Design. Try. Wear.
+                <h1 className="text-5xl md:text-6xl font-black text-white mb-5 leading-[1.05] tracking-tighter">
+                  Design.{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">
+                    Try.
+                  </span>{' '}
+                  Wear.
                 </h1>
-                <p className="text-neutral-400 text-base max-w-lg mx-auto mb-8 leading-relaxed">
-                  Describe any outfit in plain language — our AI renders it, suggests real alternatives, and lets you try it on.
+                <p className="text-neutral-400 text-base md:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
+                  Describe any outfit in plain language — our AI renders it, extracts specs, and lets you try it on.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+
+                {/* Inline prompt bar */}
+                <form
+                  onSubmit={e => { e.preventDefault(); handleGenerateDesign(); }}
+                  className="max-w-2xl mx-auto flex gap-2 items-center bg-white/5 border border-white/10 rounded-2xl p-2 focus-within:border-violet-500/40 transition-colors"
+                >
+                  <Sparkles size={16} className="text-neutral-600 ml-2 shrink-0" />
+                  <input
+                    value={prompt}
+                    onChange={e => setPrompt(e.target.value)}
+                    placeholder="e.g. A minimalist navy kurta with gold embroidery…"
+                    className="flex-1 bg-transparent text-sm text-neutral-200 placeholder:text-neutral-700 focus:outline-none py-1.5 min-w-0"
+                  />
                   <button
-                    onClick={() => setActiveTab('design')}
-                    className="inline-flex items-center justify-center gap-2 bg-white text-black px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100 transition-colors"
+                    type="submit"
+                    disabled={!prompt.trim() || designJob.status === 'processing'}
+                    className="shrink-0 bg-white text-black text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all flex items-center gap-1.5"
                   >
-                    <Wand2 size={15} /> Open Studio <ArrowRight size={13} />
+                    {designJob.status === 'processing'
+                      ? <><Loader2 size={12} className="animate-spin" /> Generating</>
+                      : <><Wand2 size={12} /> Generate</>}
                   </button>
-                  <button
-                    onClick={() => document.getElementById('runway-grid')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="inline-flex items-center justify-center gap-2 bg-neutral-800/60 text-neutral-300 border border-neutral-700/60 px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-neutral-800 transition-colors"
-                  >
-                    Browse Inspiration
-                  </button>
+                </form>
+
+                {/* Quick prompts */}
+                <div className="flex flex-wrap gap-2 justify-center mt-5">
+                  {QUICK_PROMPTS.map(q => (
+                    <button
+                      key={q.label}
+                      onClick={() => { setPrompt(q.prompt); setActiveTab('design'); setTimeout(() => handleGenerateDesign(q.prompt), 0); }}
+                      className="text-[11px] text-neutral-500 hover:text-neutral-200 bg-white/3 hover:bg-white/7 border border-white/6 hover:border-white/12 px-3 py-1.5 rounded-full transition-all"
+                    >
+                      {q.label}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Runway Grid */}
-            <div id="runway-grid">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-base font-semibold text-neutral-200 flex items-center gap-2">
-                  <TrendingUp size={15} className="text-violet-400" /> Trending Concepts
-                </h2>
-                <span className="text-xs text-neutral-600">Click any card to remix in Studio →</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {runwayData.map((item) => (
-                  <div
-                    key={item.id}
-                    className="group relative bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden hover:border-neutral-700/80 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40"
-                  >
-                    {/* Image */}
-                    <div className="h-72 w-full overflow-hidden bg-neutral-950">
-                      <img
-                        src={item.image}
-                        alt={item.prompt}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                        onError={e => { e.target.src = FALLBACK_IMAGE; }}
-                      />
+            {/* ── WARDROBE SECTION ──────────────────────────────────── */}
+            <div>
+              {/* Section header */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2.5">
+                    <div className="w-6 h-6 bg-violet-500/15 rounded-lg flex items-center justify-center">
+                      <Layers size={13} className="text-violet-400" />
                     </div>
-
-                    {/* Tag */}
-                    <div className="absolute top-3 left-3">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${TAG_COLORS[item.tag] || TAG_COLORS["Minimal"]}`}>
-                        {item.tag}
-                      </span>
-                    </div>
-
-                    {/* Overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
-
-                    {/* Bottom content */}
-                    <div className="absolute bottom-0 inset-x-0 p-4">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <div className="w-4 h-4 rounded-full bg-neutral-700 flex items-center justify-center">
-                          <User size={8} className="text-neutral-300" />
-                        </div>
-                        <span className="text-[10px] text-neutral-400">{item.designer}</span>
-                        <span className="ml-auto text-[10px] text-neutral-500 flex items-center gap-0.5">
-                          <Star size={9} className="text-amber-400 fill-amber-400" /> {item.likes}
-                        </span>
-                      </div>
-                      <p className="text-xs text-neutral-200 leading-snug mb-3 line-clamp-2">{item.prompt}</p>
-                      <button
-                        onClick={() => handleGenerateDesign(item.prompt)}
-                        className="w-full bg-white/15 backdrop-blur-md text-white border border-white/20 py-2 rounded-xl text-xs font-semibold hover:bg-white hover:text-black transition-all duration-200 flex items-center justify-center gap-1.5"
-                      >
-                        <Sparkles size={11} /> Remix in Studio
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Sample Wardrobe */}
-            <div id="sample-wardrobe">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-base font-semibold text-neutral-200 flex items-center gap-2">
-                  <Layers size={15} className="text-violet-400" /> Sample Wardrobe
-                </h2>
-                <span className="text-xs text-neutral-600">{sampleWardrobe.length} pieces · click to try on →</span>
+                    Sample Wardrobe
+                  </h2>
+                  <p className="text-xs text-neutral-600 mt-1">{sampleWardrobe.length} pieces — click any item to Try-On</p>
+                </div>
               </div>
 
-              {/* Category filter pills */}
-              <div className="flex flex-wrap gap-2 mb-5">
+              {/* Filter pills */}
+              <div className="flex flex-wrap gap-2 mb-6">
                 {['All', ...Array.from(new Set(sampleWardrobe.map(w => w.category)))].map(cat => (
                   <button
                     key={cat}
                     onClick={() => setWardrobeFilter(cat)}
-                    className={`text-[11px] font-medium px-3 py-1 rounded-full border transition-all
+                    className={`text-[11px] font-semibold px-3.5 py-1.5 rounded-full border transition-all duration-200
                       ${wardrobeFilter === cat
-                        ? 'bg-white text-black border-white'
-                        : 'bg-neutral-800/50 text-neutral-400 border-neutral-700/50 hover:text-white hover:border-neutral-600'}`}
+                        ? 'bg-white text-black border-white shadow-md'
+                        : 'bg-white/3 text-neutral-500 border-white/8 hover:text-white hover:border-white/20 hover:bg-white/6'}`}
                   >
                     {cat}
                   </button>
                 ))}
               </div>
 
+              {/* Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {sampleWardrobe
                   .filter(w => wardrobeFilter === 'All' || w.category === wardrobeFilter)
-                  .map(item => (
+                  .map((item, i) => (
                     <div
                       key={item.id}
-                      className="group relative bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden hover:border-neutral-700/80 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40 cursor-pointer"
+                      className="group relative bg-neutral-900/50 border border-white/6 rounded-2xl overflow-hidden cursor-pointer card-hover"
+                      style={{ animationDelay: `${i * 30}ms` }}
                       onClick={() => { setDesignJob(prev => ({ ...prev, image: item.image })); setActiveTab('tryon'); }}
                     >
                       {/* Image */}
-                      <div className="h-52 w-full overflow-hidden bg-neutral-950">
+                      <div className="aspect-[3/4] overflow-hidden bg-neutral-950">
                         <img
                           src={item.image}
                           alt={item.label}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                          onError={e => { e.target.src = FALLBACK_IMAGE; }}
+                          className="w-full h-full object-cover group-hover:scale-[1.06] transition-transform duration-500"
+                          onError={e => { e.target.style.display = 'none'; }}
                         />
                       </div>
 
                       {/* Category badge */}
-                      <div className="absolute top-2.5 left-2.5">
-                        <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full border ${WARDROBE_CATEGORY_COLORS[item.category] || 'bg-neutral-500/15 text-neutral-400 border-neutral-500/30'}`}>
-                          {item.category}
-                        </span>
-                      </div>
+                      <span className={`absolute top-2.5 left-2.5 text-[9px] font-bold px-2 py-0.5 rounded-full border backdrop-blur-sm ${CAT_COLORS[item.category] || 'bg-neutral-500/20 text-neutral-300 border-neutral-500/30'}`}>
+                        {item.category}
+                      </span>
 
-                      {/* Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                      {/* Bottom label + CTA */}
-                      <div className="absolute bottom-0 inset-x-0 p-3 translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
-                        <p className="text-[11px] text-white font-medium leading-snug mb-2 line-clamp-1">{item.label}</p>
-                        <button className="w-full bg-white/15 backdrop-blur-md text-white border border-white/20 py-1.5 rounded-lg text-[10px] font-semibold hover:bg-white hover:text-black transition-all flex items-center justify-center gap-1">
+                      {/* Hover content */}
+                      <div className="absolute bottom-0 inset-x-0 p-3 translate-y-3 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                        <p className="text-[11px] text-white font-semibold leading-snug mb-2 line-clamp-1">{item.label}</p>
+                        <div className="flex items-center justify-center gap-1.5 w-full bg-white/15 backdrop-blur-md text-white border border-white/20 py-1.5 rounded-lg text-[10px] font-bold hover:bg-white hover:text-black transition-all">
                           <User size={9} /> Try On
-                        </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -573,374 +537,396 @@ export default function App() {
           </div>
         )}
 
-        {/* ════════════ DESIGN STUDIO ════════════ */}
+        {/* ══════════════════════════ STUDIO ══════════════════════════ */}
         {activeTab === 'design' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="anim-fade-up">
 
-            {/* Left Panel */}
-            <aside className="lg:col-span-4 xl:col-span-3">
-              <div className="sticky top-20 bg-neutral-900/40 border border-neutral-800/50 rounded-2xl p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-neutral-200 flex items-center gap-2">
-                    <Wand2 size={14} className="text-violet-400" /> Design Prompt
-                  </h2>
-                  <button
-                    onClick={() => setPrompt("Reverse Engineered: A navy blue velvet blazer with intricate gold zari embroidery on the lapel, formal wear, Indian style.")}
-                    className="flex items-center gap-1 text-[11px] text-neutral-500 hover:text-neutral-300 bg-neutral-800/60 border border-neutral-700/50 px-2 py-1 rounded-lg transition-colors"
-                  >
-                    <Camera size={11} /> Sample prompt
-                  </button>
-                </div>
+            {/* Top prompt bar */}
+            <div className="bg-white/3 border border-white/8 rounded-2xl p-5 mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Wand2 size={14} className="text-violet-400" /> Design Prompt
+                </h2>
+                <button
+                  onClick={() => setPrompt("A navy blue velvet blazer with intricate gold zari embroidery on the lapel, formal Indian style.")}
+                  className="flex items-center gap-1.5 text-[11px] text-neutral-500 hover:text-neutral-200 bg-white/4 border border-white/8 hover:border-white/15 px-2.5 py-1.5 rounded-lg transition-all"
+                >
+                  <Camera size={10} /> Sample
+                </button>
+              </div>
 
-                <form onSubmit={e => { e.preventDefault(); handleGenerateDesign(); }} className="space-y-3">
-                  <textarea
-                    value={prompt}
-                    onChange={e => setPrompt(e.target.value)}
-                    placeholder="e.g. A minimalist black cotton kurta with subtle white embroidery under ₹3000..."
-                    className="w-full h-32 p-3.5 bg-[#080808] border border-neutral-800/80 rounded-xl resize-none focus:outline-none focus:border-neutral-600 text-sm text-neutral-300 placeholder:text-neutral-700 transition-colors leading-relaxed"
-                    required
-                  />
+              <form onSubmit={e => { e.preventDefault(); handleGenerateDesign(); }} className="space-y-3">
+                <textarea
+                  ref={promptRef}
+                  value={prompt}
+                  onChange={e => setPrompt(e.target.value)}
+                  placeholder="Describe your design in detail — fabric, colour, occasion, style…"
+                  className="w-full h-28 p-4 bg-black/40 border border-white/8 rounded-xl resize-none focus:outline-none text-sm text-neutral-200 placeholder:text-neutral-700 transition-all leading-relaxed"
+                  required
+                />
 
-                  {/* ── Model Selector ───────────────────────────────── */}
-                  <div ref={modelDropRef} className="relative">
-                    <p className="text-[10px] text-neutral-600 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                      <Cpu size={9} /> AI Model
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setModelDropOpen(o => !o)}
-                      className="w-full flex items-center justify-between bg-[#080808] border border-neutral-800/80 hover:border-neutral-600 rounded-xl px-3 py-2.5 transition-colors group"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        {(() => {
-                          const m = IMAGE_MODELS.find(m => m.id === selectedModel);
-                          return (
-                            <>
-                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${m?.badgeColor}`}>{m?.badge}</span>
-                              <span className="text-sm text-neutral-200 font-medium truncate">{m?.label}</span>
-                              <span className="text-[10px] text-neutral-600 shrink-0">{m?.provider}</span>
-                            </>
-                          );
-                        })()}
-                      </div>
-                      <ChevronDown size={13} className={`text-neutral-500 transition-transform shrink-0 ml-1 ${modelDropOpen ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {/* Dropdown */}
-                    {modelDropOpen && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-[#0e0e0e] border border-neutral-800/80 rounded-xl overflow-hidden shadow-2xl z-50 ring-1 ring-white/5">
-                        {IMAGE_MODELS.map(m => (
-                          <button
-                            key={m.id}
-                            type="button"
-                            onClick={() => { setSelectedModel(m.id); setModelDropOpen(false); }}
-                            className={`w-full flex items-start gap-3 px-3.5 py-3 text-left hover:bg-neutral-800/60 transition-colors border-b border-neutral-800/40 last:border-0
-                              ${selectedModel === m.id ? 'bg-neutral-800/40' : ''}`}
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-0.5">
-                                <span className="text-sm text-neutral-200 font-medium">{m.label}</span>
-                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${m.badgeColor}`}>{m.badge}</span>
-                              </div>
-                              <p className="text-[11px] text-neutral-600 leading-snug">{m.description}</p>
-                            </div>
-                            {selectedModel === m.id && (
-                              <div className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 shrink-0" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={designJob.status === 'processing'}
-                    className="w-full bg-white text-black py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-neutral-100 disabled:opacity-40 transition-all"
-                  >
-                    {designJob.status === 'processing'
-                      ? <><Loader2 size={15} className="animate-spin" /> Rendering…</>
-                      : <><Sparkles size={15} /> Generate Design</>}
-                  </button>
-                </form>
-
-                {/* Quick prompts */}
+                {/* ── AI Model card-picker ──────────────────────────── */}
                 <div>
-                  <p className="text-[10px] text-neutral-600 uppercase tracking-wider mb-2">Quick Styles</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {["Saree", "Kurta", "Blazer", "Co-ord", "Lehenga"].map(style => (
+                  <p className="text-[10px] text-neutral-600 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <Cpu size={9} /> Choose AI Model
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {IMAGE_MODELS.map(m => (
                       <button
-                        key={style}
-                        onClick={() => setPrompt(`A premium ${style.toLowerCase()} with contemporary design`)}
-                        className="text-[11px] px-2.5 py-1 bg-neutral-800/60 border border-neutral-700/40 text-neutral-400 rounded-lg hover:text-white hover:border-neutral-600 transition-colors"
+                        key={m.id}
+                        type="button"
+                        onClick={() => setSelectedModel(m.id)}
+                        className={`relative flex flex-col gap-1.5 p-3 rounded-xl border text-left transition-all duration-150 active:scale-[.97]
+                          ${selectedModel === m.id
+                            ? 'bg-white/8 border-white/20 ring-1 ring-white/15'
+                            : 'bg-black/30 border-white/6 hover:border-white/14 hover:bg-white/4'}`}
                       >
-                        {style}
+                        {/* Selected dot */}
+                        {selectedModel === m.id && (
+                          <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-violet-400" />
+                        )}
+                        <span className={`self-start text-[9px] font-bold px-1.5 py-0.5 rounded border ${m.badgeColor}`}>
+                          {m.badge}
+                        </span>
+                        <span className="text-[11px] font-semibold text-neutral-200 leading-snug">{m.label}</span>
+                        <span className="text-[10px] text-neutral-600 leading-snug">{m.description}</span>
                       </button>
                     ))}
                   </div>
                 </div>
-              </div>
-            </aside>
 
-            {/* Right: Output */}
-            <section className="lg:col-span-8 xl:col-span-9">
-              {designJob.status === 'completed' && designJob.image ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Generate button */}
+                <button
+                  type="submit"
+                  disabled={designJob.status === 'processing'}
+                  className="w-full bg-white text-black py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-neutral-100 disabled:opacity-40 active:scale-[.98] transition-all"
+                >
+                  {designJob.status === 'processing'
+                    ? <><Loader2 size={15} className="animate-spin" /> Rendering…</>
+                    : <><Sparkles size={15} /> Generate Design</>}
+                </button>
 
-                  {/* Generated Concept */}
-                  <div className="bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden group relative flex flex-col">
-                    {/* Hover actions */}
-                    <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                      {[
-                        { icon: RefreshCw, title: "Regenerate", action: () => handleGenerateDesign() },
-                        { icon: Download,  title: "Download",   action: () => { const a = document.createElement('a'); a.href = designJob.image; a.download = 'design.png'; a.click(); } },
-                        { icon: Maximize2, title: "Expand",     action: () => setExpandedImage(designJob.image) },
-                      ].map(({ icon: Icon, title, action }) => (
-                        <button
-                          key={title}
-                          onClick={action}
-                          title={title}
-                          className="bg-black/60 backdrop-blur-md p-2 rounded-lg text-white hover:bg-black/80 border border-white/10 transition-colors"
-                        >
-                          <Icon size={14} />
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Image */}
-                    <div className="h-80 w-full bg-neutral-950 overflow-hidden">
-                      <img src={designJob.image} alt="Generated Design" className="w-full h-full object-cover" />
-                    </div>
-
-                    {/* Spec chips */}
-                    {designJob.spec && (
-                      <div className="p-4 space-y-3 border-t border-neutral-800/50">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="bg-neutral-900/60 border border-neutral-800/40 p-2.5 rounded-xl">
-                            <div className="text-[10px] text-neutral-500 mb-1.5 flex items-center gap-1 uppercase tracking-wider">
-                              <Palette size={10} /> Palette
-                            </div>
-                            <div className="flex gap-1.5 flex-wrap">
-                              {designJob.spec.colors?.slice(0, 5).map(c => (
-                                <div key={c} className="w-5 h-5 rounded-full border-2 border-neutral-700/60 shadow-sm" style={{ backgroundColor: c }} title={c} />
-                              ))}
-                            </div>
-                          </div>
-                          <div className="bg-neutral-900/60 border border-neutral-800/40 p-2.5 rounded-xl">
-                            <div className="text-[10px] text-neutral-500 mb-1.5 flex items-center gap-1 uppercase tracking-wider">
-                              <Leaf size={10} className="text-emerald-500" /> Eco Score
-                            </div>
-                            <div className="flex items-end gap-1">
-                              <span className="text-lg font-bold text-emerald-400 leading-none">{designJob.spec.sustainability_score || 80}</span>
-                              <span className="text-[10px] text-neutral-600 mb-0.5">/100</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            onClick={handleSaveDesign}
-                            className={`py-2.5 rounded-xl text-xs font-semibold transition-all border
-                              ${savePulse
-                                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
-                                : 'bg-neutral-800/60 border-neutral-700/40 text-neutral-300 hover:bg-neutral-800'}`}
-                          >
-                            {savePulse ? '✓ Saved!' : 'Save Design'}
-                          </button>
-                          <button
-                            onClick={() => setActiveTab('tryon')}
-                            className="py-2.5 rounded-xl text-xs font-semibold bg-white text-black hover:bg-neutral-100 transition-colors"
-                          >
-                            Try On →
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => setShowTechPack(true)}
-                          className="w-full border border-dashed border-neutral-700/50 text-neutral-500 hover:text-neutral-300 hover:border-neutral-600 py-2 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
-                        >
-                          <FileText size={11} /> Generate Tech Pack
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Smart Shopping */}
-                  <div className="bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden flex flex-col">
-                    <div className="px-5 py-3.5 border-b border-neutral-800/50 flex items-center justify-between">
-                      <span className="text-sm font-semibold text-neutral-200 flex items-center gap-2">
-                        <ShoppingBag size={13} className="text-violet-400" /> Buy Similar
-                      </span>
-                      <span className="text-[10px] text-neutral-600">AI-matched</span>
-                    </div>
-                    <div className="p-4 space-y-3 overflow-y-auto">
-                      {designJob.products.map((p, idx) => (
-                        <div
-                          key={idx}
-                          className="bg-[#080808] border border-neutral-800/50 hover:border-neutral-700 rounded-xl p-4 transition-all hover:-translate-y-px group/card"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="text-sm font-medium text-neutral-200 leading-snug flex-1 pr-2">{p.name}</h4>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
-                              p.similarity_score >= 90 ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' :
-                              'text-amber-400 bg-amber-500/10 border border-amber-500/20'}`}>
-                              {p.similarity_score}%
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <span className="text-[11px] text-neutral-600 block">{p.platform}</span>
-                              <span className="text-neutral-100 font-bold text-base">₹{p.price.toLocaleString('en-IN')}</span>
-                            </div>
-                            <div className="flex flex-col items-end gap-1">
-                              <span className="text-[9px] text-violet-400 bg-violet-400/10 border border-violet-400/20 px-2 py-0.5 rounded-full">{p.tag}</span>
-                              <button className="text-[11px] text-neutral-500 hover:text-white flex items-center gap-0.5 transition-colors">
-                                View <ChevronRight size={10} />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                {/* Quick style chips */}
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {QUICK_PROMPTS.map(q => (
+                    <button
+                      key={q.label}
+                      type="button"
+                      onClick={() => setPrompt(q.prompt)}
+                      className="text-[11px] px-3 py-1 bg-white/3 border border-white/7 text-neutral-500 hover:text-white hover:border-white/15 rounded-full transition-all"
+                    >
+                      {q.label}
+                    </button>
+                  ))}
                 </div>
-              ) : (
-                /* Empty / Processing state */
-                <div className="bg-neutral-900/30 border border-neutral-800/40 rounded-2xl min-h-[480px] flex flex-col items-center justify-center text-center p-12">
-                  {designJob.status === 'processing' ? (
-                    <div className="space-y-4">
-                      <div className="relative mx-auto w-12 h-12">
-                        <div className="absolute inset-0 rounded-full border-2 border-neutral-800" />
-                        <div className="absolute inset-0 rounded-full border-2 border-t-violet-500 animate-spin" />
+              </form>
+            </div>
+
+            {/* Output area */}
+            {designJob.status === 'completed' && designJob.image ? (
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+
+                {/* Generated image — takes more space */}
+                <div className="lg:col-span-3 bg-white/3 border border-white/8 rounded-2xl overflow-hidden group relative flex flex-col">
+                  {/* Image action buttons */}
+                  <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10">
+                    {[
+                      { icon: RefreshCw, title: "Regenerate", action: () => handleGenerateDesign() },
+                      { icon: Download,  title: "Download",   action: () => { const a = document.createElement('a'); a.href = designJob.image; a.download = 'design.png'; a.click(); } },
+                      { icon: Maximize2, title: "Expand",     action: () => setExpandedImage(designJob.image) },
+                    ].map(({ icon: Icon, title, action }) => (
+                      <button
+                        key={title}
+                        onClick={action}
+                        title={title}
+                        className="w-8 h-8 bg-black/70 backdrop-blur-md text-white rounded-lg flex items-center justify-center hover:bg-black/90 border border-white/10 transition-colors"
+                      >
+                        <Icon size={13} />
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Image */}
+                  <div className="flex-1 min-h-[380px] bg-neutral-950 overflow-hidden">
+                    <img
+                      src={designJob.image}
+                      alt="Generated Design"
+                      className="w-full h-full object-cover"
+                      style={{ minHeight: 380 }}
+                    />
+                  </div>
+
+                  {/* Info strip */}
+                  {designJob.spec && (
+                    <div className="p-5 border-t border-white/6 space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Palette */}
+                        <div className="bg-black/30 border border-white/6 p-3.5 rounded-xl">
+                          <p className="text-[10px] text-neutral-600 uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
+                            <Palette size={9} /> Palette
+                          </p>
+                          <div className="flex gap-1.5 flex-wrap">
+                            {(designJob.spec.colors?.length
+                              ? designJob.spec.colors.slice(0, 6)
+                              : ['#334155', '#64748b', '#94a3b8']
+                            ).map(c => (
+                              <div key={c} className="w-6 h-6 rounded-full ring-2 ring-black/50 shadow-sm cursor-default" style={{ backgroundColor: c }} title={c} />
+                            ))}
+                          </div>
+                        </div>
+                        {/* Eco score */}
+                        <div className="bg-black/30 border border-white/6 p-3.5 rounded-xl">
+                          <p className="text-[10px] text-neutral-600 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                            <Leaf size={9} className="text-emerald-600" /> Eco Score
+                          </p>
+                          <div className="flex items-end gap-1">
+                            <span className="text-2xl font-black text-emerald-400 leading-none">{designJob.spec.sustainability_score || '—'}</span>
+                            {designJob.spec.sustainability_score && <span className="text-xs text-neutral-700 mb-0.5">/100</span>}
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-neutral-500">Generating your design…</p>
-                      <p className="text-xs text-neutral-700">This may take a few seconds</p>
-                    </div>
-                  ) : designJob.status === 'failed' ? (
-                    <div className="space-y-3">
-                      <div className="text-2xl">⚠️</div>
-                      <p className="text-sm text-neutral-400">Generation failed. Please try again.</p>
-                      <button onClick={() => handleGenerateDesign()} className="text-xs text-violet-400 hover:text-violet-300">Retry</button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="w-12 h-12 bg-neutral-800/60 rounded-2xl flex items-center justify-center mx-auto">
-                        <Sparkles size={20} className="text-neutral-600" />
+
+                      {/* Actions */}
+                      <div className="flex gap-2.5">
+                        <button
+                          onClick={handleSaveDesign}
+                          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all border active:scale-95
+                            ${savePulse
+                              ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                              : 'bg-white/5 border-white/10 text-neutral-300 hover:bg-white/10 hover:text-white'}`}
+                        >
+                          {savePulse ? '✓ Saved to Collection' : 'Save Design'}
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('tryon')}
+                          className="flex-1 py-2.5 rounded-xl text-xs font-bold bg-white text-black hover:bg-neutral-100 active:scale-95 transition-all"
+                        >
+                          Try On →
+                        </button>
                       </div>
-                      <p className="text-sm text-neutral-500">Describe your design and hit Generate</p>
+                      <button
+                        onClick={() => setShowTechPack(true)}
+                        className="w-full border border-dashed border-white/10 hover:border-white/20 text-neutral-600 hover:text-neutral-300 py-2.5 rounded-xl text-xs font-medium transition-all flex items-center justify-center gap-2"
+                      >
+                        <FileText size={11} /> View Tech Pack
+                      </button>
                     </div>
                   )}
                 </div>
-              )}
-            </section>
+
+                {/* Right panel: shopping (empty state) + prompt recap */}
+                <div className="lg:col-span-2 flex flex-col gap-5">
+                  {/* Buy Similar */}
+                  <div className="bg-white/3 border border-white/8 rounded-2xl overflow-hidden flex-1 flex flex-col">
+                    <div className="px-5 py-4 border-b border-white/6 flex items-center gap-2">
+                      <div className="w-6 h-6 bg-violet-500/15 rounded-lg flex items-center justify-center">
+                        <ShoppingBag size={11} className="text-violet-400" />
+                      </div>
+                      <span className="text-sm font-bold text-white">Buy Similar</span>
+                    </div>
+                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                      <div className="w-10 h-10 bg-white/4 border border-white/8 rounded-2xl flex items-center justify-center mb-3">
+                        <ShoppingBag size={16} className="text-neutral-700" />
+                      </div>
+                      <p className="text-sm text-neutral-600 mb-1">Product search not connected</p>
+                      <p className="text-xs text-neutral-800">Wire up a shopping API to see real results here</p>
+                    </div>
+                  </div>
+
+                  {/* Prompt recap */}
+                  <div className="bg-white/3 border border-white/8 rounded-2xl p-5">
+                    <p className="text-[10px] text-neutral-600 uppercase tracking-widest mb-2">Your Prompt</p>
+                    <p className="text-xs text-neutral-400 leading-relaxed line-clamp-4">{designJob.prompt}</p>
+                    {designJob.spec?.category && (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {[designJob.spec.category, designJob.spec.fabric].filter(Boolean).map(v => (
+                          <span key={v} className="text-[10px] text-neutral-500 bg-white/4 border border-white/8 px-2 py-0.5 rounded-full">{v}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* ── Empty / loading state ── */
+              <div className="bg-white/2 border border-white/6 rounded-2xl min-h-[440px] flex flex-col items-center justify-center text-center p-10">
+                {designJob.status === 'processing' ? (
+                  <div className="space-y-5">
+                    {/* Animated rings */}
+                    <div className="relative mx-auto w-14 h-14">
+                      <div className="absolute inset-0 rounded-full border border-white/6" />
+                      <div className="absolute inset-0 rounded-full border-t border-violet-500 animate-spin" />
+                      <div className="absolute inset-2 rounded-full border border-white/4" />
+                      <div className="absolute inset-2 rounded-full border-t border-indigo-400 animate-spin" style={{ animationDuration: '1.4s', animationDirection: 'reverse' }} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-sm text-neutral-300 font-medium">Generating your design…</p>
+                      <p className="text-xs text-neutral-700">This may take 10–30 seconds</p>
+                    </div>
+                    {/* Shimmer bar */}
+                    <div className="w-48 h-1.5 rounded-full overflow-hidden mx-auto">
+                      <div className="h-full shimmer-bg rounded-full" />
+                    </div>
+                  </div>
+                ) : designJob.status === 'failed' ? (
+                  <div className="space-y-4">
+                    <div className="w-12 h-12 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto">
+                      <X size={20} className="text-red-400" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-neutral-300 font-medium">Generation failed</p>
+                      <p className="text-xs text-neutral-700">Check your backend connection and try again</p>
+                    </div>
+                    <button
+                      onClick={() => handleGenerateDesign()}
+                      className="text-xs text-violet-400 hover:text-violet-300 bg-violet-400/10 border border-violet-400/20 px-4 py-2 rounded-lg transition-colors"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="w-12 h-12 bg-white/4 border border-white/8 rounded-2xl flex items-center justify-center mx-auto">
+                      <Sparkles size={20} className="text-neutral-700" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-neutral-400 font-medium">Your design will appear here</p>
+                      <p className="text-xs text-neutral-700">Fill in the prompt above and hit Generate</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
-        {/* ════════════ TRY-ON ════════════ */}
+        {/* ══════════════════════════ TRY-ON ══════════════════════════ */}
         {activeTab === 'tryon' && (
-          <div className="space-y-6">
+          <div className="space-y-6 anim-fade-up">
+
+            {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold text-neutral-200">Virtual Try-On Room</h2>
-                <p className="text-xs text-neutral-600 mt-0.5">Upload your photo · select a design · see the result</p>
+                <h2 className="text-lg font-bold text-white">Virtual Try-On</h2>
+                <p className="text-xs text-neutral-600 mt-0.5">Upload your photo, pick a garment, then process</p>
               </div>
               {!designJob.image && (
                 <button
                   onClick={() => setActiveTab('design')}
-                  className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1 bg-violet-400/10 border border-violet-400/20 px-3 py-1.5 rounded-lg transition-colors"
+                  className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1.5 bg-violet-400/8 border border-violet-400/20 px-3.5 py-2 rounded-xl transition-colors"
                 >
                   <Sparkles size={11} /> Generate a design first
                 </button>
               )}
             </div>
 
-            <div className="bg-neutral-900/40 border border-neutral-800/50 rounded-2xl p-6">
+            <div className="bg-white/2 border border-white/6 rounded-2xl p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                {/* Step 1 */}
+                {/* Step 1 — Photo */}
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400">1</span>
-                    <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Your Photo</h3>
-                    {personImage && bodyAnalysis === null && <Loader2 size={11} className="animate-spin text-emerald-400 ml-auto" />}
+                  <div className="flex items-center gap-2.5 mb-1">
+                    <div className="w-6 h-6 bg-white/8 border border-white/12 rounded-full flex items-center justify-center text-[11px] font-bold text-neutral-400">1</div>
+                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">Your Photo</p>
                   </div>
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="aspect-[3/4] bg-[#080808] border-2 border-dashed border-neutral-800 hover:border-neutral-600 rounded-xl flex items-center justify-center cursor-pointer overflow-hidden relative transition-colors group/upload"
+                    className="aspect-[3/4] bg-black/30 border-2 border-dashed border-white/8 hover:border-white/20 rounded-2xl flex items-center justify-center cursor-pointer overflow-hidden relative transition-all group/up"
                   >
                     {personImage ? (
                       <img src={personImage} className="w-full h-full object-cover" alt="Person" />
                     ) : (
-                      <div className="text-center space-y-2">
-                        <Upload size={18} className="text-neutral-700 mx-auto group-hover/upload:text-neutral-500 transition-colors" />
-                        <p className="text-[11px] text-neutral-700 group-hover/upload:text-neutral-500 transition-colors">Click to upload</p>
+                      <div className="text-center space-y-3 p-4">
+                        <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center mx-auto group-hover/up:bg-white/10 transition-colors">
+                          <Upload size={16} className="text-neutral-700 group-hover/up:text-neutral-400 transition-colors" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-neutral-600 group-hover/up:text-neutral-400 transition-colors font-medium">Click to upload</p>
+                          <p className="text-[10px] text-neutral-800 mt-0.5">JPG, PNG, WEBP</p>
+                        </div>
                       </div>
                     )}
                     <input type="file" ref={fileInputRef} onChange={handlePersonUpload} className="hidden" accept="image/*" />
                   </div>
-                  {bodyAnalysis && (
-                    <div className="bg-emerald-500/5 border border-emerald-500/20 p-3 rounded-xl text-xs space-y-1">
-                      <div className="text-emerald-400 font-semibold flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        Body Analysis Complete
-                      </div>
-                      <p className="text-neutral-400">Type: {bodyAnalysis.shape}</p>
-                      <p className="text-neutral-600 text-[10px] leading-relaxed">{bodyAnalysis.tips}</p>
-                    </div>
+                  {personImage && (
+                    <button
+                      onClick={() => { setPersonImage(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                      className="w-full text-[11px] text-neutral-700 hover:text-neutral-400 bg-white/3 border border-white/6 py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <X size={10} /> Remove photo
+                    </button>
                   )}
                 </div>
 
-                {/* Step 2 */}
+                {/* Step 2 — Garment */}
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400">2</span>
-                    <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Garment</h3>
+                  <div className="flex items-center gap-2.5 mb-1">
+                    <div className="w-6 h-6 bg-white/8 border border-white/12 rounded-full flex items-center justify-center text-[11px] font-bold text-neutral-400">2</div>
+                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">Garment</p>
                   </div>
-                  <div className="aspect-[3/4] bg-[#080808] border border-neutral-800/60 rounded-xl flex items-center justify-center overflow-hidden">
-                    {designJob.image
-                      ? <img src={designJob.image} className="w-full h-full object-cover" alt="Garment" />
-                      : <div className="text-center space-y-2">
-                          <ImageIcon size={18} className="text-neutral-800 mx-auto" />
-                          <p className="text-[11px] text-neutral-700">No design yet</p>
-                        </div>}
+                  <div className="aspect-[3/4] bg-black/30 border border-white/8 rounded-2xl overflow-hidden flex items-center justify-center">
+                    {designJob.image ? (
+                      <img src={designJob.image} className="w-full h-full object-cover" alt="Garment" />
+                    ) : (
+                      <div className="text-center space-y-3 p-4">
+                        <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center mx-auto">
+                          <ImageIcon size={16} className="text-neutral-800" />
+                        </div>
+                        <p className="text-xs text-neutral-700">No garment selected</p>
+                      </div>
+                    )}
                   </div>
+                  <button
+                    onClick={() => setActiveTab('runway')}
+                    className="w-full text-[11px] text-neutral-700 hover:text-neutral-400 bg-white/3 border border-white/6 py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <Plus size={10} /> Pick from wardrobe
+                  </button>
                 </div>
 
-                {/* Step 3 */}
+                {/* Step 3 — Result */}
                 <div className="space-y-3 flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 bg-neutral-800 border border-neutral-700 rounded-full flex items-center justify-center text-[10px] font-bold text-neutral-400">3</span>
-                    <h3 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Result</h3>
+                  <div className="flex items-center gap-2.5 mb-1">
+                    <div className={`w-6 h-6 border rounded-full flex items-center justify-center text-[11px] font-bold transition-colors
+                      ${tryOnJob.status === 'completed' && tryOnJob.resultImage
+                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+                        : 'bg-white/8 border-white/12 text-neutral-400'}`}>
+                      {tryOnJob.status === 'completed' && tryOnJob.resultImage ? '✓' : '3'}
+                    </div>
+                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">Result</p>
                   </div>
-                  <div className="flex-1 bg-[#080808] border border-neutral-800/60 rounded-xl flex items-center justify-center overflow-hidden min-h-[200px] relative">
+                  <div className="flex-1 min-h-[220px] bg-black/30 border border-white/8 rounded-2xl overflow-hidden flex items-center justify-center relative">
                     {tryOnJob.status === 'processing' ? (
-                      <div className="text-center space-y-2">
-                        <div className="relative w-8 h-8 mx-auto">
-                          <div className="absolute inset-0 rounded-full border-2 border-neutral-800" />
-                          <div className="absolute inset-0 rounded-full border-2 border-t-violet-500 animate-spin" />
+                      <div className="text-center space-y-3">
+                        <div className="relative w-10 h-10 mx-auto">
+                          <div className="absolute inset-0 rounded-full border border-white/6" />
+                          <div className="absolute inset-0 rounded-full border-t border-violet-500 animate-spin" />
                         </div>
-                        <p className="text-[11px] text-neutral-600">Aligning garment…</p>
+                        <p className="text-xs text-neutral-600">Processing…</p>
                       </div>
                     ) : tryOnJob.resultImage ? (
                       <>
                         <img src={tryOnJob.resultImage} className="w-full h-full object-cover" alt="Try-on result" />
                         <button
                           onClick={() => setExpandedImage(tryOnJob.resultImage)}
-                          className="absolute bottom-2 right-2 bg-black/60 backdrop-blur p-1.5 rounded-lg text-white border border-white/10"
+                          className="absolute bottom-2.5 right-2.5 w-8 h-8 bg-black/60 backdrop-blur rounded-lg text-white border border-white/10 flex items-center justify-center"
                         >
                           <Maximize2 size={12} />
                         </button>
                       </>
                     ) : (
-                      <div className="text-center space-y-2">
-                        <User size={18} className="text-neutral-800 mx-auto" />
-                        <p className="text-[11px] text-neutral-700">Result appears here</p>
+                      <div className="text-center space-y-3 p-4">
+                        <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center mx-auto">
+                          <User size={16} className="text-neutral-800" />
+                        </div>
+                        <p className="text-xs text-neutral-700">Result will appear here</p>
                       </div>
                     )}
                   </div>
                   <button
                     onClick={handleTryOn}
                     disabled={!personImage || !designJob.image || tryOnJob.status === 'processing'}
-                    className="w-full bg-white text-black py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    className="w-full bg-white text-black py-3 rounded-xl text-sm font-bold hover:bg-neutral-100 disabled:opacity-25 disabled:cursor-not-allowed active:scale-95 transition-all"
                   >
                     {tryOnJob.status === 'processing' ? 'Processing…' : 'Virtual Try-On'}
                   </button>
@@ -950,84 +936,96 @@ export default function App() {
           </div>
         )}
 
-        {/* ════════════ COLLECTION ════════════ */}
+        {/* ══════════════════════════ COLLECTION ══════════════════════════ */}
         {activeTab === 'collection' && (
-          <div className="space-y-6">
+          <div className="space-y-7 anim-fade-up">
+
+            {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold text-neutral-200">Saved Designs</h2>
-                <p className="text-xs text-neutral-600 mt-0.5">{savedDesigns.length} design{savedDesigns.length !== 1 ? 's' : ''}</p>
+                <h2 className="text-lg font-bold text-white">Saved Designs</h2>
+                <p className="text-xs text-neutral-600 mt-1">
+                  {savedDesigns.length} design{savedDesigns.length !== 1 ? 's' : ''} saved locally
+                </p>
               </div>
-              {savedDesigns.length > 0 && (
-                <button
-                  onClick={() => setActiveTab('design')}
-                  className="text-xs text-neutral-500 hover:text-neutral-300 flex items-center gap-1 transition-colors"
-                >
-                  + New design
-                </button>
-              )}
+              <button
+                onClick={() => setActiveTab('design')}
+                className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white bg-white/4 border border-white/8 hover:border-white/16 px-3.5 py-2 rounded-xl transition-all"
+              >
+                <Plus size={11} /> New Design
+              </button>
             </div>
 
             {savedDesigns.length === 0 ? (
-              <div className="bg-neutral-900/30 border border-neutral-800/40 rounded-2xl p-16 text-center">
-                <div className="w-12 h-12 bg-neutral-800/60 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Layers size={20} className="text-neutral-600" />
+              <div className="bg-white/2 border border-white/5 rounded-2xl py-20 text-center">
+                <div className="w-12 h-12 bg-white/4 border border-white/8 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Layers size={20} className="text-neutral-700" />
                 </div>
-                <p className="text-sm text-neutral-500 mb-1">No designs saved yet</p>
-                <p className="text-xs text-neutral-700 mb-4">Generate a design and hit "Save Design" to build your collection</p>
+                <p className="text-sm text-neutral-500 font-medium mb-1">Your collection is empty</p>
+                <p className="text-xs text-neutral-700 mb-5">Generate a design and save it to build your collection</p>
                 <button
                   onClick={() => setActiveTab('design')}
-                  className="inline-flex items-center gap-2 text-xs text-violet-400 bg-violet-400/10 border border-violet-400/20 px-4 py-2 rounded-lg hover:bg-violet-400/20 transition-colors"
+                  className="inline-flex items-center gap-2 text-xs text-violet-400 bg-violet-400/8 border border-violet-400/20 px-5 py-2.5 rounded-xl hover:bg-violet-400/14 transition-colors font-semibold"
                 >
-                  <Sparkles size={11} /> Go to Studio
+                  <Sparkles size={11} /> Open Studio
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                 {savedDesigns.map(design => (
                   <div
                     key={design.id}
-                    className="bg-neutral-900/40 border border-neutral-800/50 rounded-2xl overflow-hidden flex flex-col group hover:border-neutral-700/80 transition-all hover:-translate-y-0.5"
+                    className="bg-white/3 border border-white/7 rounded-2xl overflow-hidden flex flex-col group card-hover"
                   >
-                    <div className="h-52 overflow-hidden bg-neutral-950 relative">
-                      <img src={design.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Saved design" />
+                    {/* Image */}
+                    <div className="aspect-[3/4] overflow-hidden bg-neutral-950 relative">
+                      <img
+                        src={design.image}
+                        className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
+                        alt="Saved design"
+                      />
                       <button
                         onClick={() => setExpandedImage(design.image)}
-                        className="absolute top-2 right-2 bg-black/50 backdrop-blur p-1.5 rounded-lg text-white/70 hover:text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2.5 right-2.5 w-8 h-8 bg-black/60 backdrop-blur rounded-lg text-white/60 hover:text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"
                       >
                         <Maximize2 size={12} />
                       </button>
                     </div>
-                    <div className="p-3.5 flex flex-col gap-2.5 flex-1">
-                      <p className="text-[11px] text-neutral-400 line-clamp-2 leading-relaxed flex-1">{design.prompt}</p>
-                      {design.spec && (
-                        <div className="flex gap-1">
-                          {design.spec.colors?.slice(0, 4).map(c => (
-                            <div key={c} className="w-3 h-3 rounded-full border border-neutral-700/60" style={{ backgroundColor: c }} />
+
+                    {/* Info */}
+                    <div className="p-4 flex flex-col gap-3 flex-1">
+                      <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed flex-1">{design.prompt}</p>
+                      {design.spec?.colors?.length > 0 && (
+                        <div className="flex items-center gap-1.5">
+                          {design.spec.colors.slice(0, 5).map(c => (
+                            <div key={c} className="w-3.5 h-3.5 rounded-full ring-1 ring-black/40" style={{ backgroundColor: c }} />
                           ))}
-                          <span className="ml-auto text-[10px] text-emerald-500">{design.spec.sustainability_score || 80}/100 eco</span>
+                          {design.spec.sustainability_score && (
+                            <span className="ml-auto text-[10px] text-emerald-500 font-semibold">{design.spec.sustainability_score}/100</span>
+                          )}
                         </div>
                       )}
-                      <div className="flex items-center justify-between pt-2 border-t border-neutral-800/40">
+                      <div className="flex items-center justify-between pt-2.5 border-t border-white/5">
                         <button
                           onClick={() => setSavedDesigns(StorageService.toggleTrack(design.id))}
-                          className={`flex items-center gap-1 text-[10px] font-medium transition-colors ${design.isTracking ? 'text-emerald-400' : 'text-neutral-600 hover:text-neutral-400'}`}
+                          className={`flex items-center gap-1.5 text-[10px] font-semibold transition-colors
+                            ${design.isTracking ? 'text-emerald-400' : 'text-neutral-700 hover:text-neutral-400'}`}
                         >
                           {design.isTracking ? <BellRing size={11} /> : <Bell size={11} />}
                           {design.isTracking ? 'Tracking' : 'Track'}
                         </button>
-                        <div className="flex gap-2.5 items-center">
+                        <div className="flex items-center gap-2">
                           <button
                             onClick={() => handleGenerateDesign(design.prompt)}
-                            className="text-neutral-600 hover:text-violet-400 transition-colors"
                             title="Remix"
+                            className="w-7 h-7 text-neutral-700 hover:text-violet-400 hover:bg-violet-400/10 rounded-lg flex items-center justify-center transition-all"
                           >
                             <RefreshCw size={12} />
                           </button>
                           <button
                             onClick={() => { StorageService.deleteDesign(design.id); setSavedDesigns(StorageService.getCollections()); }}
-                            className="text-neutral-700 hover:text-red-400 transition-colors"
                             title="Delete"
+                            className="w-7 h-7 text-neutral-800 hover:text-red-400 hover:bg-red-400/10 rounded-lg flex items-center justify-center transition-all"
                           >
                             <Trash2 size={12} />
                           </button>
@@ -1040,6 +1038,7 @@ export default function App() {
             )}
           </div>
         )}
+
       </main>
     </div>
   );
