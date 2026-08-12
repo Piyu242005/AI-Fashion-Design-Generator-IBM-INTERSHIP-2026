@@ -60,7 +60,7 @@ const cleanJSON = (text) => {
 /* ─── AI SERVICES ─────────────────────────────────────────────────── */
 const FashionIntelligenceService = {
   async extractSpecification(prompt) {
-    if (!GEMINI_API_KEY) return this.mockSpec(prompt);
+    if (!GEMINI_API_KEY) return { optimized_image_prompt: prompt };
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
       const payload = {
@@ -70,16 +70,8 @@ const FashionIntelligenceService = {
       const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await res.json();
       return JSON.parse(cleanJSON(data.candidates[0].content.parts[0].text));
-    } catch { return this.mockSpec(prompt); }
-  },
-  mockSpec: (prompt) => ({
-    category: prompt.toLowerCase().includes("kurta") ? "Kurta" : prompt.toLowerCase().includes("saree") ? "Saree" : "Jacket",
-    fabric: "Organic Cotton",
-    colors: ["#0f172a", "#334155", "#94a3b8"],
-    sustainability_score: 85,
-    budget: { maximum: 2999 },
-    optimized_image_prompt: prompt
-  })
+    } catch { return { optimized_image_prompt: prompt }; }
+  }
 };
 
 /* ─── IMAGE MODELS CATALOGUE ──────────────────────────────────────── */
@@ -178,78 +170,14 @@ const ImageGenerationService = {
 };
 
 const ProductSearchService = {
-  async searchSimilarProducts(spec) {
-    await new Promise(r => setTimeout(r, 400));
-    return [
-      { name: "Minimalist " + spec.category, price: 1499, platform: "Myntra",   similarity_score: 92, tag: "Best Match" },
-      { name: "Premium " + spec.fabric + " Blend", price: 2199, platform: "Ajio",     similarity_score: 88, tag: "Popular" },
-      { name: "Urban Streetwear Concept",     price: 2899, platform: "Tata CLiQ", similarity_score: 85, tag: "Trending" }
-    ];
+  async searchSimilarProducts(_spec) {
+    return [];
   }
 };
 
 const VirtualTryOnService = {
-  async processTryOn(personImage, garmentImage) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const canvas  = document.createElement('canvas');
-        const scratch = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const pImg = new Image(), gImg = new Image();
-        pImg.crossOrigin = gImg.crossOrigin = "anonymous";
-
-        pImg.onload = () => {
-          const W = pImg.width, H = pImg.height;
-          canvas.width  = scratch.width  = W;
-          canvas.height = scratch.height = H;
-
-          gImg.onload = () => {
-            // ── 1. Draw full person as base ──────────────────────────
-            ctx.drawImage(pImg, 0, 0, W, H);
-
-            // ── 2. Build garment layer on scratch canvas ─────────────
-            //    Scale garment to cover the torso region (top 20% → 85%)
-            const sc  = scratch.getContext('2d');
-            const torsoTop    = H * 0.18;
-            const torsoHeight = H * 0.67;
-            const gAspect     = gImg.width / gImg.height;
-            const gW          = W;
-            const gH          = gW / gAspect;
-            // centre the garment and offset so it starts at the shoulder
-            const gX = 0;
-            const gY = torsoTop - (gH - torsoHeight) * 0.15;
-
-            sc.drawImage(gImg, gX, gY, gW, gH);
-
-            // ── 3. Blend garment onto person using 'multiply' ────────
-            //    This darkens person's clothing area with the garment colour,
-            //    giving a natural colour-replacement look without a hard edge.
-            ctx.save();
-            ctx.globalCompositeOperation = 'multiply';
-            ctx.globalAlpha = 0.82;
-            ctx.drawImage(scratch, 0, 0);
-            ctx.restore();
-
-            // ── 4. Restore person's face/head cleanly on top ─────────
-            //    Re-draw the top ~22% of the person over the garment layer
-            //    so the face is never obscured.
-            const headH = H * 0.22;
-            ctx.drawImage(pImg, 0, 0, W, headH, 0, 0, W, headH);
-
-            // ── 5. Subtle vignette to unify the composite ────────────
-            const vignette = ctx.createRadialGradient(W/2, H/2, H*0.3, W/2, H/2, H*0.85);
-            vignette.addColorStop(0, 'rgba(0,0,0,0)');
-            vignette.addColorStop(1, 'rgba(0,0,0,0.18)');
-            ctx.fillStyle = vignette;
-            ctx.fillRect(0, 0, W, H);
-
-            resolve({ resultImage: canvas.toDataURL('image/jpeg', 0.92) });
-          };
-          gImg.src = garmentImage;
-        };
-        pImg.src = personImage;
-      }, 2500);
-    });
+  async processTryOn(_personImage, _garmentImage) {
+    return { resultImage: null };
   }
 };
 
@@ -283,56 +211,7 @@ const WARDROBE_CATEGORY_COLORS = {
 };
 
 /* ─── RUNWAY DATA ─────────────────────────────────────────────────── */
-const runwayData = [
-  {
-    id: 1,
-    prompt: "Cyberpunk streetwear jacket with neon accents",
-    image: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&q=80",
-    tag: "Trending",
-    designer: "Studio AI",
-    likes: 284
-  },
-  {
-    id: 2,
-    prompt: "Indo-western fusion lehenga, minimalist beige",
-    image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&q=80",
-    tag: "Featured",
-    designer: "Runway AI",
-    likes: 521
-  },
-  {
-    id: 3,
-    prompt: "Sustainable bamboo fabric summer dress",
-    image: "https://images.unsplash.com/photo-1515347619362-e5fdffdc8fb8?w=800&q=80",
-    tag: "Eco Pick",
-    designer: "Green Studio",
-    likes: 193
-  },
-  {
-    id: 4,
-    prompt: "Royal Rajasthani bandhani kurta in indigo with gold block print",
-    image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=800&q=80",
-    tag: "New",
-    designer: "Heritage AI",
-    likes: 412
-  },
-  {
-    id: 5,
-    prompt: "Oversized linen co-ord set, soft terracotta tones",
-    image: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&q=80",
-    tag: "Minimal",
-    designer: "Form Studio",
-    likes: 337
-  },
-  {
-    id: 6,
-    prompt: "Contemporary silk saree with geometric motif border",
-    image: "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=800&q=80",
-    tag: "Classic",
-    designer: "Loom AI",
-    likes: 609
-  }
-];
+const runwayData = [];
 
 const TAG_COLORS = {
   "Trending": "bg-rose-500/15 text-rose-400 border-rose-500/30",
@@ -343,13 +222,6 @@ const TAG_COLORS = {
   "Classic":  "bg-amber-500/15 text-amber-400 border-amber-500/30",
 };
 
-/* ─── STATS TICKER ────────────────────────────────────────────────── */
-const stats = [
-  { label: "Designs Generated", value: "48K+" },
-  { label: "Active Designers", value: "12K" },
-  { label: "Avg. Eco Score", value: "87/100" },
-  { label: "Indian Styles", value: "200+" },
-];
 
 /* ════════════════════════════════════════════════════════════════════
    MAIN APP
@@ -415,7 +287,6 @@ export default function App() {
     reader.onload = (ev) => {
       setPersonImage(ev.target.result);
       setBodyAnalysis(null);
-      setTimeout(() => setBodyAnalysis({ shape: 'Athletic / Rectangle', match: 92, tips: 'Structured shoulders and a cinched waist will complement your proportions perfectly.' }), 2200);
     };
     reader.readAsDataURL(file);
   };
@@ -493,7 +364,7 @@ export default function App() {
                 onClick={() => setShowTechPack(false)}
                 className="w-full bg-white text-black py-2.5 rounded-xl text-sm font-semibold hover:bg-neutral-100 transition-colors"
               >
-                Download PDF <span className="text-neutral-500 font-normal">(Simulated)</span>
+                Close
               </button>
             </div>
           </div>
@@ -573,16 +444,6 @@ export default function App() {
                   </button>
                 </div>
               </div>
-            </div>
-
-            {/* Stats Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {stats.map(s => (
-                <div key={s.label} className="bg-neutral-900/50 border border-neutral-800/50 rounded-2xl p-4 text-center">
-                  <div className="text-xl font-bold text-white mb-0.5">{s.value}</div>
-                  <div className="text-[11px] text-neutral-500">{s.label}</div>
-                </div>
-              ))}
             </div>
 
             {/* Runway Grid */}
@@ -909,7 +770,7 @@ export default function App() {
                       <span className="text-sm font-semibold text-neutral-200 flex items-center gap-2">
                         <ShoppingBag size={13} className="text-violet-400" /> Buy Similar
                       </span>
-                      <span className="text-[10px] text-neutral-600">AI-matched · 3 results</span>
+                      <span className="text-[10px] text-neutral-600">AI-matched</span>
                     </div>
                     <div className="p-4 space-y-3 overflow-y-auto">
                       {designJob.products.map((p, idx) => (
@@ -966,7 +827,6 @@ export default function App() {
                         <Sparkles size={20} className="text-neutral-600" />
                       </div>
                       <p className="text-sm text-neutral-500">Describe your design and hit Generate</p>
-                      <p className="text-xs text-neutral-700">Works in mock mode — no API key needed</p>
                     </div>
                   )}
                 </div>
@@ -1096,7 +956,7 @@ export default function App() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-base font-semibold text-neutral-200">Saved Designs</h2>
-                <p className="text-xs text-neutral-600 mt-0.5">{savedDesigns.length} design{savedDesigns.length !== 1 ? 's' : ''} · price alerts enabled</p>
+                <p className="text-xs text-neutral-600 mt-0.5">{savedDesigns.length} design{savedDesigns.length !== 1 ? 's' : ''}</p>
               </div>
               {savedDesigns.length > 0 && (
                 <button
