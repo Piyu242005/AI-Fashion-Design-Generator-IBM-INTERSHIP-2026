@@ -3,9 +3,9 @@ api/try-on.py
 =============
 Vercel Python Serverless Function — POST /api/try-on
 
-Accepts a multipart/form-data request with:
-    person   — full-body person photo (JPEG / PNG / WebP, ≤ 10 MB)
-    garment  — garment / clothing item image  (JPEG / PNG / WebP, ≤ 10 MB)
+Accepts multipart/form-data:
+    person   — full-body person photo  (JPEG / PNG / WebP, ≤ 10 MB)
+    garment  — garment / clothing item (JPEG / PNG / WebP, ≤ 10 MB)
 
 Returns JSON:
     { "success": true,  "image": "data:image/jpeg;base64,…", "provider": "idm-vton" }
@@ -13,13 +13,17 @@ Returns JSON:
 
 How it works
 ------------
-This function forwards the two uploaded images to the Hugging Face
-IDM-VTON Gradio Space (yisol/IDM-VTON).  The Space runs on ZeroGPU and
-goes to sleep after inactivity — so the connection is retried up to
-CONNECT_RETRIES times with a short back-off before giving up.
+Calls the Hugging Face IDM-VTON Gradio Space entirely over HTTPS using
+only Python stdlib (urllib + email.mime for multipart) — no gradio_client,
+no websockets, no heavy dependencies.
+
+Gradio REST flow (Gradio ≥ 3.x queue protocol):
+  1. POST {space}/upload          → upload both images, get server-side paths
+  2. POST {space}/queue/join      → enqueue the /tryon job, get event_id
+  3. GET  {space}/queue/data      → SSE stream, read until process_completed
 
 Required Vercel Environment Variables:
-    HF_TOKEN    — HuggingFace READ token (higher ZeroGPU quota)
+    HF_TOKEN    — HuggingFace READ token (strongly recommended)
     HF_SPACE_ID — optional, defaults to "yisol/IDM-VTON"
 """
 
@@ -31,10 +35,15 @@ import io
 import json
 import logging
 import os
-import tempfile
+import random
+import string
 import time
+import urllib.error
+import urllib.request
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 from http.server import BaseHTTPRequestHandler
-from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -42,11 +51,14 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-SPACE_ID            = os.getenv("HF_SPACE_ID", "yisol/IDM-VTON")
-CONNECT_RETRIES     = 3
-CONNECT_RETRY_DELAY = 10   # seconds
-MAX_BYTES           = 10 * 1024 * 1024   # 10 MB per image
-ALLOWED_TYPES       = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
+_RAW_SPACE   = os.getenv("HF_SPACE_ID", "yisol/IDM-VTON")
+# Convert  "owner/repo"  →  "https://owner-repo.hf.space"
+_SPACE_SLUG  = _RAW_SPACE.replace("/", "-").lower()
+SPACE_BASE   = f"https://{_SPACE_SLUG}.hf.space"
+
+MAX_BYTES    = 10 * 1024 * 1024   # 10 MB per image
+POLL_TIMEOUT = 90                  # seconds to wait for the GPU job
+POLL_SLEEP   = 3                   # seconds between status polls
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin":  "*",
@@ -74,105 +86,207 @@ def _ext_from_type(content_type: str) -> str:
     return "jpg"
 
 
-def _is_sleeping(exc: Exception) -> bool:
-    msg = str(exc).lower()
-    return any(k in msg for k in (
-        "loading", "503", "unavailable", "space is sleeping",
-        "waking up", "starting", "connection", "connect",
-    ))
+def _session_hash() -> str:
+    return "".join(random.choices(string.ascii_lowercase + string.digits, k=10))
+
+
+def _hf_headers() -> dict:
+    h: dict = {"Content-Type": "application/json"}
+    token = os.getenv("HF_TOKEN", "").strip()
+    if token:
+        h["Authorization"] = f"Bearer {token}"
+    return h
+
+
+def _upload_image(image_bytes: bytes, filename: str) -> str:
+    """
+    Upload one image to the Gradio Space /upload endpoint.
+    Returns the server-side file path string.
+    """
+    url = f"{SPACE_BASE}/upload"
+
+    # Build a multipart/form-data body using email.mime
+    boundary = "----GradioFormBoundary" + "".join(
+        random.choices(string.ascii_letters + string.digits, k=16)
+    )
+    body_lines = []
+    body_lines.append(f"--{boundary}\r\n")
+    body_lines.append(
+        f'Content-Disposition: form-data; name="files"; filename="{filename}"\r\n'
+    )
+    ext = filename.rsplit(".", 1)[-1].lower()
+    mime_type = "image/jpeg" if ext in ("jpg", "jpeg") else f"image/{ext}"
+    body_lines.append(f"Content-Type: {mime_type}\r\n")
+    body_lines.append("\r\n")
+
+    header_bytes = "".join(body_lines).encode()
+    footer_bytes = f"\r\n--{boundary}--\r\n".encode()
+    raw_body = header_bytes + image_bytes + footer_bytes
+
+    headers = {
+        "Content-Type": f"multipart/form-data; boundary={boundary}",
+        "Content-Length": str(len(raw_body)),
+    }
+    token = os.getenv("HF_TOKEN", "").strip()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    req = urllib.request.Request(url, data=raw_body, headers=headers, method="POST")
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        data = json.loads(resp.read())
+    # Response is a list of file path strings
+    return data[0] if isinstance(data, list) else data
 
 
 def _run_tryon(person_bytes: bytes, garment_bytes: bytes,
                person_ext: str, garment_ext: str) -> dict:
     """
-    Synchronous wrapper around the gradio_client call.
-    Returns the same dict shape as the JSON response.
+    Full Gradio REST flow: upload → enqueue → poll → decode result.
+    """
+    token = os.getenv("HF_TOKEN", "").strip()
+    auth_header = {"Authorization": f"Bearer {token}"} if token else {}
+
+    # ── 1. Upload both images ────────────────────────────────────────────────
+    try:
+        person_path  = _upload_image(person_bytes,  f"person.{person_ext}")
+        garment_path = _upload_image(garment_bytes, f"garment.{garment_ext}")
+        logger.info("Uploaded person=%s  garment=%s", person_path, garment_path)
+    except urllib.error.HTTPError as exc:
+        status = exc.code
+        logger.error("Upload failed HTTP %d", status)
+        if status in (503, 502):
+            return _json_error("SPACE_LOADING",
+                               "IDM-VTON space is waking up. Wait ~30 s and retry.")
+        return _json_error("SPACE_UNAVAILABLE",
+                           "IDM-VTON space is unreachable. Please try again shortly.")
+    except Exception as exc:
+        logger.error("Upload error: %s", exc)
+        return _json_error("SPACE_UNAVAILABLE",
+                           "IDM-VTON space is unreachable. Please try again shortly.")
+
+    # ── 2. Enqueue the /tryon job ────────────────────────────────────────────
+    session = _session_hash()
+    payload = {
+        "fn_index": 0,          # /tryon is fn_index 0 on yisol/IDM-VTON
+        "session_hash": session,
+        "data": [
+            # param 0: dict — ImageEditor value (background = person image)
+            {
+                "background": {"path": person_path, "url": None, "orig_name": f"person.{person_ext}", "is_stream": False},
+                "layers": [],
+                "composite": None,
+            },
+            # param 1: garm_img
+            {"path": garment_path, "url": None, "orig_name": f"garment.{garment_ext}", "is_stream": False},
+            # param 2: garment_des
+            "",
+            # param 3: is_checked
+            True,
+            # param 4: is_checked_crop
+            False,
+            # param 5: denoise_steps
+            30,
+            # param 6: seed
+            42,
+        ],
+    }
+
+    try:
+        join_url = f"{SPACE_BASE}/queue/join"
+        req_headers = {"Content-Type": "application/json"}
+        req_headers.update(auth_header)
+        req = urllib.request.Request(
+            join_url,
+            data=json.dumps(payload).encode(),
+            headers=req_headers,
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            join_data = json.loads(resp.read())
+        event_id = join_data.get("event_id")
+        logger.info("Queued job event_id=%s session=%s", event_id, session)
+    except Exception as exc:
+        logger.error("Queue join failed: %s", exc)
+        return _json_error("SPACE_UNAVAILABLE",
+                           "IDM-VTON space is unreachable. Please try again shortly.")
+
+    # ── 3. Poll /queue/status until process_completed ────────────────────────
+    status_url = f"{SPACE_BASE}/queue/status"
+    deadline   = time.time() + POLL_TIMEOUT
+
+    while time.time() < deadline:
+        try:
+            poll_req = urllib.request.Request(status_url, headers=auth_header)
+            with urllib.request.urlopen(poll_req, timeout=15) as resp:
+                status_data = json.loads(resp.read())
+        except Exception as exc:
+            logger.warning("Poll error: %s", exc)
+            time.sleep(POLL_SLEEP)
+            continue
+
+        # Find our event in the queue
+        queue_list = status_data.get("queue_data", [])
+        for item in queue_list:
+            if item.get("event_id") != event_id:
+                continue
+            status = item.get("status", "")
+            logger.info("Job status: %s", status)
+            if status == "process_completed":
+                output = item.get("output", {})
+                return _extract_result(output)
+            if status in ("error", "process_errored"):
+                return _json_error("TRYON_FAILED",
+                                   "IDM-VTON processing failed. Please try again.")
+
+        time.sleep(POLL_SLEEP)
+
+    return _json_error("TIMEOUT",
+                       "IDM-VTON timed out. The GPU queue is busy — please retry.")
+
+
+def _extract_result(output: dict) -> dict:
+    """
+    Pull the result image out of the Gradio output dict and return
+    it as a base64 data URI.
     """
     try:
-        from gradio_client import Client, handle_file  # type: ignore
-    except ImportError:
-        logger.error("gradio_client not installed.")
-        return _json_error("DEPENDENCY_MISSING", "Virtual try-on failed. Please try again.")
+        data = output.get("data", [])
+        # output[0] is the result image, output[1] is the mask
+        result = data[0] if data else None
+        if result is None:
+            raise ValueError("No data in output")
 
-    hf_token = os.getenv("HF_TOKEN", "").strip() or None
-    if not hf_token:
-        logger.warning("HF_TOKEN not set — using unauthenticated ZeroGPU quota.")
+        # Gradio can return either a URL string or a dict with a "url" key
+        if isinstance(result, dict):
+            img_url = result.get("url") or result.get("path", "")
+        else:
+            img_url = str(result)
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        person_path  = Path(tmpdir) / f"person.{person_ext}"
-        garment_path = Path(tmpdir) / f"garment.{garment_ext}"
-        person_path.write_bytes(person_bytes)
-        garment_path.write_bytes(garment_bytes)
+        if img_url.startswith("data:"):
+            # Already a data URI
+            return {"success": True, "image": img_url, "provider": "idm-vton"}
 
-        # ── Connect with retry ───────────────────────────────────────────────
-        client = None
-        last_exc: Exception | None = None
+        # Fetch the image from the space
+        token = os.getenv("HF_TOKEN", "").strip()
+        fetch_headers = {}
+        if token:
+            fetch_headers["Authorization"] = f"Bearer {token}"
 
-        for attempt in range(1, CONNECT_RETRIES + 1):
-            try:
-                logger.info("Connecting to %s (attempt %d/%d)…", SPACE_ID, attempt, CONNECT_RETRIES)
-                client = Client(SPACE_ID, hf_token=hf_token)
-                last_exc = None
-                break
-            except Exception as exc:
-                last_exc = exc
-                logger.warning("Connect attempt %d/%d failed: %s", attempt, CONNECT_RETRIES, str(exc)[:120])
-                if attempt < CONNECT_RETRIES:
-                    logger.info("Waiting %d s (Space may be waking up)…", CONNECT_RETRY_DELAY)
-                    time.sleep(CONNECT_RETRY_DELAY)
+        # Relative URL → prepend space base
+        if img_url.startswith("/"):
+            img_url = SPACE_BASE + img_url
 
-        if client is None:
-            if last_exc and _is_sleeping(last_exc):
-                return _json_error(
-                    "SPACE_LOADING",
-                    "The IDM-VTON space is waking up from sleep. Please wait 30–60 seconds and try again.",
-                )
-            return _json_error(
-                "SPACE_UNAVAILABLE",
-                "IDM-VTON space is unreachable. Please try again shortly.",
-            )
+        req = urllib.request.Request(img_url, headers=fetch_headers)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            img_bytes = resp.read()
 
-        # ── Submit job ───────────────────────────────────────────────────────
-        try:
-            job = client.submit(
-                dict={
-                    "background": handle_file(str(person_path)),
-                    "layers":     [],
-                    "composite":  None,
-                },
-                garm_img=handle_file(str(garment_path)),
-                garment_des="",
-                is_checked=True,
-                is_checked_crop=False,
-                denoise_steps=30,
-                seed=42,
-                api_name="/tryon",
-            )
-            outputs = job.result()
-        except Exception as exc:
-            err_str = str(exc).lower()
-            logger.error("IDM-VTON job error: %s — %s", type(exc).__name__, str(exc)[:120])
-            if any(k in err_str for k in ("quota", "exceeded", "limit")):
-                return _json_error("QUOTA_EXCEEDED",
-                                   "ZeroGPU daily quota reached. Try again tomorrow.")
-            if any(k in err_str for k in ("loading", "503", "unavailable")):
-                return _json_error("SPACE_LOADING",
-                                   "IDM-VTON space is loading. Wait ~30 s and retry.")
-            if "timeout" in err_str:
-                return _json_error("TIMEOUT",
-                                   "IDM-VTON timed out. The ZeroGPU queue may be busy — please retry.")
-            return _json_error("TRYON_FAILED", "Virtual try-on failed. Please try again.")
+        b64  = base64.b64encode(img_bytes).decode("utf-8")
+        mime = "image/jpeg" if img_bytes[:2] == b"\xff\xd8" else "image/png"
+        return {"success": True, "image": f"data:{mime};base64,{b64}", "provider": "idm-vton"}
 
-        # ── Read result ──────────────────────────────────────────────────────
-        try:
-            result_path  = outputs[0] if isinstance(outputs, (list, tuple)) else outputs
-            result_bytes = Path(result_path).read_bytes()
-            b64  = base64.b64encode(result_bytes).decode("utf-8")
-            mime = "image/jpeg" if result_bytes[:2] == b"\xff\xd8" else "image/png"
-            return {"success": True, "image": f"data:{mime};base64,{b64}", "provider": "idm-vton"}
-        except Exception as exc:
-            logger.error("Could not read IDM-VTON result: %s", exc)
-            return _json_error("PARSE_ERROR", "Virtual try-on failed. Please try again.")
+    except Exception as exc:
+        logger.error("Could not extract result: %s", exc)
+        return _json_error("PARSE_ERROR", "Virtual try-on failed. Please try again.")
 
 
 # ---------------------------------------------------------------------------
@@ -228,8 +342,8 @@ class handler(BaseHTTPRequestHandler):
             ))
             return
 
-        person_bytes  = person_field.file.read()   if hasattr(person_field,  "file") else b""
-        garment_bytes = garment_field.file.read()  if hasattr(garment_field, "file") else b""
+        person_bytes  = person_field.file.read()  if hasattr(person_field,  "file") else b""
+        garment_bytes = garment_field.file.read() if hasattr(garment_field, "file") else b""
 
         if not person_bytes or not garment_bytes:
             self._send_json(400, _json_error("EMPTY_FILE", "One or both uploaded files are empty."))
@@ -242,12 +356,10 @@ class handler(BaseHTTPRequestHandler):
         person_ext  = _ext_from_type(getattr(person_field,  "type", ""))
         garment_ext = _ext_from_type(getattr(garment_field, "type", ""))
 
-        logger.info(
-            "POST /api/try-on  person=%d B  garment=%d B",
-            len(person_bytes), len(garment_bytes),
-        )
+        logger.info("POST /api/try-on  person=%d B  garment=%d B  space=%s",
+                    len(person_bytes), len(garment_bytes), SPACE_BASE)
 
-        # ── Call IDM-VTON ─────────────────────────────────────────────────────
+        # ── Call IDM-VTON via Gradio REST ─────────────────────────────────────
         result = _run_tryon(person_bytes, garment_bytes, person_ext, garment_ext)
 
         if result.get("success"):
@@ -258,7 +370,6 @@ class handler(BaseHTTPRequestHandler):
                 "QUOTA_EXCEEDED":     429,
                 "SPACE_LOADING":      503,
                 "SPACE_UNAVAILABLE":  503,
-                "DEPENDENCY_MISSING": 500,
                 "TIMEOUT":            504,
             }
             self._send_json(status_map.get(code, 500), result)
