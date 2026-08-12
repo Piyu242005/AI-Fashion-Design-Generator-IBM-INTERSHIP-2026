@@ -2,9 +2,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "routes": [
-    { "src": "/api/design", "dest": "/api/design.py" },
-    { "src": "/api/health", "dest": "/api/health.py" },
-    { "src": "/(.*)",        "dest": "/index.html"   }
+  "rewrites": [
+    { "source": "/api/design",  "destination": "/api/design.py"  },
+    { "source": "/api/health",  "destination": "/api/health.py"  },
+    { "source": "/(.*)",        "destination": "/index.html"     }
   ]
 }

@@ -1,22 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-/* ─── SAMPLE WARDROBE IMPORTS ─────────────────────────────────────── */
-import imgBeigeJacket      from '../samples/beige-moto-jacket-navy-dress.jpg';
-import imgBlackCropMaxi    from '../samples/black-crop-top-maxi-skirt.jpg';
-import imgBlackCropSkirt   from '../samples/black-crop-top-skirt-set.jpg';
-import imgBlueHoodie       from '../samples/blue-oversized-hoodie.jpg';
-import imgCreamHoodie      from '../samples/cream-oversized-hoodie.jpg';
-import imgDenimShirt       from '../samples/denim-shirt-beige-trousers-outfit.jpg';
-import imgMensBlackHoodie  from '../samples/mens-black-hoodie.jpg';
-import imgGeometricShirt   from '../samples/mens-geometric-print-shirt.jpg';
-import imgWhiteTshirt      from '../samples/mens-white-tshirt-jeans.jpg';
-import imgPinkSweater      from '../samples/pink-sweater-navy-jeans-outfit.jpg';
-import imgTealBlazer       from '../samples/teal-blazer-grey-jeans.jpg';
-import imgTealTrio         from '../samples/teal-khaki-black-dresses-trio.jpg';
-import imgVintageDenim     from '../samples/vintage-denim-jacket.jpg';
-import imgWhiteKnit        from '../samples/white-knit-flare-jeans-outfit.jpg';
-import imgWhiteShirt       from '../samples/white-shirt-long-sleeve.webp';
-import imgYellowTop        from '../samples/yellow-top-brown-culottes-outfit.jpg';
+/* ─── SAMPLE WARDROBE URLS (served from /public/samples/) ─────────── */
+const imgBeigeJacket      = '/samples/beige-moto-jacket-navy-dress.jpg';
+const imgBlackCropMaxi    = '/samples/black-crop-top-maxi-skirt.jpg';
+const imgBlackCropSkirt   = '/samples/black-crop-top-skirt-set.jpg';
+const imgBlueHoodie       = '/samples/blue-oversized-hoodie.jpg';
+const imgCreamHoodie      = '/samples/cream-oversized-hoodie.jpg';
+const imgDenimShirt       = '/samples/denim-shirt-beige-trousers-outfit.jpg';
+const imgMensBlackHoodie  = '/samples/mens-black-hoodie.jpg';
+const imgGeometricShirt   = '/samples/mens-geometric-print-shirt.jpg';
+const imgWhiteTshirt      = '/samples/mens-white-tshirt-jeans.jpg';
+const imgPinkSweater      = '/samples/pink-sweater-navy-jeans-outfit.jpg';
+const imgTealBlazer       = '/samples/teal-blazer-grey-jeans.jpg';
+const imgTealTrio         = '/samples/teal-khaki-black-dresses-trio.jpg';
+const imgVintageDenim     = '/samples/vintage-denim-jacket.jpg';
+const imgWhiteKnit        = '/samples/white-knit-flare-jeans-outfit.jpg';
+const imgWhiteShirt       = '/samples/white-shirt-long-sleeve.webp';
+const imgYellowTop        = '/samples/yellow-top-brown-culottes-outfit.jpg';
 
 import {
   Sparkles, Image as ImageIcon, Loader2, Download,
