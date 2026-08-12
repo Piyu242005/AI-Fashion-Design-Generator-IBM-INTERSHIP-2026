@@ -30,11 +30,11 @@ space time to wake up before giving up.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import logging
 import os
 import tempfile
-import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -118,8 +118,12 @@ async def run_tryon(
     if not hf_token:
         logger.warning("HF_TOKEN not set — IDM-VTON will use unauthenticated quota (2 min/day).")
 
-    # Write temp files — gradio_client needs filesystem paths, not bytes
-    with tempfile.TemporaryDirectory() as tmpdir:
+    # Write temp files — gradio_client needs filesystem paths, not bytes.
+    # All gradio_client calls (Client(), submit(), result()) are blocking I/O;
+    # run them in a thread executor so the FastAPI event loop stays responsive.
+    loop = asyncio.get_event_loop()
+
+    def _blocking_tryon(tmpdir: str) -> TryOnResult:
         person_path  = Path(tmpdir) / f"person.{person_ext}"
         garment_path = Path(tmpdir) / f"garment.{garment_ext}"
         person_path.write_bytes(person_bytes)
@@ -146,16 +150,15 @@ async def run_tryon(
                 )
                 if attempt < CONNECT_RETRIES:
                     logger.info("Waiting %d s before retry (Space may be waking up)…", CONNECT_RETRY_DELAY)
-                    time.sleep(CONNECT_RETRY_DELAY)
+                    import time as _time; _time.sleep(CONNECT_RETRY_DELAY)
 
         if client is None:
             exc = last_connect_exc
-            err_str = str(exc).lower() if exc else ""
             logger.error(
                 "Cannot connect to HF Space %s after %d attempts: %s",
                 SPACE_ID, CONNECT_RETRIES, type(exc).__name__ if exc else "unknown",
             )
-            if _is_space_sleeping(exc) if exc else False:
+            if exc and _is_space_sleeping(exc):
                 return TryOnResult(
                     success=False,
                     error_code="SPACE_LOADING",
@@ -240,3 +243,6 @@ async def run_tryon(
                 error_code="PARSE_ERROR",
                 error_message=SAFE_MSG,
             )
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        return await loop.run_in_executor(None, _blocking_tryon, tmpdir)
