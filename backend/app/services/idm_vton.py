@@ -188,10 +188,13 @@ async def run_tryon(
                 garment_des=garment_desc or "",
                 # param: is_checked  — use auto-masking (True = recommended)
                 is_checked=True,
-                # param: is_checked_crop  — auto-crop (False = full body)
-                is_checked_crop=False,
-                # param: denoise_steps
-                denoise_steps=30,
+                # param: is_checked_crop  — auto-crop the person image to body region.
+                # Enabling this makes results more robust for varied photo compositions
+                # (e.g. portrait crops, non-centered subjects).
+                is_checked_crop=True,
+                # param: denoise_steps — 40 gives noticeably better garment texture
+                # reproduction than 30 with only ~5 s additional latency.
+                denoise_steps=40,
                 # param: seed
                 seed=42,
                 api_name="/tryon",

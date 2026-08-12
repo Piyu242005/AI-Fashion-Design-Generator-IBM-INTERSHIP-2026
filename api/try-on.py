@@ -4,8 +4,9 @@ api/try-on.py
 Vercel Python Serverless Function — POST /api/try-on
 
 Accepts multipart/form-data:
-    person   — full-body person photo  (JPEG / PNG / WebP, ≤ 10 MB)
-    garment  — garment / clothing item (JPEG / PNG / WebP, ≤ 10 MB)
+    person              — full-body person photo  (JPEG / PNG / WebP, ≤ 10 MB)
+    garment             — garment / clothing item (JPEG / PNG / WebP, ≤ 10 MB)
+    garment_description — optional text describing the garment (improves VTON quality)
 
 Returns JSON:
     { "success": true,  "image": "data:image/jpeg;base64,…", "provider": "idm-vton" }
@@ -83,7 +84,8 @@ def _is_space_sleeping(exc: Exception) -> bool:
 
 
 def _run_tryon(person_bytes: bytes, garment_bytes: bytes,
-               person_ext: str, garment_ext: str) -> dict:
+               person_ext: str, garment_ext: str,
+               garment_description: str = "") -> dict:
     """
     Call IDM-VTON via gradio_client.  Handles ZeroGPU cold-starts with retries.
     """
@@ -141,10 +143,13 @@ def _run_tryon(person_bytes: bytes, garment_bytes: bytes,
                     "composite":  None,
                 },
                 garm_img=handle_file(str(garment_path)),
-                garment_des="",
+                # A meaningful description improves garment representation
+                garment_des=garment_description.strip() if garment_description else "",
                 is_checked=True,
-                is_checked_crop=False,
-                denoise_steps=30,
+                # Enable auto-crop so the model handles varied person image compositions
+                is_checked_crop=True,
+                # 40 steps gives better quality while keeping latency reasonable
+                denoise_steps=40,
                 seed=42,
                 api_name="/tryon",
             )
@@ -220,8 +225,10 @@ class handler(BaseHTTPRequestHandler):
             self._send_json(400, _json_error("BAD_REQUEST", "Could not parse multipart form data."))
             return
 
-        person_field  = form.get("person")
-        garment_field = form.get("garment")
+        person_field       = form.get("person")
+        garment_field      = form.get("garment")
+        desc_field         = form.get("garment_description")
+        garment_description = (desc_field.value if hasattr(desc_field, "value") else str(desc_field or "")).strip()
 
         if person_field is None or garment_field is None:
             self._send_json(400, _json_error(
@@ -244,11 +251,11 @@ class handler(BaseHTTPRequestHandler):
         person_ext  = _ext_from_type(getattr(person_field,  "type", ""))
         garment_ext = _ext_from_type(getattr(garment_field, "type", ""))
 
-        logger.info("POST /api/try-on  person=%d B  garment=%d B  space=%s",
-                    len(person_bytes), len(garment_bytes), SPACE_ID)
+        logger.info("POST /api/try-on  person=%d B  garment=%d B  desc=%r  space=%s",
+                    len(person_bytes), len(garment_bytes), garment_description[:60], SPACE_ID)
 
         # ── Call IDM-VTON ─────────────────────────────────────────────────────
-        result = _run_tryon(person_bytes, garment_bytes, person_ext, garment_ext)
+        result = _run_tryon(person_bytes, garment_bytes, person_ext, garment_ext, garment_description)
 
         if result.get("success"):
             self._send_json(200, result)

@@ -3,9 +3,10 @@ backend/app/api/tryon.py
 ========================
 POST /api/try-on  — AI Virtual Try-On via IDM-VTON (Hugging Face Space)
 
-Accepts two image uploads (multipart/form-data):
-    person   — full-body photo of the user
-    garment  — clothing item image
+Accepts multipart/form-data:
+    person              — full-body photo of the user
+    garment             — clothing item image
+    garment_description — optional text describing the garment (improves quality)
 
 Returns JSON:
     { "success": true,  "image": "data:image/jpeg;base64,…" }
@@ -16,7 +17,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -52,6 +53,7 @@ async def virtual_tryon(
     request: Request,
     person:  UploadFile = File(..., description="Full-body person photo"),
     garment: UploadFile = File(..., description="Garment / clothing item image"),
+    garment_description: str = Form(default="", description="Short text description of the garment"),
 ) -> JSONResponse:
 
     # ── Validate content types ───────────────────────────────────────────────
@@ -77,12 +79,15 @@ async def virtual_tryon(
     garment_ext = _ext(garment.filename, garment.content_type or "")
 
     logger.info(
-        "POST /api/try-on  person=%d B  garment=%d B  hf_configured=%s",
-        len(person_bytes), len(garment_bytes), hf_configured(),
+        "POST /api/try-on  person=%d B  garment=%d B  desc=%r  hf_configured=%s",
+        len(person_bytes), len(garment_bytes), garment_description[:60], hf_configured(),
     )
 
     # ── Call IDM-VTON ────────────────────────────────────────────────────────
-    result = await run_tryon(person_bytes, garment_bytes, person_ext, garment_ext)
+    result = await run_tryon(
+        person_bytes, garment_bytes, person_ext, garment_ext,
+        garment_desc=garment_description.strip(),
+    )
 
     if result.success and result.image_base64:
         return JSONResponse(status_code=200, content={

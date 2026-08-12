@@ -20,10 +20,12 @@ from slowapi.errors import RateLimitExceeded
 # ── Load .env from project root (one level above /backend) ──────────────────
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 
-from app.api.design import router as design_router          # noqa: E402
-from app.api.tryon  import router as tryon_router           # noqa: E402
+from app.api.design    import router as design_router       # noqa: E402
+from app.api.tryon     import router as tryon_router        # noqa: E402
+from app.api.products  import router as products_router     # noqa: E402
 from app.services.cloudflare_ai import credentials_configured  # noqa: E402
-from app.services.idm_vton import hf_configured             # noqa: E402
+from app.services.idm_vton      import hf_configured        # noqa: E402
+from app.services.product_api   import rapidapi_configured  # noqa: E402
 from app.schemas.design import ALLOWED_MODELS, DEFAULT_MODEL    # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -53,10 +55,15 @@ async def lifespan(app: FastAPI):
     logger.info("  HuggingFace IDM-VTON  : %s", "CONFIGURED" if hf_ok else "NOT CONFIGURED (unauthenticated)")
     logger.info("  Routes: POST /api/design  |  POST /api/try-on")
     logger.info("=" * 50)
+    rapi_ok = rapidapi_configured()
+    logger.info("  RapidAPI Products      : %s", "CONFIGURED" if rapi_ok else "NOT CONFIGURED")
+    logger.info("=" * 50)
     if not cf_ok:
         logger.warning("Set CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN in .env")
     if not hf_ok:
         logger.warning("Set HF_TOKEN in .env for authenticated IDM-VTON access (higher quota).")
+    if not rapi_ok:
+        logger.warning("Set RAPIDAPI_KEY in .env for product recommendations.")
     yield
 
 
@@ -102,8 +109,9 @@ app.add_middleware(
 )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
-app.include_router(design_router)   # POST /api/design   (Cloudflare)
-app.include_router(tryon_router)    # POST /api/try-on   (IDM-VTON)
+app.include_router(design_router)    # POST /api/design          (Cloudflare)
+app.include_router(tryon_router)     # POST /api/try-on          (IDM-VTON)
+app.include_router(products_router)  # GET  /api/products/search (RapidAPI)
 
 
 # ---------------------------------------------------------------------------
@@ -121,6 +129,7 @@ def health():
         "providers": {
             "cloudflare": {"configured": credentials_configured()},
             "idm_vton":   {"configured": hf_configured(), "space": "yisol/IDM-VTON"},
+            "rapidapi":   {"configured": rapidapi_configured()},
         },
     }
 

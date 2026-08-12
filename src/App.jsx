@@ -67,7 +67,7 @@ const FashionIntelligenceService = {
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
       const payload = {
-        contents: [{ parts: [{ text: `Extract fashion details to JSON: ${prompt}. Schema: {"category":"","fabric":"","colors":["hex"],"sustainability_score":0,"budget":{"maximum":0}}` }] }],
+        contents: [{ parts: [{ text: `Extract fashion details to JSON: ${prompt}. Schema: {"category":"","fabric":"","colors":["hex"],"sustainability_score":0,"budget":{"maximum":0},"garment_description":""}` }] }],
         generationConfig: { responseMimeType: "application/json" }
       };
       const res  = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -76,6 +76,23 @@ const FashionIntelligenceService = {
     } catch { return { optimized_image_prompt: prompt }; }
   }
 };
+
+/**
+ * Build a concise garment description for IDM-VTON from available spec fields.
+ * Falls back to the raw prompt if the spec is too sparse.
+ * @param {object|null} spec  - Gemini-extracted fashion spec
+ * @param {string}      prompt - Original user prompt
+ * @returns {string}
+ */
+function buildGarmentDescription(spec, prompt) {
+  if (spec?.garment_description) return spec.garment_description.trim().slice(0, 200);
+  const parts = [];
+  if (spec?.fabric)   parts.push(spec.fabric);
+  if (spec?.category) parts.push(spec.category);
+  if (parts.length >= 2) return parts.join(' ').slice(0, 200);
+  // Fall back: use first 120 chars of the prompt as a rough description
+  return prompt.trim().slice(0, 120);
+}
 
 /* ─── IMAGE MODELS ────────────────────────────────────────────────── */
 export const IMAGE_MODELS = [
@@ -103,7 +120,72 @@ const ImageGenerationService = {
   }
 };
 
-const ProductSearchService  = { async searchSimilarProducts(_spec) { return []; } };
+/* ─── PRODUCT SEARCH SERVICE ──────────────────────────────────── */
+// Calls the FastAPI backend /api/products/search endpoint.
+// The RapidAPI key lives ONLY in the backend — never here.
+const ProductSearchService = {
+  /**
+   * Build a plain-English query from the Gemini fashion spec, then ask
+   * the backend for real H&M product recommendations.
+   *
+   * @param {object} spec - Gemini-extracted fashion specification
+   * @param {string} rawPrompt - Original user prompt (fallback query)
+   * @returns {Promise<Array>} Array of normalised product objects
+   */
+  async searchSimilarProducts(spec, rawPrompt = '') {
+    try {
+      // ── Build query from spec fields ──────────────────────────────────────
+      const parts = [];
+      if (spec?.fabric)   parts.push(spec.fabric);
+      if (spec?.colors?.length) {
+        // Convert hex → generic colour name isn't reliable; skip hex values
+        // Use only if the prompt already contains a plain colour word
+        const colorWords = ['black', 'white', 'red', 'blue', 'green', 'pink',
+          'yellow', 'purple', 'orange', 'brown', 'grey', 'gray', 'navy',
+          'teal', 'cream', 'beige', 'maroon', 'coral', 'indigo', 'gold'];
+        const promptLower = rawPrompt.toLowerCase();
+        const found = colorWords.find(c => promptLower.includes(c));
+        if (found) parts.push(found);
+      }
+      if (spec?.category) parts.push(spec.category);
+
+      const query = parts.length >= 2
+        ? parts.join(' ')
+        : rawPrompt.trim().slice(0, 100) || 'fashion';
+
+      // ── Build URL with optional filters ───────────────────────────────────
+      const params = new URLSearchParams({ query, limit: '5' });
+      if (spec?.category)              params.set('category', spec.category);
+      if (spec?.budget?.maximum > 0)   params.set('budget',   String(spec.budget.maximum));
+
+      // Extract a single colour word for backend scoring
+      const colorWords2 = ['black','white','red','blue','green','pink','yellow',
+        'purple','orange','brown','grey','gray','navy','teal','cream','beige',
+        'maroon','coral','indigo','gold'];
+      const promptLower2 = rawPrompt.toLowerCase();
+      const colorHint = colorWords2.find(c => promptLower2.includes(c));
+      if (colorHint) params.set('color', colorHint);
+
+      const res = await fetch(`${BACKEND_URL}/api/products/search?${params}`);
+
+      if (res.status === 503) {
+        // Backend not configured — silent fail (no fake data)
+        console.info('[Products] Backend not configured for product search.');
+        return [];
+      }
+      if (!res.ok) {
+        console.warn('[Products] /api/products/search returned', res.status);
+        return [];
+      }
+
+      const data = await res.json();
+      return Array.isArray(data.products) ? data.products : [];
+    } catch (e) {
+      console.warn('[Products] request failed:', e.message);
+      return [];
+    }
+  },
+};
 
 /* ─── ONLINE GARMENTS FOR QUICK-PICK IN TRY-ON ───────────────────── */
 // Stable Unsplash photo URLs — clean garment / outfit shots on plain or
@@ -228,7 +310,9 @@ export default function App() {
   const [activeTab, setActiveTab]         = useState('runway');
   const [prompt, setPrompt]               = useState('');
   const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS.find(m => m.default).id);
-  const [designJob, setDesignJob]         = useState({ status: 'idle', spec: null, image: null, products: [] });
+  // designJob.garmentSource: 'design' | 'wardrobe' | 'online'
+  // designJob.garmentDescription: string sent to IDM-VTON as garment_des
+  const [designJob, setDesignJob]         = useState({ status: 'idle', spec: null, image: null, products: [], garmentSource: null, garmentDescription: '' });
   const [expandedImage, setExpandedImage] = useState(null);
   const [showTechPack, setShowTechPack]   = useState(false);
   const [personImage, setPersonImage]     = useState(null);
@@ -253,20 +337,21 @@ export default function App() {
     if (!p.trim()) return;
     setPrompt(p);
     if (activeTab !== 'design') setActiveTab('design');
-    setDesignJob({ status: 'processing', spec: null, image: null, products: [] });
+    setDesignJob({ status: 'processing', spec: null, image: null, products: [], garmentSource: null, garmentDescription: '' });
     try {
       const spec = await FashionIntelligenceService.extractSpecification(p);
       const [image, products] = await Promise.all([
         ImageGenerationService.generate(spec.optimized_image_prompt || p, selectedModel),
-        ProductSearchService.searchSimilarProducts(spec),
+        ProductSearchService.searchSimilarProducts(spec, p),
       ]);
       if (!image) {
-        setDesignJob({ status: 'failed', spec: null, image: null, products: [] });
+        setDesignJob({ status: 'failed', spec: null, image: null, products: [], garmentSource: null, garmentDescription: '' });
       } else {
-        setDesignJob({ status: 'completed', spec, image, products, prompt: p });
+        const garmentDescription = buildGarmentDescription(spec, p);
+        setDesignJob({ status: 'completed', spec, image, products, prompt: p, garmentSource: 'design', garmentDescription });
       }
     } catch {
-      setDesignJob({ status: 'failed', spec: null, image: null, products: [] });
+      setDesignJob({ status: 'failed', spec: null, image: null, products: [], garmentSource: null, garmentDescription: '' });
     }
   };
 
@@ -292,7 +377,7 @@ export default function App() {
     setTryOnJob({ status: 'processing', resultImage: null, statusMsg: 'Uploading images…' });
 
     try {
-      // Convert the garment data-URI back to a Blob for FormData
+      // Convert the garment data-URI or URL back to a Blob for FormData
       const garmentResp = await fetch(designJob.image);
       const garmentBlob = await garmentResp.blob();
 
@@ -301,8 +386,12 @@ export default function App() {
       const form = new FormData();
       form.append('person',  personFile,  personFile.name  || 'person.jpg');
       form.append('garment', garmentBlob, 'garment.jpg');
+      // Pass the garment description so IDM-VTON gets a meaningful garment_des value
+      if (designJob.garmentDescription) {
+        form.append('garment_description', designJob.garmentDescription);
+      }
 
-      setTryOnJob(j => ({ ...j, statusMsg: 'AI is processing — this may take ~30 s…' }));
+      setTryOnJob(j => ({ ...j, statusMsg: 'AI is processing — this may take ~30–60 s…' }));
 
       const res = await fetch(`${BACKEND_URL}/api/try-on`, {
         method: 'POST',
@@ -615,7 +704,15 @@ export default function App() {
                       key={item.id}
                       className="group relative bg-neutral-900/50 border border-white/6 rounded-2xl overflow-hidden cursor-pointer card-hover"
                       style={{ animationDelay: `${i * 30}ms` }}
-                      onClick={() => { setDesignJob(prev => ({ ...prev, image: item.image })); setActiveTab('tryon'); }}
+                      onClick={() => {
+                        setDesignJob(prev => ({
+                          ...prev,
+                          image: item.image,
+                          garmentSource: 'wardrobe',
+                          garmentDescription: item.label,
+                        }));
+                        setActiveTab('tryon');
+                      }}
                     >
                       {/* Image */}
                       <div className="aspect-[3/4] overflow-hidden bg-neutral-950">
@@ -827,22 +924,122 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Right panel: shopping (empty state) + prompt recap */}
+                {/* Right panel: product recommendations + prompt recap */}
                 <div className="lg:col-span-2 flex flex-col gap-5">
-                  {/* Buy Similar */}
+
+                  {/* ── Buy Similar — Real Product Recommendations ───────── */}
                   <div className="bg-white/3 border border-white/8 rounded-2xl overflow-hidden flex-1 flex flex-col">
-                    <div className="px-5 py-4 border-b border-white/6 flex items-center gap-2">
-                      <div className="w-6 h-6 bg-violet-500/15 rounded-lg flex items-center justify-center">
-                        <ShoppingBag size={11} className="text-violet-400" />
+                    {/* Header */}
+                    <div className="px-5 py-4 border-b border-white/6 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-violet-500/15 rounded-lg flex items-center justify-center">
+                          <ShoppingBag size={11} className="text-violet-400" />
+                        </div>
+                        <span className="text-sm font-bold text-white">Buy Similar</span>
                       </div>
-                      <span className="text-sm font-bold text-white">Buy Similar</span>
+                      {designJob.products?.length > 0 && (
+                        <span className="text-[10px] text-neutral-600 bg-white/4 border border-white/8 px-2 py-0.5 rounded-full">
+                          H&M via RapidAPI
+                        </span>
+                      )}
                     </div>
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-                      <div className="w-10 h-10 bg-white/4 border border-white/8 rounded-2xl flex items-center justify-center mb-3">
-                        <ShoppingBag size={16} className="text-neutral-700" />
-                      </div>
-                      <p className="text-sm text-neutral-600 mb-1">Product search not connected</p>
-                      <p className="text-xs text-neutral-800">Wire up a shopping API to see real results here</p>
+
+                    {/* Body */}
+                    <div className="flex-1 overflow-y-auto">
+                      {/* Loading state */}
+                      {designJob.status === 'processing' ? (
+                        <div className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[160px]">
+                          <div className="relative w-8 h-8 mb-3 mx-auto">
+                            <div className="absolute inset-0 rounded-full border border-white/6" />
+                            <div className="absolute inset-0 rounded-full border-t border-violet-500 animate-spin" />
+                          </div>
+                          <p className="text-xs text-neutral-500 font-medium">Finding matching fashion products…</p>
+                        </div>
+
+                      /* Has real products */
+                      ) : designJob.products?.length > 0 ? (
+                        <div className="divide-y divide-white/5">
+                          {designJob.products.map((product, idx) => (
+                            <div key={idx} className="flex gap-3 p-4 hover:bg-white/3 transition-colors group/prod">
+                              {/* Product image */}
+                              <div className="w-16 h-20 shrink-0 bg-neutral-900 rounded-xl overflow-hidden border border-white/6">
+                                {product.image ? (
+                                  <img
+                                    src={product.image}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover group-hover/prod:scale-105 transition-transform duration-300"
+                                    onError={e => { e.target.style.display = 'none'; }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <ShoppingBag size={14} className="text-neutral-800" />
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Product info */}
+                              <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                                <div>
+                                  <p className="text-xs font-semibold text-neutral-200 leading-snug line-clamp-2 mb-1">
+                                    {product.name}
+                                  </p>
+                                  <p className="text-[10px] text-neutral-600 mb-1.5">
+                                    {product.brand || product.source}
+                                  </p>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    {product.price != null && (
+                                      <span className="text-[11px] font-bold text-white">
+                                        ₹{Number(product.price).toLocaleString('en-IN')}
+                                      </span>
+                                    )}
+                                    {product.recommendation_score != null && (
+                                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border
+                                        ${product.recommendation_score >= 80
+                                          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25'
+                                          : product.recommendation_score >= 55
+                                          ? 'bg-sky-500/15 text-sky-400 border-sky-500/25'
+                                          : 'bg-neutral-500/15 text-neutral-500 border-neutral-500/25'}`}>
+                                        {product.recommendation_score}% match
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                {product.url && (
+                                  <a
+                                    href={product.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-violet-400 hover:text-violet-300 transition-colors"
+                                  >
+                                    View Product <ArrowRight size={9} />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                      /* No results after search completed */
+                      ) : designJob.status === 'completed' ? (
+                        <div className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[160px]">
+                          <div className="w-9 h-9 bg-white/4 border border-white/8 rounded-xl flex items-center justify-center mb-3 mx-auto">
+                            <ShoppingBag size={14} className="text-neutral-700" />
+                          </div>
+                          <p className="text-xs text-neutral-600 mb-0.5">No matching products found.</p>
+                          <p className="text-[10px] text-neutral-800 leading-relaxed">
+                            Try changing the category, colour, or budget in your prompt.
+                          </p>
+                        </div>
+
+                      /* Idle — nothing generated yet */
+                      ) : (
+                        <div className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[160px]">
+                          <div className="w-9 h-9 bg-white/4 border border-white/8 rounded-xl flex items-center justify-center mb-3 mx-auto">
+                            <ShoppingBag size={14} className="text-neutral-700" />
+                          </div>
+                          <p className="text-xs text-neutral-600">Generate a design to see real product recommendations.</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -961,6 +1158,18 @@ export default function App() {
                     )}
                     <input type="file" ref={fileInputRef} onChange={handlePersonUpload} className="hidden" accept="image/*" />
                   </div>
+                  {/* Best-result tips shown when no photo is uploaded yet */}
+                  {!personImage && (
+                    <div className="bg-amber-500/6 border border-amber-500/15 rounded-xl p-3">
+                      <p className="text-[10px] text-amber-400/80 font-semibold mb-1.5 uppercase tracking-wide">For best results</p>
+                      <ul className="space-y-0.5 text-[10px] text-neutral-600 leading-relaxed list-disc pl-3.5">
+                        <li>Full-body, front-facing photo</li>
+                        <li>Neutral background preferred</li>
+                        <li>Single person, no cropping</li>
+                        <li>Well-lit, ≥ 512 px tall</li>
+                      </ul>
+                    </div>
+                  )}
                   {personImage && (
                     <button
                       onClick={() => { setPersonImage(null); setPersonFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
@@ -989,6 +1198,15 @@ export default function App() {
                       </div>
                     )}
                   </div>
+                  {/* Show a note when the garment is an AI-generated fashion render */}
+                  {designJob.garmentSource === 'design' && designJob.image && (
+                    <div className="bg-sky-500/6 border border-sky-500/15 rounded-xl p-3">
+                      <p className="text-[10px] text-sky-400/80 font-semibold mb-1 uppercase tracking-wide">AI-generated garment</p>
+                      <p className="text-[10px] text-neutral-600 leading-relaxed">
+                        Best results come from a clean clothing-item photo. For ideal output, pick a garment from the wardrobe or quick-pick grid below.
+                      </p>
+                    </div>
+                  )}
                   <button
                     onClick={() => setActiveTab('runway')}
                     className="w-full text-[11px] text-neutral-700 hover:text-neutral-400 bg-white/3 border border-white/6 py-2 rounded-xl transition-colors flex items-center justify-center gap-1.5"
@@ -1085,7 +1303,12 @@ export default function App() {
                   return (
                     <button
                       key={g.id}
-                      onClick={() => setDesignJob(prev => ({ ...prev, image: g.url }))}
+                      onClick={() => setDesignJob(prev => ({
+                        ...prev,
+                        image: g.url,
+                        garmentSource: 'online',
+                        garmentDescription: g.label,
+                      }))}
                       className={`group relative rounded-xl overflow-hidden border transition-all focus:outline-none
                         ${isSelected
                           ? 'border-violet-500/70 ring-2 ring-violet-500/30'

@@ -31,8 +31,8 @@ Many students want to explore fashion design but lack artistic or technical skil
 
 **AI Fashion Design Generator** is a full-stack AI web app that lets you describe any outfit in plain English and instantly:
 1. Generate a photorealistic fashion render via Cloudflare Workers AI (FLUX.1-schnell, SDXL, DreamShaper)
-2. See matching affordable alternatives from Myntra, Ajio, and Tata CLiQ
-3. Virtually try the garment on by uploading your own photo
+2. See real H&M product recommendations matched to your design via RapidAPI — ranked by category, colour, budget & style
+3. Virtually try the garment on by uploading your own photo via IDM-VTON
 4. Save designs to your local collection and generate manufacturing tech packs
 
 ```
@@ -40,11 +40,13 @@ You type a prompt
       ↓
 Gemini extracts the fashion spec   (free tier, client-side)
       ↓
-FastAPI → Cloudflare Workers AI    (token stays server-side)
+FastAPI → Cloudflare Workers AI    (image, token stays server-side)
+FastAPI → RapidAPI H&M Store API   (products, key stays server-side)
       ↓
 FLUX.1 / SDXL / DreamShaper renders the image
+Products ranked by category · colour · budget · style
       ↓
-React displays result + shopping alternatives
+React displays design + real product recommendation cards
 ```
 
 ---
@@ -67,11 +69,11 @@ React displays result + shopping alternatives
 |---|---|
 | 🎨 **AI Design Studio** | Text-to-fashion image generation with 4 selectable models |
 | 🧠 **Model Selector** | Switch between FLUX.1 Schnell, SDXL, DreamShaper, SDXL Lightning |
-| 🛍️ **Smart Shopping** | AI-matched affordable alternatives on Myntra, Ajio, Tata CLiQ |
-| 👗 **Virtual Try-On** | Composite your photo with the generated garment |
+| 🛍️ **AI Product Recommendations** | Real H&M products matched to your design via RapidAPI — ranked by category, colour, budget & style |
+| 👗 **Virtual Try-On** | Composite your photo with the generated garment via IDM-VTON |
 | 💾 **Collections** | Save designs locally, set price-drop alerts |
 | 📋 **Tech Pack** | Export manufacturing spec sheet (fabric, colors, cost estimate) |
-| 🔒 **Secure by design** | API tokens never reach the browser |
+| 🔒 **Secure by design** | All API tokens (Cloudflare, HuggingFace, RapidAPI) are server-side only |
 | 🌱 **Eco Score** | Sustainability scoring per design |
 
 ---
@@ -89,11 +91,13 @@ React displays result + shopping alternatives
 - **Pydantic v2** — request/response validation
 - **python-dotenv** — environment variable loading
 
-### AI Providers
+### AI & Data Providers
 | Role | Provider | Free? |
 |---|---|---|
 | Image generation | Cloudflare Workers AI | ✅ 10,000 neurons/day free |
 | Fashion spec extraction (optional) | Google Gemini 2.5 Flash | ✅ Free tier |
+| Product recommendations | RapidAPI H&M Store API | ✅ Free tier available |
+| Virtual try-on | HuggingFace IDM-VTON (ZeroGPU) | ✅ Free (with HF account) |
 
 ---
 
@@ -186,7 +190,20 @@ VITE_GEMINI_API_KEY=your_gemini_key
 
 > ⚠️ Never commit `.env`. It is already in `.gitignore`.
 
-### 3. Start the FastAPI backend
+### 3. Configure RapidAPI (product recommendations)
+
+1. Sign up at [rapidapi.com](https://rapidapi.com)
+2. Search for **"H&M Store"** and subscribe (free tier available)
+3. Add to `.env`:
+
+```env
+RAPIDAPI_KEY=your_rapidapi_key_here
+RAPIDAPI_HOST=apidojo-hm-hennes-mauritz-v1.p.rapidapi.com
+```
+
+> ⚠️ Never prefix with `VITE_` — this key must stay server-side only.
+
+### 4. Start the FastAPI backend
 
 ```bash
 cd backend
@@ -235,6 +252,49 @@ Your Account ID is in the **right sidebar** of [dash.cloudflare.com](https://das
 ---
 
 ## API Reference
+
+### `GET /api/products/search`
+
+Search for real H&M fashion products matched to a design spec.
+
+**Request**
+```
+GET /api/products/search?query=black+cotton+shirt&category=shirt&color=black&budget=2500&limit=5
+```
+
+**Success Response**
+```json
+{
+  "success": true,
+  "products": [
+    {
+      "name": "H&M Cotton Shirt",
+      "brand": "H&M",
+      "price": 1999.0,
+      "currency": "INR",
+      "image": "https://lp2.hm.com/...",
+      "url": "https://www2.hm.com/en_in/productpage.123.html",
+      "category": "Tops",
+      "rating": null,
+      "source": "H&M",
+      "recommendation_score": 91
+    }
+  ],
+  "query": "black cotton shirt",
+  "source": "H&M via RapidAPI"
+}
+```
+
+**Recommendation Score Breakdown**
+
+| Signal | Weight |
+|---|---|
+| Category match | 40 pts |
+| Colour match | 25 pts |
+| Budget fit | 20 pts |
+| Style / brand | 15 pts |
+
+---
 
 ### `POST /api/design`
 
