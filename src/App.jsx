@@ -314,12 +314,7 @@ export default function App() {
       if (res.ok && data.success && data.image) {
         setTryOnJob({ status: 'completed', resultImage: data.image, statusMsg: '' });
       } else {
-        const code = data?.error?.code || '';
-        const rawMsg = data?.error?.message || 'Virtual try-on failed. Please try again.';
-        // For sleeping-space errors, surface a clear retry hint
-        const msg = (code === 'SPACE_LOADING' || code === 'SPACE_UNAVAILABLE')
-          ? rawMsg + ' (The AI space may be waking up — wait ~30 s then retry.)'
-          : rawMsg;
+        const msg = data?.error?.message || 'Virtual try-on failed. Please try again.';
         setTryOnJob({ status: 'failed', resultImage: null, statusMsg: msg });
       }
     } catch (err) {

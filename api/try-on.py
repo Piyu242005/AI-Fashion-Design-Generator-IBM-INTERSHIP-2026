@@ -37,7 +37,6 @@ import logging
 import os
 import random
 import string
-import time
 import urllib.error
 import urllib.request
 from email.mime.multipart import MIMEMultipart
@@ -57,8 +56,7 @@ _SPACE_SLUG  = _RAW_SPACE.replace("/", "-").lower()
 SPACE_BASE   = f"https://{_SPACE_SLUG}.hf.space"
 
 MAX_BYTES    = 10 * 1024 * 1024   # 10 MB per image
-POLL_TIMEOUT = 90                  # seconds to wait for the GPU job
-POLL_SLEEP   = 3                   # seconds between status polls
+POLL_TIMEOUT = 120                 # seconds to wait for the GPU job (SSE stream)
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin":  "*",
@@ -210,35 +208,49 @@ def _run_tryon(person_bytes: bytes, garment_bytes: bytes,
         return _json_error("SPACE_UNAVAILABLE",
                            "IDM-VTON space is unreachable. Please try again shortly.")
 
-    # ── 3. Poll /queue/status until process_completed ────────────────────────
-    status_url = f"{SPACE_BASE}/queue/status"
-    deadline   = time.time() + POLL_TIMEOUT
+    # ── 3. Read SSE stream at /queue/data until process_completed ────────────
+    # Gradio 4.x streams Server-Sent Events; each event is a JSON object.
+    # The stream ends when a "process_completed" or error event is received.
+    sse_url = f"{SPACE_BASE}/queue/data?session_hash={session}"
+    sse_headers = dict(auth_header)
+    sse_headers["Accept"] = "text/event-stream"
 
-    while time.time() < deadline:
-        try:
-            poll_req = urllib.request.Request(status_url, headers=auth_header)
-            with urllib.request.urlopen(poll_req, timeout=15) as resp:
-                status_data = json.loads(resp.read())
-        except Exception as exc:
-            logger.warning("Poll error: %s", exc)
-            time.sleep(POLL_SLEEP)
-            continue
-
-        # Find our event in the queue
-        queue_list = status_data.get("queue_data", [])
-        for item in queue_list:
-            if item.get("event_id") != event_id:
-                continue
-            status = item.get("status", "")
-            logger.info("Job status: %s", status)
-            if status == "process_completed":
-                output = item.get("output", {})
-                return _extract_result(output)
-            if status in ("error", "process_errored"):
-                return _json_error("TRYON_FAILED",
-                                   "IDM-VTON processing failed. Please try again.")
-
-        time.sleep(POLL_SLEEP)
+    try:
+        sse_req = urllib.request.Request(sse_url, headers=sse_headers)
+        with urllib.request.urlopen(sse_req, timeout=POLL_TIMEOUT) as resp:
+            data_buf = b""
+            while True:
+                chunk = resp.read(4096)
+                if not chunk:
+                    break
+                data_buf += chunk
+                # Process complete SSE lines
+                while b"\n" in data_buf:
+                    line, data_buf = data_buf.split(b"\n", 1)
+                    line = line.strip()
+                    if not line.startswith(b"data:"):
+                        continue
+                    payload_str = line[5:].strip().decode("utf-8", errors="replace")
+                    try:
+                        event = json.loads(payload_str)
+                    except json.JSONDecodeError:
+                        continue
+                    msg = event.get("msg", "")
+                    logger.info("SSE event: %s", msg)
+                    if msg == "process_completed":
+                        output = event.get("output", {})
+                        return _extract_result(output)
+                    if msg in ("process_errored", "queue_full"):
+                        return _json_error("TRYON_FAILED",
+                                           "IDM-VTON processing failed. Please try again.")
+    except urllib.error.URLError as exc:
+        logger.error("SSE stream error: %s", exc)
+        return _json_error("TIMEOUT",
+                           "IDM-VTON timed out. The GPU queue is busy — please retry.")
+    except Exception as exc:
+        logger.error("SSE unexpected error: %s", exc)
+        return _json_error("SPACE_UNAVAILABLE",
+                           "IDM-VTON space is unreachable. Please try again shortly.")
 
     return _json_error("TIMEOUT",
                        "IDM-VTON timed out. The GPU queue is busy — please retry.")
