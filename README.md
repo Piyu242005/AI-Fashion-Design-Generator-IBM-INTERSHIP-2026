@@ -84,11 +84,45 @@ Natural Language Prompt
 | **Fashion Intelligence** | Gemini extracts category, fabric, colors, sustainability score, budget, and style from plain text |
 | **Model Selector** | Switch between FLUX.1 Schnell, SDXL, DreamShaper, SDXL Lightning |
 | **Product Recommendations** | Real H&M products fetched via RapidAPI, ranked by category · color · budget · style |
-| **Virtual Try-On** | Upload a person photo and garment image — composite via IDM-VTON (Hugging Face) |
+| **Virtual Try-On** | AI-powered garment transfer prototype using IDM-VTON via Hugging Face |
 | **Tech Pack** | Export a manufacturing-oriented specification sheet |
 | **Collections** | Save generated designs locally for later review |
 | **Secure API Architecture** | All credentials (Cloudflare, HF, RapidAPI) are strictly server-side — never exposed to the browser |
 | **Eco Score** | Sustainability scoring per design |
+
+---
+
+## Deployment Architecture
+
+This project uses **two complementary API layers** — one for each deployment context:
+
+| Context | API Layer | Entry Point |
+|---|---|---|
+| **Vercel (production)** | Python serverless functions | `api/*.py` |
+| **Local development** | FastAPI server | `backend/app/main.py` |
+
+Both layers implement the same endpoints (`/api/design`, `/api/try-on`, `/api/products/search`, `/api/health`) and consume the same environment variables. The Vercel functions are the primary deployment path. The FastAPI backend is the local development and testing reference implementation.
+
+```
+── Vercel (production) ───────────────────────────
+  React (dist/)
+       ↓
+  Vercel Serverless Functions (api/*.py)
+       ↓ rewrites via vercel.json
+  /api/design         → api/design.py
+  /api/try-on         → api/try-on.py
+  /api/products/search → api/products.py
+  /api/health         → api/health.py
+
+── Local development ─────────────────────────────
+  React (Vite dev server :5173)
+       ↓
+  FastAPI server (:8000)  (backend/app/main.py)
+       ↓
+  backend/app/api/{design,tryon,products}.py
+```
+
+> The dual-layer design is intentional: Vercel serverless functions are stateless and suited for production deployment, while FastAPI provides a richer local development experience with async support, Pydantic validation, structured logging, and `pytest`-based testing.
 
 ---
 
@@ -103,20 +137,20 @@ Natural Language Prompt
 └───────────────┬─────────────────┘
                 │  HTTP (JSON / multipart)
                 ▼
-┌─────────────────────────────────┐
-│          FastAPI Backend        │
-│  Routing · Validation · CORS    │
-│  Rate Limiting · Error Handling │
-└──────┬───────────┬──────────┬───┘
-       │           │          │
-       ▼           ▼          ▼
-  Cloudflare    RapidAPI   IDM-VTON
-  Workers AI    H&M Store  Hugging Face
-  (image gen)   (products) (try-on)
-       │
-       ▼
-  Google Gemini
-  (spec extraction, client-side)
+┌─────────────────────────────────────────────┐
+│  API Layer                                  │
+│  Vercel serverless (production)             │
+│  — or —                                     │
+│  FastAPI + uvicorn (local dev)              │
+│  Routing · Validation · CORS · Rate Limits  │
+└──────┬───────────┬──────────────┬───────────┘
+       │           │              │
+       ▼           ▼              ▼
+  Cloudflare    RapidAPI      IDM-VTON
+  Workers AI    H&M Store     Hugging Face
+  (image gen)   (products)    (try-on)
+
+  Google Gemini  ←  client-side only (spec extraction)
 ```
 
 ### Integration Summary
@@ -152,7 +186,7 @@ User Prompt (free text)
   → Virtual Try-On Composite Image
 ```
 
-The pipeline separates concerns: Gemini handles language understanding client-side, while all credential-bearing API calls run exclusively through the FastAPI backend.
+The pipeline separates concerns: Gemini handles language understanding client-side, while all credential-bearing API calls (Cloudflare, RapidAPI, Hugging Face) run exclusively through the server-side API layer.
 
 ---
 
@@ -189,14 +223,17 @@ No vector similarity or semantic embeddings are used — ranking is based on str
 ```
 Person Photo (full-body)
         +
-Garment Image (product or generated design)
+Garment Image (clean product photo or uploaded image)
         ↓
-  FastAPI → Hugging Face Space: yisol/IDM-VTON
+  API Layer → Hugging Face Space: yisol/IDM-VTON
+  (gradio_client · ZeroGPU · auto-crop · 40 denoise steps)
         ↓
-  AI Try-On Composite Image
+  AI Try-On Result Image
 ```
 
-**IDM-VTON** is a third-party AI model developed by [yisol](https://github.com/yisol/IDM-VTON). This project integrates it via its public Hugging Face Space — it was not trained or developed as part of this project.
+**IDM-VTON** is a third-party AI model developed by [yisol](https://github.com/yisol/IDM-VTON). This project integrates it via its public Hugging Face Space using `gradio_client` — IDM-VTON was not trained or developed as part of this project.
+
+**Note on garment images:** IDM-VTON performs best with a clean, isolated garment photograph. When using an AI-generated design image as the garment input, results may vary because the generated image typically includes a full scene (person, background, garment) rather than a cropped garment-only image. The auto-crop option (`is_checked_crop=True`) is enabled to partially mitigate this.
 
 - **License:** [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) (non-commercial)
 - **Repository:** [https://github.com/yisol/IDM-VTON](https://github.com/yisol/IDM-VTON)
@@ -211,12 +248,13 @@ Use of this integration is subject to IDM-VTON's non-commercial license terms.
 | Layer | Technologies |
 |---|---|
 | Frontend | React 19, Vite 8, Tailwind CSS 4, lucide-react |
-| Backend | Python 3.11, FastAPI 0.115, Pydantic v2, httpx, slowapi |
+| Backend — Local dev | Python 3.11, FastAPI 0.115, Pydantic v2, httpx, slowapi |
+| Backend — Production | Python 3.11 serverless functions, gradio_client, stdlib urllib |
 | AI — Image Generation | Cloudflare Workers AI (FLUX.1, SDXL, DreamShaper) |
 | AI — Language | Google Gemini 2.5 Flash |
-| Virtual Try-On | IDM-VTON via Hugging Face Spaces |
+| Virtual Try-On | IDM-VTON via Hugging Face Spaces (gradio_client) |
 | Product Data | RapidAPI H&M Store API |
-| Deployment | Vercel (frontend + serverless functions) |
+| Deployment | Vercel (React SPA + Python serverless functions) |
 | Development | Git, GitHub |
 
 ---
@@ -311,7 +349,7 @@ copy .env.example .env   # Windows
 
 Open `.env` and populate the required variables (see [Environment Variables](#-environment-variables)).
 
-### 3. Start the FastAPI backend
+### 3. Start the FastAPI backend (local dev)
 
 ```bash
 cd backend
@@ -333,7 +371,7 @@ Verify the backend is running:
 GET http://localhost:8000/api/health
 ```
 
-### 4. Start the React frontend
+### 5. Start the React frontend
 
 ```bash
 # In a new terminal from the project root
