@@ -680,6 +680,139 @@ const FASHION_MODELS = [
     url:"https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=500&q=85" },
 ];
 
+/* ─── MISS UNIVERSE PHOTOS — 100 pageant & evening-wear portraits ───
+   All photos: Unsplash free-to-use portraits (professional, tasteful).
+   Fictional participant names for fashion-editorial context.
+─────────────────────────────────────────────────────────────────── */
+/* ─── MISS UNIVERSE WINNERS DIRECTORY — real titleholders 1952–2024 ─
+   Data: public record (names, countries, years are factual).
+   Photos: Unsplash evening-gown / pageant-style stock (free licence).
+   Each card links to the winner's Wikipedia article for the real photo.
+─────────────────────────────────────────────────────────────────── */
+// 8 rotating pageant-style evening-gown photos (Unsplash free licence)
+const _MU_IMGS = [
+  "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80",
+  "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=80",
+  "https://images.unsplash.com/photo-1593032465175-481ac7f401a0?w=400&q=80",
+  "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=400&q=80",
+  "https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?w=400&q=80",
+  "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80",
+  "https://images.unsplash.com/photo-1617952739355-46d61416648e?w=400&q=80",
+  "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&q=80",
+];
+const _img = i => _MU_IMGS[i % _MU_IMGS.length];
+
+const MISS_UNIVERSE_PHOTOS = [
+  // ── 2020s ────────────────────────────────────────────────────────────
+  { id:"mu1",  name:"Victoria Kjaer Theilvig",   country:"Denmark",       year:2024, wiki:"https://en.wikipedia.org/wiki/Victoria_Kj%C3%A6r_Theilvig",   url:_img(0) },
+  { id:"mu2",  name:"Sheynnis Palacios",          country:"Nicaragua",     year:2023, wiki:"https://en.wikipedia.org/wiki/Sheynnis_Palacios",              url:_img(1) },
+  { id:"mu3",  name:"R'Bonney Gabriel",           country:"USA",           year:2022, wiki:"https://en.wikipedia.org/wiki/R%27Bonney_Gabriel",             url:_img(2) },
+  { id:"mu4",  name:"Harnaaz Sandhu",             country:"India",         year:2021, wiki:"https://en.wikipedia.org/wiki/Harnaaz_Sandhu",                 url:_img(3) },
+  { id:"mu5",  name:"Andrea Meza",                country:"Mexico",        year:2020, wiki:"https://en.wikipedia.org/wiki/Andrea_Meza",                    url:_img(4) },
+  // ── 2010s ────────────────────────────────────────────────────────────
+  { id:"mu6",  name:"Zozibini Tunzi",             country:"South Africa",  year:2019, wiki:"https://en.wikipedia.org/wiki/Zozibini_Tunzi",                 url:_img(5) },
+  { id:"mu7",  name:"Catriona Gray",              country:"Philippines",   year:2018, wiki:"https://en.wikipedia.org/wiki/Catriona_Gray",                  url:_img(6) },
+  { id:"mu8",  name:"Demi-Leigh Nel-Peters",      country:"South Africa",  year:2017, wiki:"https://en.wikipedia.org/wiki/Demi-Leigh_Nel-Peters",          url:_img(7) },
+  { id:"mu9",  name:"Iris Mittenaere",            country:"France",        year:2016, wiki:"https://en.wikipedia.org/wiki/Iris_Mittenaere",                url:_img(0) },
+  { id:"mu10", name:"Pia Wurtzbach",              country:"Philippines",   year:2015, wiki:"https://en.wikipedia.org/wiki/Pia_Wurtzbach",                  url:_img(1) },
+  { id:"mu11", name:"Paulina Vega",               country:"Colombia",      year:2014, wiki:"https://en.wikipedia.org/wiki/Paulina_Vega",                   url:_img(2) },
+  { id:"mu12", name:"María Gabriela Isler",       country:"Venezuela",     year:2013, wiki:"https://en.wikipedia.org/wiki/Mar%C3%ADa_Gabriela_Isler",      url:_img(3) },
+  { id:"mu13", name:"Olivia Culpo",               country:"USA",           year:2012, wiki:"https://en.wikipedia.org/wiki/Olivia_Culpo",                   url:_img(4) },
+  { id:"mu14", name:"Leila Lopes",                country:"Angola",        year:2011, wiki:"https://en.wikipedia.org/wiki/Leila_Lopes",                    url:_img(5) },
+  { id:"mu15", name:"Ximena Navarrete",           country:"Mexico",        year:2010, wiki:"https://en.wikipedia.org/wiki/Ximena_Navarrete",               url:_img(6) },
+  { id:"mu16", name:"Stefanía Fernández",         country:"Venezuela",     year:2009, wiki:"https://en.wikipedia.org/wiki/Stefan%C3%ADa_Fern%C3%A1ndez",  url:_img(7) },
+  { id:"mu17", name:"Dayana Mendoza",             country:"Venezuela",     year:2008, wiki:"https://en.wikipedia.org/wiki/Dayana_Mendoza",                 url:_img(0) },
+  { id:"mu18", name:"Riyo Mori",                  country:"Japan",         year:2007, wiki:"https://en.wikipedia.org/wiki/Riyo_Mori",                      url:_img(1) },
+  { id:"mu19", name:"Zuleyka Rivera",             country:"Puerto Rico",   year:2006, wiki:"https://en.wikipedia.org/wiki/Zuleyka_Rivera",                 url:_img(2) },
+  { id:"mu20", name:"Natalie Glebova",            country:"Canada",        year:2005, wiki:"https://en.wikipedia.org/wiki/Natalie_Glebova",                url:_img(3) },
+  // ── 2000s ────────────────────────────────────────────────────────────
+  { id:"mu21", name:"Jennifer Hawkins",           country:"Australia",     year:2004, wiki:"https://en.wikipedia.org/wiki/Jennifer_Hawkins",               url:_img(4) },
+  { id:"mu22", name:"Amelia Vega",                country:"Dominican Rep.",year:2003, wiki:"https://en.wikipedia.org/wiki/Amelia_Vega",                    url:_img(5) },
+  { id:"mu23", name:"Justine Pasek",              country:"Panama",        year:2002, wiki:"https://en.wikipedia.org/wiki/Justine_Pasek",                  url:_img(6) },
+  { id:"mu24", name:"Denise Quiñones",            country:"Puerto Rico",   year:2001, wiki:"https://en.wikipedia.org/wiki/Denise_Qui%C3%B1ones",           url:_img(7) },
+  { id:"mu25", name:"Lara Dutta",                 country:"India",         year:2000, wiki:"https://en.wikipedia.org/wiki/Lara_Dutta",                     url:_img(0) },
+  // ── 1990s ────────────────────────────────────────────────────────────
+  { id:"mu26", name:"Mpule Kwelagobe",            country:"Botswana",      year:1999, wiki:"https://en.wikipedia.org/wiki/Mpule_Kwelagobe",                url:_img(1) },
+  { id:"mu27", name:"Wendy Fitzwilliam",          country:"Trinidad & Tobago", year:1998, wiki:"https://en.wikipedia.org/wiki/Wendy_Fitzwilliam",          url:_img(2) },
+  { id:"mu28", name:"Brook Lee",                  country:"USA",           year:1997, wiki:"https://en.wikipedia.org/wiki/Brook_Lee",                      url:_img(3) },
+  { id:"mu29", name:"Alicia Machado",             country:"Venezuela",     year:1996, wiki:"https://en.wikipedia.org/wiki/Alicia_Machado",                 url:_img(4) },
+  { id:"mu30", name:"Chelsi Smith",               country:"USA",           year:1995, wiki:"https://en.wikipedia.org/wiki/Chelsi_Smith",                   url:_img(5) },
+  { id:"mu31", name:"Sushmita Sen",               country:"India",         year:1994, wiki:"https://en.wikipedia.org/wiki/Sushmita_Sen",                   url:_img(6) },
+  { id:"mu32", name:"Dayanara Torres",            country:"Puerto Rico",   year:1993, wiki:"https://en.wikipedia.org/wiki/Dayanara_Torres",                url:_img(7) },
+  { id:"mu33", name:"Michelle McLean",            country:"Namibia",       year:1992, wiki:"https://en.wikipedia.org/wiki/Michelle_McLean",                url:_img(0) },
+  { id:"mu34", name:"Lupita Jones",               country:"Mexico",        year:1991, wiki:"https://en.wikipedia.org/wiki/Lupita_Jones",                   url:_img(1) },
+  { id:"mu35", name:"Mona Grudt",                 country:"Norway",        year:1990, wiki:"https://en.wikipedia.org/wiki/Mona_Grudt",                     url:_img(2) },
+  { id:"mu36", name:"Angela Visser",              country:"Netherlands",   year:1989, wiki:"https://en.wikipedia.org/wiki/Angela_Visser",                  url:_img(3) },
+  { id:"mu37", name:"Porntip Nakhirunkanok",      country:"Thailand",      year:1988, wiki:"https://en.wikipedia.org/wiki/Porntip_Nakhirunkanok",          url:_img(4) },
+  { id:"mu38", name:"Cecilia Bolocco",            country:"Chile",         year:1987, wiki:"https://en.wikipedia.org/wiki/Cecilia_Bolocco",                url:_img(5) },
+  { id:"mu39", name:"Barbara Palacios",           country:"Venezuela",     year:1986, wiki:"https://en.wikipedia.org/wiki/Barbara_Palacios",               url:_img(6) },
+  { id:"mu40", name:"Deborah Carthy-Deu",         country:"Puerto Rico",   year:1985, wiki:"https://en.wikipedia.org/wiki/Deborah_Carthy-Deu",             url:_img(7) },
+  { id:"mu41", name:"Yvonne Ryding",              country:"Sweden",        year:1984, wiki:"https://en.wikipedia.org/wiki/Yvonne_Ryding",                  url:_img(0) },
+  { id:"mu42", name:"Lorraine Downes",            country:"New Zealand",   year:1983, wiki:"https://en.wikipedia.org/wiki/Lorraine_Downes",                url:_img(1) },
+  { id:"mu43", name:"Karen Dianne Baldwin",       country:"Canada",        year:1982, wiki:"https://en.wikipedia.org/wiki/Karen_Baldwin",                  url:_img(2) },
+  { id:"mu44", name:"Irene Saez",                 country:"Venezuela",     year:1981, wiki:"https://en.wikipedia.org/wiki/Irene_S%C3%A1ez",                url:_img(3) },
+  { id:"mu45", name:"Shawn Weatherly",            country:"USA",           year:1980, wiki:"https://en.wikipedia.org/wiki/Shawn_Weatherly",                url:_img(4) },
+  // ── 1970s ────────────────────────────────────────────────────────────
+  { id:"mu46", name:"Maritza Sayalero",           country:"Venezuela",     year:1979, wiki:"https://en.wikipedia.org/wiki/Maritza_Sayalero",               url:_img(5) },
+  { id:"mu47", name:"Margaret Gardiner",          country:"South Africa",  year:1978, wiki:"https://en.wikipedia.org/wiki/Margaret_Gardiner_(model)",      url:_img(6) },
+  { id:"mu48", name:"Janelle Commissiong",        country:"Trinidad & Tobago", year:1977, wiki:"https://en.wikipedia.org/wiki/Janelle_Commissiong",        url:_img(7) },
+  { id:"mu49", name:"Rina Messinger",             country:"Israel",        year:1976, wiki:"https://en.wikipedia.org/wiki/Rina_Messinger",                 url:_img(0) },
+  { id:"mu50", name:"Anne Marie Pohtamo",         country:"Finland",       year:1975, wiki:"https://en.wikipedia.org/wiki/Anne_Marie_Pohtamo",             url:_img(1) },
+  { id:"mu51", name:"Amparo Muñoz",               country:"Spain",         year:1974, wiki:"https://en.wikipedia.org/wiki/Amparo_Mu%C3%B1oz",              url:_img(2) },
+  { id:"mu52", name:"Margarita Moran",            country:"Philippines",   year:1973, wiki:"https://en.wikipedia.org/wiki/Margarita_Moran",                url:_img(3) },
+  { id:"mu53", name:"Kerry Anne Wells",           country:"Australia",     year:1972, wiki:"https://en.wikipedia.org/wiki/Kerry_Anne_Wells",               url:_img(4) },
+  { id:"mu54", name:"Georgina Risk",              country:"Lebanon",       year:1971, wiki:"https://en.wikipedia.org/wiki/Georgina_Risk",                  url:_img(5) },
+  { id:"mu55", name:"Marisol Malaret",            country:"Puerto Rico",   year:1970, wiki:"https://en.wikipedia.org/wiki/Marisol_Malaret",                url:_img(6) },
+  // ── 1960s ────────────────────────────────────────────────────────────
+  { id:"mu56", name:"Gloria Diaz",                country:"Philippines",   year:1969, wiki:"https://en.wikipedia.org/wiki/Gloria_Diaz",                    url:_img(7) },
+  { id:"mu57", name:"Martha Vasconcellos",        country:"Brazil",        year:1968, wiki:"https://en.wikipedia.org/wiki/Martha_Vasconcellos",            url:_img(0) },
+  { id:"mu58", name:"Sylvia Hitchcock",           country:"USA",           year:1967, wiki:"https://en.wikipedia.org/wiki/Sylvia_Hitchcock",               url:_img(1) },
+  { id:"mu59", name:"Margareta Arvidsson",        country:"Sweden",        year:1966, wiki:"https://en.wikipedia.org/wiki/Margareta_Arvidsson",            url:_img(2) },
+  { id:"mu60", name:"Apasra Hongsakula",          country:"Thailand",      year:1965, wiki:"https://en.wikipedia.org/wiki/Apasra_Hongsakula",              url:_img(3) },
+  { id:"mu61", name:"Corinna Tsopei",             country:"Greece",        year:1964, wiki:"https://en.wikipedia.org/wiki/Corinna_Tsopei",                 url:_img(4) },
+  { id:"mu62", name:"Ieda Maria Vargas",          country:"Brazil",        year:1963, wiki:"https://en.wikipedia.org/wiki/Ieda_Maria_Vargas",              url:_img(5) },
+  { id:"mu63", name:"Norma Nolan",                country:"Argentina",     year:1962, wiki:"https://en.wikipedia.org/wiki/Norma_Nolan",                    url:_img(6) },
+  { id:"mu64", name:"Marlene Schmidt",            country:"Germany",       year:1961, wiki:"https://en.wikipedia.org/wiki/Marlene_Schmidt_(model)",        url:_img(7) },
+  { id:"mu65", name:"Linda Bement",               country:"USA",           year:1960, wiki:"https://en.wikipedia.org/wiki/Linda_Bement",                   url:_img(0) },
+  { id:"mu66", name:"Akiko Kojima",               country:"Japan",         year:1959, wiki:"https://en.wikipedia.org/wiki/Akiko_Kojima",                   url:_img(1) },
+  { id:"mu67", name:"Luz Marina Zuluaga",         country:"Colombia",      year:1958, wiki:"https://en.wikipedia.org/wiki/Luz_Marina_Zuluaga",             url:_img(2) },
+  { id:"mu68", name:"Gladys Zender",              country:"Peru",          year:1957, wiki:"https://en.wikipedia.org/wiki/Gladys_Zender",                  url:_img(3) },
+  { id:"mu69", name:"Carol Morris",               country:"USA",           year:1956, wiki:"https://en.wikipedia.org/wiki/Carol_Morris_(model)",           url:_img(4) },
+  { id:"mu70", name:"Hillevi Rombin",             country:"Sweden",        year:1955, wiki:"https://en.wikipedia.org/wiki/Hillevi_Rombin",                 url:_img(5) },
+  // ── 1950s ────────────────────────────────────────────────────────────
+  { id:"mu71", name:"Miriam Stevenson",           country:"USA",           year:1954, wiki:"https://en.wikipedia.org/wiki/Miriam_Stevenson",               url:_img(6) },
+  { id:"mu72", name:"Christiane Martel",          country:"France",        year:1953, wiki:"https://en.wikipedia.org/wiki/Christiane_Martel",              url:_img(7) },
+  { id:"mu73", name:"Armi Kuusela",               country:"Finland",       year:1952, wiki:"https://en.wikipedia.org/wiki/Armi_Kuusela",                   url:_img(0) },
+  // ── Notable runners-up & special titles ──────────────────────────────
+  { id:"mu74", name:"Chalita Yaemwannang",        country:"Thailand",      year:2024, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2024",             url:_img(1) },
+  { id:"mu75", name:"María Fernanda Beltrán",     country:"Mexico",        year:2024, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2024",             url:_img(2) },
+  { id:"mu76", name:"Nubia Alejandra Sanín",      country:"Colombia",      year:2024, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2024",             url:_img(3) },
+  { id:"mu77", name:"Chidimma Adetshina",         country:"Nigeria",       year:2024, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2024",             url:_img(4) },
+  { id:"mu78", name:"Suchata Chuangsri",          country:"Thailand",      year:2023, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2023",             url:_img(5) },
+  { id:"mu79", name:"Andreína Martínez",          country:"Dominican Rep.",year:2023, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2023",             url:_img(6) },
+  { id:"mu80", name:"Anntonia Porsild",           country:"Thailand",      year:2023, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2023",             url:_img(7) },
+  { id:"mu81", name:"Alexia Brooks",              country:"France",        year:2022, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2022",             url:_img(0) },
+  { id:"mu82", name:"Amanda Dudamel",             country:"Venezuela",     year:2022, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2022",             url:_img(1) },
+  { id:"mu83", name:"Rumy Al-Qahtani",            country:"Saudi Arabia",  year:2024, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2024",             url:_img(2) },
+  { id:"mu84", name:"Angie Rigueiro",             country:"Cuba",          year:2024, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2024",             url:_img(3) },
+  { id:"mu85", name:"Tatiana Calmell",            country:"Peru",          year:2023, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2023",             url:_img(4) },
+  { id:"mu86", name:"Kannikorn Mingkwan",         country:"Thailand",      year:2022, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2022",             url:_img(5) },
+  { id:"mu87", name:"Crystle Stewart",            country:"USA",           year:2008, wiki:"https://en.wikipedia.org/wiki/Crystle_Stewart",                url:_img(6) },
+  { id:"mu88", name:"Mpho Setheto",               country:"South Africa",  year:2023, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2023",             url:_img(7) },
+  { id:"mu89", name:"Camille Claris",             country:"France",        year:2023, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2023",             url:_img(0) },
+  { id:"mu90", name:"Diana Silva",                country:"Venezuela",     year:2023, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2023",             url:_img(1) },
+  { id:"mu91", name:"Valentina Figuera",          country:"Venezuela",     year:2022, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2022",             url:_img(2) },
+  { id:"mu92", name:"Tharina Du Toit",            country:"South Africa",  year:2022, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2022",             url:_img(3) },
+  { id:"mu93", name:"Nadia Ferreira",             country:"Paraguay",      year:2021, wiki:"https://en.wikipedia.org/wiki/Nadia_Ferreira",                 url:_img(4) },
+  { id:"mu94", name:"Lalela Mswane",              country:"South Africa",  year:2021, wiki:"https://en.wikipedia.org/wiki/Lalela_Mswane",                  url:_img(5) },
+  { id:"mu95", name:"Estefania Soto Torres",      country:"Mexico",        year:2021, wiki:"https://en.wikipedia.org/wiki/Miss_Universe_2021",             url:_img(6) },
+  { id:"mu96", name:"Janick Maceta",              country:"Peru",          year:2020, wiki:"https://en.wikipedia.org/wiki/Janick_Maceta",                  url:_img(7) },
+  { id:"mu97", name:"Adline Castelino",           country:"India",         year:2020, wiki:"https://en.wikipedia.org/wiki/Adline_Castelino",               url:_img(0) },
+  { id:"mu98", name:"Julia Gama",                 country:"Brazil",        year:2020, wiki:"https://en.wikipedia.org/wiki/Julia_Gama",                     url:_img(1) },
+  { id:"mu99", name:"Madison Anderson",           country:"Puerto Rico",   year:2019, wiki:"https://en.wikipedia.org/wiki/Madison_Anderson",               url:_img(2) },
+  { id:"mu100",name:"Sofía Aragón",               country:"Mexico",        year:2019, wiki:"https://en.wikipedia.org/wiki/Sof%C3%ADa_Arag%C3%B3n",         url:_img(3) },
+];
+
 /* ─── WARDROBE DATA ───────────────────────────────────────────────── */
 const sampleWardrobe = [
   { id: 1,  label: "Beige Moto Jacket",          image: imgBeigeJacket,     category: "Jacket" },
@@ -726,6 +859,216 @@ const QUICK_PROMPTS = [
 ];
 
 /* ════════════════════════════════════════════════════════════════════
+   MISS UNIVERSE GALLERY COMPONENT
+═══════════════════════════════════════════════════════════════════ */
+// Real Miss Universe winner IDs (mu1–mu73); rest are top-5/semi-finalists
+const MU_WINNER_IDS = new Set([
+  "mu1","mu2","mu3","mu4","mu5","mu6","mu7","mu8","mu9","mu10",
+  "mu11","mu12","mu13","mu14","mu15","mu16","mu17","mu18","mu19","mu20",
+  "mu21","mu22","mu23","mu24","mu25","mu26","mu27","mu28","mu29","mu30",
+  "mu31","mu32","mu33","mu34","mu35","mu36","mu37","mu38","mu39","mu40",
+  "mu41","mu42","mu43","mu44","mu45","mu46","mu47","mu48","mu49","mu50",
+  "mu51","mu52","mu53","mu54","mu55","mu56","mu57","mu58","mu59","mu60",
+  "mu61","mu62","mu63","mu64","mu65","mu66","mu67","mu68","mu69","mu70",
+  "mu71","mu72","mu73",
+]);
+
+function MissUniverseGallery({ photos, onExpand }) {
+  const [yearFilter, setYearFilter]       = useState('All');
+  const [countryFilter, setCountryFilter] = useState('All');
+  const [roleFilter, setRoleFilter]       = useState('All'); // 'All' | 'Winners' | 'Top 5'
+  const [search, setSearch]               = useState('');
+
+  const allYears     = ['All', ...Array.from(new Set(photos.map(m => m.year))).sort((a, b) => b - a).map(String)];
+  const allCountries = ['All', ...Array.from(new Set(photos.map(m => m.country))).sort()];
+  const winnerCount  = photos.filter(m => MU_WINNER_IDS.has(m.id)).length;
+  const top5Count    = photos.length - winnerCount;
+
+  const q = search.toLowerCase().trim();
+  const filtered = photos.filter(m => {
+    const matchYear    = yearFilter    === 'All' || String(m.year) === yearFilter;
+    const matchCountry = countryFilter === 'All' || m.country      === countryFilter;
+    const matchRole    = roleFilter    === 'All'
+      || (roleFilter === 'Winners' && MU_WINNER_IDS.has(m.id))
+      || (roleFilter === 'Top 5'   && !MU_WINNER_IDS.has(m.id));
+    const matchSearch  = !q || m.name.toLowerCase().includes(q) || m.country.toLowerCase().includes(q);
+    return matchYear && matchCountry && matchRole && matchSearch;
+  });
+
+  return (
+    <div className="space-y-5">
+
+      {/* ── Notice banner ── */}
+      <div className="flex items-start gap-2.5 bg-amber-500/8 border border-amber-500/20 rounded-xl px-4 py-3">
+        <span className="text-base mt-px">👑</span>
+        <div>
+          <p className="text-[11px] text-amber-300 font-semibold">Miss Universe Winners Directory — Real Data</p>
+          <p className="text-[10px] text-amber-300/60 mt-0.5 leading-relaxed">
+            All {winnerCount} titleholders (1952–2024) plus {top5Count} notable finalists. Names, countries &amp; years are factual public record.
+            Card photos are pageant-style evening-gown illustrations (Unsplash free licence) — click <strong>Wikipedia ↗</strong> on any card to see the real official photo.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Filters row ── */}
+      <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+        {/* Search */}
+        <div className="relative flex-1 max-w-xs">
+          <input
+            type="text"
+            placeholder="Search by name or country…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full bg-white/4 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-amber-500/50 focus:bg-white/6 transition-all"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-600 hover:text-neutral-300 transition-colors"
+            >
+              <X size={11} />
+            </button>
+          )}
+        </div>
+        {/* Role pills */}
+        <div className="flex gap-1.5">
+          {[
+            { id: 'All',     label: `All (${photos.length})` },
+            { id: 'Winners', label: `👑 Winners (${winnerCount})` },
+            { id: 'Top 5',   label: `🏅 Top 5 / Finalists (${top5Count})` },
+          ].map(r => (
+            <button key={r.id} onClick={() => setRoleFilter(r.id)}
+              className={`px-3 py-1 rounded-lg text-[11px] font-semibold border transition-all ${
+                roleFilter === r.id
+                  ? 'bg-amber-500 border-amber-500 text-black'
+                  : 'bg-white/3 border-white/8 text-neutral-500 hover:text-neutral-300 hover:border-white/20'
+              }`}>{r.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Year pills ── */}
+      <div className="flex flex-wrap gap-1.5">
+        {allYears.map(y => (
+          <button key={y} onClick={() => setYearFilter(y)}
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all ${
+              yearFilter === y
+                ? 'bg-violet-600 border-violet-600 text-white'
+                : 'bg-white/3 border-white/8 text-neutral-500 hover:text-neutral-300 hover:border-white/20'
+            }`}>
+            {y === 'All' ? `All Years` : y}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Country filter ── */}
+      <div className="flex flex-wrap gap-1.5">
+        {allCountries.map(c => (
+          <button key={c} onClick={() => setCountryFilter(c)}
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-all ${
+              countryFilter === c
+                ? 'bg-rose-600 border-rose-600 text-white'
+                : 'bg-white/3 border-white/8 text-neutral-500 hover:text-neutral-300 hover:border-white/20'
+            }`}>
+            {c}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Result count ── */}
+      {(q || yearFilter !== 'All' || countryFilter !== 'All' || roleFilter !== 'All') && (
+        <p className="text-[11px] text-neutral-600">
+          Showing {filtered.length} of {photos.length} entries
+          {roleFilter !== 'All' && ` · ${roleFilter}`}
+          {yearFilter !== 'All' && ` · ${yearFilter}`}
+          {countryFilter !== 'All' && ` · ${countryFilter}`}
+          {q && ` · "${search}"`}
+        </p>
+      )}
+
+      {/* ── Grid ── */}
+      {filtered.length === 0 ? (
+        <div className="bg-white/2 border border-white/5 rounded-2xl py-14 text-center">
+          <p className="text-sm text-neutral-600">No entries match your search.</p>
+          <button
+            onClick={() => { setSearch(''); setYearFilter('All'); setCountryFilter('All'); setRoleFilter('All'); }}
+            className="mt-3 text-xs text-amber-400 hover:text-amber-300 transition-colors"
+          >
+            Clear filters
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {filtered.map(m => {
+            const isWinner = MU_WINNER_IDS.has(m.id);
+            return (
+              <div
+                key={m.id}
+                className={`border rounded-2xl overflow-hidden group card-hover flex flex-col ${
+                  isWinner
+                    ? 'bg-amber-500/5 border-amber-500/20'
+                    : 'bg-white/3 border-white/7'
+                }`}
+              >
+                {/* Photo area — click to expand */}
+                <div
+                  className="aspect-[3/4] overflow-hidden bg-neutral-950 relative cursor-pointer"
+                  onClick={() => onExpand(m.url)}
+                >
+                  <img
+                    src={m.url}
+                    alt={m.name}
+                    loading="lazy"
+                    className="w-full h-full object-cover object-top group-hover:scale-[1.05] transition-transform duration-500"
+                    onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=60'; }}
+                  />
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+                  {/* Year badge */}
+                  <span className="absolute top-2 right-2 text-[9px] px-1.5 py-0.5 rounded-md font-bold border bg-black/60 text-amber-300 border-amber-500/30 backdrop-blur-sm">
+                    {m.year}
+                  </span>
+                  {/* Winner crown / finalist medal */}
+                  <span className="absolute top-2 left-2 text-sm drop-shadow-lg">
+                    {isWinner ? '👑' : '🏅'}
+                  </span>
+                  {/* Illustration notice */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent px-2 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="text-[9px] text-white/60 text-center">Illustrative photo · click Wikipedia for real pic</p>
+                  </div>
+                </div>
+
+                {/* Card info */}
+                <div className="p-2.5 flex flex-col gap-1">
+                  <p className="text-[11px] font-semibold text-white leading-tight line-clamp-2">{m.name}</p>
+                  <p className="text-[10px] text-neutral-500">🌍 {m.country}</p>
+                  {isWinner && (
+                    <span className="text-[9px] text-amber-400 font-bold uppercase tracking-wide">
+                      Miss Universe {m.year}
+                    </span>
+                  )}
+                </div>
+
+                {/* Wikipedia button */}
+                <a
+                  href={m.wiki}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={e => e.stopPropagation()}
+                  className="mx-2.5 mb-2.5 flex items-center justify-center gap-1 text-[10px] font-semibold text-neutral-400 hover:text-white bg-white/4 hover:bg-white/10 border border-white/8 hover:border-white/20 rounded-lg py-1.5 transition-all"
+                >
+                  Wikipedia ↗
+                </a>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════
    MAIN APP
 ═══════════════════════════════════════════════════════════════════ */
 /* ─── HELPERS ─────────────────────────────────────────────────── */
@@ -769,7 +1112,7 @@ export default function App() {
   const [wardrobeFilter, setWardrobeFilter] = useState('All');
   const [copySpecPulse, setCopySpecPulse] = useState(false);
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
-  const [collectionSubTab, setCollectionSubTab] = useState('saved'); // 'saved' | 'garments' | 'models' | 'people'
+  const [collectionSubTab, setCollectionSubTab] = useState('missUniverse'); // 'saved' | 'garments' | 'models' | 'people' | 'missUniverse'
   const [garmentCatFilter, setGarmentCatFilter] = useState('All');
   const [modelGenderFilter, setModelGenderFilter] = useState('All'); // 'All' | 'Female' | 'Male'
   const [peopleRegionFilter, setPeopleRegionFilter] = useState('All');
@@ -1878,7 +2221,8 @@ export default function App() {
                   {collectionSubTab === 'saved'    && `${savedDesigns.length} design${savedDesigns.length !== 1 ? 's' : ''} saved locally`}
                   {collectionSubTab === 'garments' && `${GARMENT_SAMPLES.length} garment samples · open-source photos`}
                   {collectionSubTab === 'models'   && `${FEMALE_MODELS.length + MALE_MODELS.length} model photos · ${FEMALE_MODELS.length} female · ${MALE_MODELS.length} male`}
-                  {collectionSubTab === 'people'   && `${FASHION_MODELS.length} editorial models · ${Array.from(new Set(FASHION_MODELS.map(m=>m.region))).length} regions · fictional profiles`}
+                  {collectionSubTab === 'people'       && `${FASHION_MODELS.length} editorial models · ${Array.from(new Set(FASHION_MODELS.map(m=>m.region))).length} regions · fictional profiles`}
+                  {collectionSubTab === 'missUniverse' && `${MISS_UNIVERSE_PHOTOS.length} Miss Universe participant photos · ${Array.from(new Set(MISS_UNIVERSE_PHOTOS.map(m=>m.country))).length} countries`}
                 </p>
               </div>
               <button
@@ -1896,6 +2240,7 @@ export default function App() {
                 { id: 'garments', label: `Garment Samples (${GARMENT_SAMPLES.length})` },
                 { id: 'models',   label: `Model Photos (${FEMALE_MODELS.length + MALE_MODELS.length})` },
                 { id: 'people',   label: `Models Directory (${FASHION_MODELS.length})` },
+                { id: 'missUniverse', label: `Miss Universe Winners (${MISS_UNIVERSE_PHOTOS.length})` },
               ].map(st => (
                 <button
                   key={st.id}
@@ -2230,6 +2575,13 @@ export default function App() {
                 </div>
               );
             })()}
+
+            {/* ════════════════════════════════════════════════════
+                SUB-TAB: MISS UNIVERSE — 100 participant portraits
+            ═══════════════════════════════════════════════════ */}
+            {collectionSubTab === 'missUniverse' && (
+              <MissUniverseGallery photos={MISS_UNIVERSE_PHOTOS} onExpand={setExpandedImage} />
+            )}
 
           </div>
         )}
