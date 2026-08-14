@@ -29,10 +29,6 @@ import {
 /* ─── CONFIG ──────────────────────────────────────────────────────── */
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 const GEMINI_MODEL   = import.meta.env.VITE_GEMINI_MODEL   || "gemini-2.5-flash";
-// On Vercel the API functions are co-hosted at the same origin, so the
-// default is "" (relative URLs like /api/try-on).  Override with
-// VITE_BACKEND_URL only when running a separate backend (e.g. local dev).
-const BACKEND_URL    = import.meta.env.VITE_BACKEND_URL    ?? "";
 
 /* ─── STORAGE ─────────────────────────────────────────────────────── */
 const StorageService = {
@@ -107,22 +103,17 @@ const ImageGenerationService = {
     try {
       const body = { prompt: optimizedPrompt };
       if (modelId) body.model = modelId;
-      const res = await fetch(`${BACKEND_URL}/api/design`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const res = await fetch('/api/design', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (res.ok) { const data = await res.json(); if (data.success && data.image) return data.image; }
       else { const err = await res.json().catch(() => ({})); if (res.status !== 503) console.warn('[ImageGen] CF error:', err?.error?.code); }
     } catch (e) { console.warn('[ImageGen] /api/design unreachable:', e.message); }
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/generate-image`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: optimizedPrompt }) });
-      if (res.ok) { const data = await res.json(); if (data.image_base64) return data.image_base64; }
-      else { const err = await res.json().catch(() => ({})); if (err?.detail?.fallback_url) return err.detail.fallback_url; }
-    } catch (e) { console.warn('[ImageGen] /api/generate-image unreachable:', e.message); }
     return null;
   }
 };
 
 /* ─── PRODUCT SEARCH SERVICE ──────────────────────────────────── */
-// Calls the FastAPI backend /api/products/search endpoint.
-// The RapidAPI key lives ONLY in the backend — never here.
+// Calls the Vercel /api/products/search serverless function.
+// The RapidAPI key lives ONLY in server-side env vars — never in the browser bundle.
 const ProductSearchService = {
   /**
    * Build a plain-English query from the Gemini fashion spec, then ask
@@ -166,7 +157,7 @@ const ProductSearchService = {
       const colorHint = colorWords2.find(c => promptLower2.includes(c));
       if (colorHint) params.set('color', colorHint);
 
-      const res = await fetch(`${BACKEND_URL}/api/products/search?${params}`);
+      const res = await fetch(`/api/products/search?${params}`);
 
       if (res.status === 503) {
         // Backend not configured — silent fail (no fake data)
@@ -265,6 +256,188 @@ const ONLINE_GARMENTS = [
   },
 ];
 
+/* ─── 100 GARMENT SAMPLES (Unsplash open-source) ─────────────────── */
+const GARMENT_SAMPLES = [
+  { id:"gs1",  label:"White Linen Shirt",          category:"Shirts",   url:"https://images.unsplash.com/photo-1598032895397-b9472444bf93?w=400&q=80" },
+  { id:"gs2",  label:"Black V-Neck Tee",           category:"Shirts",   url:"https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80" },
+  { id:"gs3",  label:"Striped Oxford Shirt",       category:"Shirts",   url:"https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&q=80" },
+  { id:"gs4",  label:"Pastel Pink Blouse",         category:"Shirts",   url:"https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&q=80" },
+  { id:"gs5",  label:"Navy Polo Shirt",            category:"Shirts",   url:"https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=400&q=80" },
+  { id:"gs6",  label:"Graphic Tee – Abstract",     category:"Shirts",   url:"https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?w=400&q=80" },
+  { id:"gs7",  label:"Chambray Button-Down",       category:"Shirts",   url:"https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400&q=80" },
+  { id:"gs8",  label:"Cropped Tank Top",           category:"Shirts",   url:"https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=400&q=80" },
+  { id:"gs9",  label:"Off-Shoulder Top",           category:"Shirts",   url:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=80" },
+  { id:"gs10", label:"Ruffle Sleeve Blouse",       category:"Shirts",   url:"https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&q=80" },
+  { id:"gs11", label:"High-Waist Skinny Jeans",    category:"Bottoms",  url:"https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&q=80" },
+  { id:"gs12", label:"Wide-Leg Trousers",          category:"Bottoms",  url:"https://images.unsplash.com/photo-1604176354204-9268737828e4?w=400&q=80" },
+  { id:"gs13", label:"Pleated Mini Skirt",         category:"Bottoms",  url:"https://images.unsplash.com/photo-1577900232427-18219b9166a0?w=400&q=80" },
+  { id:"gs14", label:"Denim Shorts",               category:"Bottoms",  url:"https://images.unsplash.com/photo-1591195853828-11db59a44f43?w=400&q=80" },
+  { id:"gs15", label:"Floral Wrap Skirt",          category:"Bottoms",  url:"https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&q=80" },
+  { id:"gs16", label:"Black Leggings",             category:"Bottoms",  url:"https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=400&q=80" },
+  { id:"gs17", label:"Cargo Pants",                category:"Bottoms",  url:"https://images.unsplash.com/photo-1543508282-6319a3e2621f?w=400&q=80" },
+  { id:"gs18", label:"Linen Wide Pants",           category:"Bottoms",  url:"https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=400&q=80" },
+  { id:"gs19", label:"Corduroy Trousers",          category:"Bottoms",  url:"https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400&q=80" },
+  { id:"gs20", label:"Bermuda Shorts",             category:"Bottoms",  url:"https://images.unsplash.com/photo-1565084888279-aca607bb7621?w=400&q=80" },
+  { id:"gs21", label:"Floral Maxi Dress",          category:"Dresses",  url:"https://images.unsplash.com/photo-1496217590455-aa63a8350eea?w=400&q=80" },
+  { id:"gs22", label:"Little Black Dress",         category:"Dresses",  url:"https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=400&q=80" },
+  { id:"gs23", label:"Wrap Midi Dress",            category:"Dresses",  url:"https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=400&q=80" },
+  { id:"gs24", label:"Slip Satin Dress",           category:"Dresses",  url:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" },
+  { id:"gs25", label:"Sundress – Yellow Print",    category:"Dresses",  url:"https://images.unsplash.com/photo-1603344204980-4edb0ea63148?w=400&q=80" },
+  { id:"gs26", label:"Shirt Dress",                category:"Dresses",  url:"https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=400&q=80" },
+  { id:"gs27", label:"Bodycon Dress",              category:"Dresses",  url:"https://images.unsplash.com/photo-1551803091-e20673f15770?w=400&q=80" },
+  { id:"gs28", label:"Tiered Boho Dress",          category:"Dresses",  url:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=80" },
+  { id:"gs29", label:"Flared Denim Dress",         category:"Dresses",  url:"https://images.unsplash.com/photo-1571513722275-4b41940f54b8?w=400&q=80" },
+  { id:"gs30", label:"Summer Co-ord Set",          category:"Dresses",  url:"https://images.unsplash.com/photo-1589810635657-232948472d98?w=400&q=80" },
+  { id:"gs31", label:"Classic Navy Blazer",        category:"Formal",   url:"https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&q=80" },
+  { id:"gs32", label:"Pinstripe Suit Jacket",      category:"Formal",   url:"https://images.unsplash.com/photo-1593032465175-481ac7f401a0?w=400&q=80" },
+  { id:"gs33", label:"Double-Breasted Blazer",     category:"Formal",   url:"https://images.unsplash.com/photo-1617952739355-46d61416648e?w=400&q=80" },
+  { id:"gs34", label:"White Tailored Shirt",       category:"Formal",   url:"https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=400&q=80" },
+  { id:"gs35", label:"Black Formal Trousers",      category:"Formal",   url:"https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80" },
+  { id:"gs36", label:"Tuxedo Jacket",              category:"Formal",   url:"https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=400&q=80" },
+  { id:"gs37", label:"Pencil Skirt – Black",       category:"Formal",   url:"https://images.unsplash.com/photo-1594938298603-c8148c4b4086?w=400&q=80" },
+  { id:"gs38", label:"Structured Blazer Dress",    category:"Formal",   url:"https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?w=400&q=80" },
+  { id:"gs39", label:"Grey Suit Trousers",         category:"Formal",   url:"https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=80" },
+  { id:"gs40", label:"Crepe Formal Blouse",        category:"Formal",   url:"https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&q=80" },
+  { id:"gs41", label:"Olive Cargo Jacket",         category:"Jackets",  url:"https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80" },
+  { id:"gs42", label:"Classic Denim Jacket",       category:"Jackets",  url:"https://images.unsplash.com/photo-1542295669297-4d352b042bca?w=400&q=80" },
+  { id:"gs43", label:"Beige Trench Coat",          category:"Jackets",  url:"https://images.unsplash.com/photo-1548454782-15b189d129ab?w=400&q=80" },
+  { id:"gs44", label:"Puffer Jacket – Black",      category:"Jackets",  url:"https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400&q=80" },
+  { id:"gs45", label:"Brown Leather Jacket",       category:"Jackets",  url:"https://images.unsplash.com/photo-1521223890158-f9f7c3d5d504?w=400&q=80" },
+  { id:"gs46", label:"Oversized Bomber",           category:"Jackets",  url:"https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&q=80" },
+  { id:"gs47", label:"Checked Shacket",            category:"Jackets",  url:"https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400&q=80" },
+  { id:"gs48", label:"Windbreaker",                category:"Jackets",  url:"https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&q=80" },
+  { id:"gs49", label:"Faux-Fur Coat",              category:"Jackets",  url:"https://images.unsplash.com/photo-1520975867351-d91ff4fa57d9?w=400&q=80" },
+  { id:"gs50", label:"Cropped Blazer – Cream",     category:"Jackets",  url:"https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=80" },
+  { id:"gs51", label:"Grey Marl Hoodie",           category:"Casual",   url:"https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&q=80" },
+  { id:"gs52", label:"White Oversized Tee",        category:"Casual",   url:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80" },
+  { id:"gs53", label:"Blue Sweatshirt",            category:"Casual",   url:"https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400&q=80" },
+  { id:"gs54", label:"Vintage Denim Jacket",       category:"Casual",   url:"https://images.unsplash.com/photo-1588099768523-f4e6a5679d88?w=400&q=80" },
+  { id:"gs55", label:"Knit Cardigan – Beige",      category:"Casual",   url:"https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80" },
+  { id:"gs56", label:"Track Jacket",               category:"Casual",   url:"https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80" },
+  { id:"gs57", label:"Zip-Up Fleece",              category:"Casual",   url:"https://images.unsplash.com/photo-1603344204980-4edb0ea63148?w=400&q=80" },
+  { id:"gs58", label:"Crewneck Sweatshirt",        category:"Casual",   url:"https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400&q=80" },
+  { id:"gs59", label:"Tie-Dye Tee",               category:"Casual",   url:"https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?w=400&q=80" },
+  { id:"gs60", label:"Striped Breton Top",         category:"Casual",   url:"https://images.unsplash.com/photo-1618354691438-25bc04584c23?w=400&q=80" },
+  { id:"gs61", label:"Pastel Kurta",               category:"Ethnic",   url:"https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=400&q=80" },
+  { id:"gs62", label:"Embroidered Anarkali",       category:"Ethnic",   url:"https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=400&q=80" },
+  { id:"gs63", label:"Silk Saree – Teal",          category:"Ethnic",   url:"https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400&q=80" },
+  { id:"gs64", label:"Bandhani Dress",             category:"Ethnic",   url:"https://images.unsplash.com/photo-1550614000-4895a10e1bfd?w=400&q=80" },
+  { id:"gs65", label:"Block-Print Co-ord",         category:"Ethnic",   url:"https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&q=80" },
+  { id:"gs66", label:"Indo-Western Jacket",        category:"Ethnic",   url:"https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&q=80" },
+  { id:"gs67", label:"Chikankari Kurti",           category:"Ethnic",   url:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=80" },
+  { id:"gs68", label:"Lehenga – Blush Pink",       category:"Ethnic",   url:"https://images.unsplash.com/photo-1551803091-e20673f15770?w=400&q=80" },
+  { id:"gs69", label:"Dhoti Pants Set",            category:"Ethnic",   url:"https://images.unsplash.com/photo-1509551388413-e18d0ac5d495?w=400&q=80" },
+  { id:"gs70", label:"Phulkari Jacket",            category:"Ethnic",   url:"https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=400&q=80" },
+  { id:"gs71", label:"Zip-Up Hoodie – Black",      category:"Activewear", url:"https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400&q=80" },
+  { id:"gs72", label:"Sports Bra – Coral",         category:"Activewear", url:"https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=400&q=80" },
+  { id:"gs73", label:"Yoga Leggings",              category:"Activewear", url:"https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=400&q=80" },
+  { id:"gs74", label:"Running Jacket",             category:"Activewear", url:"https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80" },
+  { id:"gs75", label:"Athletic Shorts",            category:"Activewear", url:"https://images.unsplash.com/photo-1565084888279-aca607bb7621?w=400&q=80" },
+  { id:"gs76", label:"Tank Top – Racerback",       category:"Activewear", url:"https://images.unsplash.com/photo-1550614000-4895a10e1bfd?w=400&q=80" },
+  { id:"gs77", label:"Compression Tee",            category:"Activewear", url:"https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400&q=80" },
+  { id:"gs78", label:"Cycling Shorts",             category:"Activewear", url:"https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&q=80" },
+  { id:"gs79", label:"Windproof Gilet",            category:"Activewear", url:"https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400&q=80" },
+  { id:"gs80", label:"Gym Sweatpants",             category:"Activewear", url:"https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&q=80" },
+  { id:"gs81", label:"Cashmere V-Neck Sweater",    category:"Knitwear",  url:"https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80" },
+  { id:"gs82", label:"Chunky Knit Turtleneck",     category:"Knitwear",  url:"https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=400&q=80" },
+  { id:"gs83", label:"Cable Knit Cardigan",        category:"Knitwear",  url:"https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&q=80" },
+  { id:"gs84", label:"Merino Wool Jumper",         category:"Knitwear",  url:"https://images.unsplash.com/photo-1520975867351-d91ff4fa57d9?w=400&q=80" },
+  { id:"gs85", label:"Ribbed Crop Sweater",        category:"Knitwear",  url:"https://images.unsplash.com/photo-1571513722275-4b41940f54b8?w=400&q=80" },
+  { id:"gs86", label:"Striped Knit Vest",          category:"Knitwear",  url:"https://images.unsplash.com/photo-1618354691438-25bc04584c23?w=400&q=80" },
+  { id:"gs87", label:"Longline Cardigan",          category:"Knitwear",  url:"https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=80" },
+  { id:"gs88", label:"Open-Front Kimono",          category:"Knitwear",  url:"https://images.unsplash.com/photo-1589810635657-232948472d98?w=400&q=80" },
+  { id:"gs89", label:"Oversized Roll-Neck",        category:"Knitwear",  url:"https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400&q=80" },
+  { id:"gs90", label:"Fair-Isle Sweater",          category:"Knitwear",  url:"https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?w=400&q=80" },
+  { id:"gs91", label:"Evening Gown – Navy",        category:"Evening",   url:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" },
+  { id:"gs92", label:"Sequin Mini Dress",          category:"Evening",   url:"https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=400&q=80" },
+  { id:"gs93", label:"Velvet Blazer",              category:"Evening",   url:"https://images.unsplash.com/photo-1617952739355-46d61416648e?w=400&q=80" },
+  { id:"gs94", label:"Backless Maxi Dress",        category:"Evening",   url:"https://images.unsplash.com/photo-1496217590455-aa63a8350eea?w=400&q=80" },
+  { id:"gs95", label:"Slit Satin Gown",            category:"Evening",   url:"https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&q=80" },
+  { id:"gs96", label:"Feather-Trim Blouse",        category:"Evening",   url:"https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&q=80" },
+  { id:"gs97", label:"Cocktail Wrap Dress",        category:"Evening",   url:"https://images.unsplash.com/photo-1551803091-e20673f15770?w=400&q=80" },
+  { id:"gs98", label:"Lace Midi Dress",            category:"Evening",   url:"https://images.unsplash.com/photo-1603344204980-4edb0ea63148?w=400&q=80" },
+  { id:"gs99", label:"Tuxedo Jumpsuit",            category:"Evening",   url:"https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=400&q=80" },
+  { id:"gs100",label:"Gold Brocade Kurta Set",     category:"Evening",   url:"https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400&q=80" },
+];
+
+/* ─── 50 FEMALE MODELS (Unsplash open-source) ────────────────────── */
+const FEMALE_MODELS = [
+  { id:"fm1",  label:"Elegant Formal Look",        url:"https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=80" },
+  { id:"fm2",  label:"Street Style Casual",        url:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=80" },
+  { id:"fm3",  label:"Summer Floral Dress",        url:"https://images.unsplash.com/photo-1496217590455-aa63a8350eea?w=400&q=80" },
+  { id:"fm4",  label:"Minimal White Outfit",       url:"https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80" },
+  { id:"fm5",  label:"Boho Chic Look",             url:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&q=80" },
+  { id:"fm6",  label:"Editorial Black Dress",      url:"https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=400&q=80" },
+  { id:"fm7",  label:"Corporate Blazer Style",     url:"https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80" },
+  { id:"fm8",  label:"Resort Wear Look",           url:"https://images.unsplash.com/photo-1551803091-e20673f15770?w=400&q=80" },
+  { id:"fm9",  label:"Monochrome Grey Set",        url:"https://images.unsplash.com/photo-1546961342-ea5f62d5a27b?w=400&q=80" },
+  { id:"fm10", label:"Red Evening Gown",           url:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" },
+  { id:"fm11", label:"Denim-on-Denim",             url:"https://images.unsplash.com/photo-1588099768523-f4e6a5679d88?w=400&q=80" },
+  { id:"fm12", label:"Pastel Co-ord Outfit",       url:"https://images.unsplash.com/photo-1589810635657-232948472d98?w=400&q=80" },
+  { id:"fm13", label:"High Fashion Couture",       url:"https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&q=80" },
+  { id:"fm14", label:"Sporty Casual Mix",          url:"https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&q=80" },
+  { id:"fm15", label:"Wrap Dress Look",            url:"https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=400&q=80" },
+  { id:"fm16", label:"Knit Sweater & Jeans",       url:"https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&q=80" },
+  { id:"fm17", label:"Smart Casual Blazer",        url:"https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&q=80" },
+  { id:"fm18", label:"Vintage-Inspired Look",      url:"https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400&q=80" },
+  { id:"fm19", label:"Ethnic Fusion Style",        url:"https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=400&q=80" },
+  { id:"fm20", label:"Summer Beach Attire",        url:"https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400&q=80" },
+  { id:"fm21", label:"Classic Trench & Boots",     url:"https://images.unsplash.com/photo-1548454782-15b189d129ab?w=400&q=80" },
+  { id:"fm22", label:"Monochrome Black Style",     url:"https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&q=80" },
+  { id:"fm23", label:"Soft Neutral Palette",       url:"https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?w=400&q=80" },
+  { id:"fm24", label:"Bold Color Block",           url:"https://images.unsplash.com/photo-1617952739355-46d61416648e?w=400&q=80" },
+  { id:"fm25", label:"Night-Out Look",             url:"https://images.unsplash.com/photo-1609803384069-19f3f6e2d5c1?w=400&q=80" },
+  { id:"fm26", label:"Off-Shoulder Maxi",          url:"https://images.unsplash.com/photo-1571513722275-4b41940f54b8?w=400&q=80" },
+  { id:"fm27", label:"Leather Jacket Edge",        url:"https://images.unsplash.com/photo-1521223890158-f9f7c3d5d504?w=400&q=80" },
+  { id:"fm28", label:"Spring Garden Look",         url:"https://images.unsplash.com/photo-1603344204980-4edb0ea63148?w=400&q=80" },
+  { id:"fm29", label:"Linen Relaxed Outfit",       url:"https://images.unsplash.com/photo-1590736969596-77e04f0c2a0a?w=400&q=80" },
+  { id:"fm30", label:"Structured Suit Set",        url:"https://images.unsplash.com/photo-1614201061439-c86c1de7c37a?w=400&q=80" },
+  { id:"fm31", label:"Ruched Mini Dress",          url:"https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80" },
+  { id:"fm32", label:"Cozy Oversized Sweater",     url:"https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400&q=80" },
+  { id:"fm33", label:"Midi Skirt & Crop Top",      url:"https://images.unsplash.com/photo-1577900232427-18219b9166a0?w=400&q=80" },
+  { id:"fm34", label:"Asymmetric Hem Dress",       url:"https://images.unsplash.com/photo-1550614000-4895a10e1bfd?w=400&q=80" },
+  { id:"fm35", label:"Collarless Blazer",          url:"https://images.unsplash.com/photo-1604176354204-9268737828e4?w=400&q=80" },
+  { id:"fm36", label:"Printed Wrap Top",           url:"https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=400&q=80" },
+  { id:"fm37", label:"Classic White Ensemble",     url:"https://images.unsplash.com/photo-1598032895397-b9472444bf93?w=400&q=80" },
+  { id:"fm38", label:"High-Neck Bodysuit",         url:"https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400&q=80" },
+  { id:"fm39", label:"Flowy Palazzo Pants",        url:"https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=80" },
+  { id:"fm40", label:"Sequined Party Dress",       url:"https://images.unsplash.com/photo-1593032465175-481ac7f401a0?w=400&q=80" },
+  { id:"fm41", label:"Peplum Top & Slacks",        url:"https://images.unsplash.com/photo-1594938298603-c8148c4b4086?w=400&q=80" },
+  { id:"fm42", label:"Tank Top & Joggers",         url:"https://images.unsplash.com/photo-1543508282-6319a3e2621f?w=400&q=80" },
+  { id:"fm43", label:"Checked Blazer",             category:"Formal", url:"https://images.unsplash.com/photo-1547496502-affa22d38842?w=400&q=80" },
+  { id:"fm44", label:"Velvet Evening Look",        url:"https://images.unsplash.com/photo-1470506926202-05d3fca84c9a?w=400&q=80" },
+  { id:"fm45", label:"Crop Top & Maxi Skirt",      url:"https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=80" },
+  { id:"fm46", label:"Breezy Linen Set",           url:"https://images.unsplash.com/photo-1520975867351-d91ff4fa57d9?w=400&q=80" },
+  { id:"fm47", label:"Sporty Chic Athleisure",     url:"https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&q=80" },
+  { id:"fm48", label:"Satin Slip Ensemble",        url:"https://images.unsplash.com/photo-1536766768598-e09213fdcf22?w=400&q=80" },
+  { id:"fm49", label:"Flare Jeans & Blouse",       url:"https://images.unsplash.com/photo-1541727130-6df27d17ab59?w=400&q=80" },
+  { id:"fm50", label:"Bold Print Co-ord",          url:"https://images.unsplash.com/photo-1589810635657-232948472d98?w=400&q=80" },
+];
+
+/* ─── 20 MALE MODELS (Unsplash open-source) ──────────────────────── */
+const MALE_MODELS = [
+  { id:"mm1",  label:"Casual White Tee Look",      url:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" },
+  { id:"mm2",  label:"Smart Casual Blazer",        url:"https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&q=80" },
+  { id:"mm3",  label:"Streetwear Hoodie",          url:"https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=400&q=80" },
+  { id:"mm4",  label:"Business Formal Suit",       url:"https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80" },
+  { id:"mm5",  label:"Denim & Graphic Tee",        url:"https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=400&q=80" },
+  { id:"mm6",  label:"Athletic Sportswear",        url:"https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80" },
+  { id:"mm7",  label:"Linen Shirt Beach Look",     url:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80" },
+  { id:"mm8",  label:"Black Turtleneck Style",     url:"https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=400&q=80" },
+  { id:"mm9",  label:"Leather Jacket Look",        url:"https://images.unsplash.com/photo-1541577141970-eebc83ebe30e?w=400&q=80" },
+  { id:"mm10", label:"Polo & Chinos",              url:"https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80" },
+  { id:"mm11", label:"Trench Coat Winter Look",    url:"https://images.unsplash.com/photo-1463453091185-61582044d556?w=400&q=80" },
+  { id:"mm12", label:"Summer Shorts & Shirt",      url:"https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=80" },
+  { id:"mm13", label:"Bold Pattern Shirt",         url:"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80" },
+  { id:"mm14", label:"Knit Sweater Smart Look",    url:"https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=400&q=80" },
+  { id:"mm15", label:"Monochrome Black Outfit",    url:"https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&q=80" },
+  { id:"mm16", label:"Traditional Ethnic Wear",    url:"https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=400&q=80" },
+  { id:"mm17", label:"Bomber Jacket Street",       url:"https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&q=80" },
+  { id:"mm18", label:"Fitted Crew Neck Tee",       url:"https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=80" },
+  { id:"mm19", label:"Formal White Dress Shirt",   url:"https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=400&q=80" },
+  { id:"mm20", label:"Casual Weekend Outfit",      url:"https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&q=80" },
+];
+
 /* ─── WARDROBE DATA ───────────────────────────────────────────────── */
 const sampleWardrobe = [
   { id: 1,  label: "Beige Moto Jacket",          image: imgBeigeJacket,     category: "Jacket" },
@@ -286,13 +459,20 @@ const sampleWardrobe = [
 ];
 
 const CAT_COLORS = {
-  Jacket: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-  Set:    "bg-violet-500/20 text-violet-300 border-violet-500/30",
-  Casual: "bg-sky-500/20 text-sky-300 border-sky-500/30",
-  Men:    "bg-neutral-500/20 text-neutral-300 border-neutral-500/30",
-  Formal: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-  Dress:  "bg-rose-500/20 text-rose-300 border-rose-500/30",
-  Ethnic: "bg-orange-500/20 text-orange-300 border-orange-500/30",
+  Jacket:     "bg-amber-500/20 text-amber-300 border-amber-500/30",
+  Jackets:    "bg-amber-500/20 text-amber-300 border-amber-500/30",
+  Set:        "bg-violet-500/20 text-violet-300 border-violet-500/30",
+  Casual:     "bg-sky-500/20 text-sky-300 border-sky-500/30",
+  Men:        "bg-neutral-500/20 text-neutral-300 border-neutral-500/30",
+  Formal:     "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+  Dress:      "bg-rose-500/20 text-rose-300 border-rose-500/30",
+  Dresses:    "bg-rose-500/20 text-rose-300 border-rose-500/30",
+  Ethnic:     "bg-orange-500/20 text-orange-300 border-orange-500/30",
+  Shirts:     "bg-blue-500/20 text-blue-300 border-blue-500/30",
+  Bottoms:    "bg-teal-500/20 text-teal-300 border-teal-500/30",
+  Knitwear:   "bg-purple-500/20 text-purple-300 border-purple-500/30",
+  Activewear: "bg-lime-500/20 text-lime-300 border-lime-500/30",
+  Evening:    "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
 };
 
 const QUICK_PROMPTS = [
@@ -347,6 +527,9 @@ export default function App() {
   const [wardrobeFilter, setWardrobeFilter] = useState('All');
   const [copySpecPulse, setCopySpecPulse] = useState(false);
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
+  const [collectionSubTab, setCollectionSubTab] = useState('saved'); // 'saved' | 'garments' | 'models'
+  const [garmentCatFilter, setGarmentCatFilter] = useState('All');
+  const [modelGenderFilter, setModelGenderFilter] = useState('All'); // 'All' | 'Female' | 'Male'
   const fileInputRef  = useRef(null);
   const promptRef     = useRef(null);
 
@@ -428,7 +611,7 @@ export default function App() {
 
       setTryOnJob(j => ({ ...j, statusMsg: 'AI is processing — this may take ~30–60 s…' }));
 
-      const res = await fetch(`${BACKEND_URL}/api/try-on`, {
+      const res = await fetch('/api/try-on', {
         method: 'POST',
         body: form,
       });
@@ -443,7 +626,7 @@ export default function App() {
       }
     } catch (err) {
       console.warn('[TryOn] request failed:', err.message);
-      setTryOnJob({ status: 'failed', resultImage: null, statusMsg: 'Connection error — is the backend running?' });
+      setTryOnJob({ status: 'failed', resultImage: null, statusMsg: 'Connection error — please try again.' });
     }
   };
 
@@ -1441,14 +1624,16 @@ export default function App() {
 
         {/* ══════════════════════════ COLLECTION ══════════════════════════ */}
         {activeTab === 'collection' && (
-          <div className="space-y-7 anim-fade-up">
+          <div className="space-y-6 anim-fade-up">
 
-            {/* Header */}
+            {/* ── Collection Page Header ───────────────────────────── */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-white">Saved Designs</h2>
+                <h2 className="text-lg font-bold text-white">Collection</h2>
                 <p className="text-xs text-neutral-600 mt-1">
-                  {savedDesigns.length} design{savedDesigns.length !== 1 ? 's' : ''} saved locally
+                  {collectionSubTab === 'saved'    && `${savedDesigns.length} design${savedDesigns.length !== 1 ? 's' : ''} saved locally`}
+                  {collectionSubTab === 'garments' && `${GARMENT_SAMPLES.length} garment samples · open-source photos`}
+                  {collectionSubTab === 'models'   && `${FEMALE_MODELS.length + MALE_MODELS.length} model photos · ${FEMALE_MODELS.length} female · ${MALE_MODELS.length} male`}
                 </p>
               </div>
               <button
@@ -1459,93 +1644,222 @@ export default function App() {
               </button>
             </div>
 
-            {savedDesigns.length === 0 ? (
-              <div className="bg-white/2 border border-white/5 rounded-2xl py-20 text-center">
-                <div className="w-12 h-12 bg-white/4 border border-white/8 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Layers size={20} className="text-neutral-700" />
-                </div>
-                <p className="text-sm text-neutral-500 font-medium mb-1">Your collection is empty</p>
-                <p className="text-xs text-neutral-700 mb-5">Generate a design and save it to build your collection</p>
+            {/* ── Sub-tab pills ────────────────────────────────────── */}
+            <div className="flex items-center gap-2 bg-white/3 border border-white/7 rounded-2xl p-1.5 w-fit">
+              {[
+                { id: 'saved',    label: `Saved Designs${savedDesigns.length > 0 ? ` (${savedDesigns.length})` : ''}` },
+                { id: 'garments', label: `Garment Samples (${GARMENT_SAMPLES.length})` },
+                { id: 'models',   label: `Model Photos (${FEMALE_MODELS.length + MALE_MODELS.length})` },
+              ].map(st => (
                 <button
-                  onClick={() => setActiveTab('design')}
-                  className="inline-flex items-center gap-2 text-xs text-violet-400 bg-violet-400/8 border border-violet-400/20 px-5 py-2.5 rounded-xl hover:bg-violet-400/14 transition-colors font-semibold"
+                  key={st.id}
+                  onClick={() => setCollectionSubTab(st.id)}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                    collectionSubTab === st.id
+                      ? 'bg-violet-600 text-white shadow'
+                      : 'text-neutral-500 hover:text-neutral-300'
+                  }`}
                 >
-                  <Sparkles size={11} /> Open Studio
+                  {st.label}
                 </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                {savedDesigns.map(design => (
-                  <div
-                    key={design.id}
-                    className="bg-white/3 border border-white/7 rounded-2xl overflow-hidden flex flex-col group card-hover"
-                  >
-                    {/* Image */}
-                    <div className="aspect-[3/4] overflow-hidden bg-neutral-950 relative">
-                      <img
-                        src={design.image}
-                        className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
-                        alt="Saved design"
-                      />
-                      <button
-                        onClick={() => setExpandedImage(design.image)}
-                        className="absolute top-2.5 right-2.5 w-8 h-8 bg-black/60 backdrop-blur rounded-lg text-white/60 hover:text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"
-                      >
-                        <Maximize2 size={12} />
-                      </button>
-                    </div>
+              ))}
+            </div>
 
-                    {/* Info */}
-                    <div className="p-4 flex flex-col gap-3 flex-1">
-                      <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed flex-1">{design.prompt}</p>
-                      {design.spec?.colors?.length > 0 && (
-                        <div className="flex items-center gap-1.5">
-                          {design.spec.colors.slice(0, 5).map(c => (
-                            <div key={c} className="w-3.5 h-3.5 rounded-full ring-1 ring-black/40" style={{ backgroundColor: c }} />
-                          ))}
-                          {design.spec.sustainability_score && (
-                            <span className="ml-auto text-[10px] text-emerald-500 font-semibold">{design.spec.sustainability_score}/100</span>
-                          )}
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between pt-2.5 border-t border-white/5">
+            {/* ════════════════════════════════════════════════════
+                SUB-TAB: SAVED DESIGNS
+            ═══════════════════════════════════════════════════ */}
+            {collectionSubTab === 'saved' && (
+              savedDesigns.length === 0 ? (
+                <div className="bg-white/2 border border-white/5 rounded-2xl py-20 text-center">
+                  <div className="w-12 h-12 bg-white/4 border border-white/8 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Layers size={20} className="text-neutral-700" />
+                  </div>
+                  <p className="text-sm text-neutral-500 font-medium mb-1">Your collection is empty</p>
+                  <p className="text-xs text-neutral-700 mb-5">Generate a design and save it to build your collection</p>
+                  <button
+                    onClick={() => setActiveTab('design')}
+                    className="inline-flex items-center gap-2 text-xs text-violet-400 bg-violet-400/8 border border-violet-400/20 px-5 py-2.5 rounded-xl hover:bg-violet-400/14 transition-colors font-semibold"
+                  >
+                    <Sparkles size={11} /> Open Studio
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                  {savedDesigns.map(design => (
+                    <div
+                      key={design.id}
+                      className="bg-white/3 border border-white/7 rounded-2xl overflow-hidden flex flex-col group card-hover"
+                    >
+                      <div className="aspect-[3/4] overflow-hidden bg-neutral-950 relative">
+                        <img
+                          src={design.image}
+                          className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
+                          alt="Saved design"
+                        />
                         <button
-                          onClick={() => setSavedDesigns(StorageService.toggleTrack(design.id))}
-                          className={`flex items-center gap-1.5 text-[10px] font-semibold transition-colors
-                            ${design.isTracking ? 'text-emerald-400' : 'text-neutral-700 hover:text-neutral-400'}`}
+                          onClick={() => setExpandedImage(design.image)}
+                          className="absolute top-2.5 right-2.5 w-8 h-8 bg-black/60 backdrop-blur rounded-lg text-white/60 hover:text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"
                         >
-                          {design.isTracking ? <BellRing size={11} /> : <Bell size={11} />}
-                          {design.isTracking ? 'Tracking' : 'Track'}
+                          <Maximize2 size={12} />
                         </button>
-                        <div className="flex items-center gap-2">
-                           <button
-                             onClick={() => downloadImage(design.image, `studio-ai-design-${design.id}.png`)}
-                             title="Download"
-                             className="w-7 h-7 text-neutral-700 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg flex items-center justify-center transition-all"
-                           >
-                             <Download size={12} />
-                           </button>
-                           <button
-                             onClick={() => handleGenerateDesign(design.prompt)}
-                             title="Remix"
-                             className="w-7 h-7 text-neutral-700 hover:text-violet-400 hover:bg-violet-400/10 rounded-lg flex items-center justify-center transition-all"
-                           >
-                             <RefreshCw size={12} />
-                           </button>
-                           <button
-                             onClick={() => { StorageService.deleteDesign(design.id); setSavedDesigns(StorageService.getCollections()); }}
-                             title="Delete"
-                             className="w-7 h-7 text-neutral-800 hover:text-red-400 hover:bg-red-400/10 rounded-lg flex items-center justify-center transition-all"
-                           >
-                             <Trash2 size={12} />
-                           </button>
-                         </div>
+                      </div>
+                      <div className="p-4 flex flex-col gap-3 flex-1">
+                        <p className="text-xs text-neutral-400 line-clamp-2 leading-relaxed flex-1">{design.prompt}</p>
+                        {design.spec?.colors?.length > 0 && (
+                          <div className="flex items-center gap-1.5">
+                            {design.spec.colors.slice(0, 5).map(c => (
+                              <div key={c} className="w-3.5 h-3.5 rounded-full ring-1 ring-black/40" style={{ backgroundColor: c }} />
+                            ))}
+                            {design.spec.sustainability_score && (
+                              <span className="ml-auto text-[10px] text-emerald-500 font-semibold">{design.spec.sustainability_score}/100</span>
+                            )}
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between pt-2.5 border-t border-white/5">
+                          <button
+                            onClick={() => setSavedDesigns(StorageService.toggleTrack(design.id))}
+                            className={`flex items-center gap-1.5 text-[10px] font-semibold transition-colors
+                              ${design.isTracking ? 'text-emerald-400' : 'text-neutral-700 hover:text-neutral-400'}`}
+                          >
+                            {design.isTracking ? <BellRing size={11} /> : <Bell size={11} />}
+                            {design.isTracking ? 'Tracking' : 'Track'}
+                          </button>
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => downloadImage(design.image, `studio-ai-design-${design.id}.png`)} title="Download" className="w-7 h-7 text-neutral-700 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg flex items-center justify-center transition-all"><Download size={12} /></button>
+                            <button onClick={() => handleGenerateDesign(design.prompt)} title="Remix" className="w-7 h-7 text-neutral-700 hover:text-violet-400 hover:bg-violet-400/10 rounded-lg flex items-center justify-center transition-all"><RefreshCw size={12} /></button>
+                            <button onClick={() => { StorageService.deleteDesign(design.id); setSavedDesigns(StorageService.getCollections()); }} title="Delete" className="w-7 h-7 text-neutral-800 hover:text-red-400 hover:bg-red-400/10 rounded-lg flex items-center justify-center transition-all"><Trash2 size={12} /></button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )
             )}
+
+            {/* ════════════════════════════════════════════════════
+                SUB-TAB: GARMENT SAMPLES (100 items)
+            ═══════════════════════════════════════════════════ */}
+            {collectionSubTab === 'garments' && (() => {
+              const gsCats = ['All', ...Array.from(new Set(GARMENT_SAMPLES.map(g => g.category)))];
+              const gsFiltered = garmentCatFilter === 'All' ? GARMENT_SAMPLES : GARMENT_SAMPLES.filter(g => g.category === garmentCatFilter);
+              return (
+                <div className="space-y-5">
+                  {/* Category filter pills */}
+                  <div className="flex flex-wrap gap-2">
+                    {gsCats.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setGarmentCatFilter(cat)}
+                        className={`px-3 py-1 rounded-lg text-[11px] font-semibold border transition-all ${
+                          garmentCatFilter === cat
+                            ? 'bg-violet-600 border-violet-600 text-white'
+                            : 'bg-white/3 border-white/8 text-neutral-500 hover:text-neutral-300 hover:border-white/20'
+                        }`}
+                      >
+                        {cat} {cat !== 'All' ? `(${GARMENT_SAMPLES.filter(g => g.category === cat).length})` : `(${GARMENT_SAMPLES.length})`}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {gsFiltered.map(g => (
+                      <div
+                        key={g.id}
+                        className="bg-white/3 border border-white/7 rounded-2xl overflow-hidden group cursor-pointer card-hover"
+                        onClick={() => setExpandedImage(g.url)}
+                      >
+                        <div className="aspect-[3/4] overflow-hidden bg-neutral-950 relative">
+                          <img
+                            src={g.url}
+                            alt={g.label}
+                            loading="lazy"
+                            className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500"
+                            onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=60'; }}
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                            <Maximize2 size={16} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </div>
+                        <div className="p-2.5">
+                          <p className="text-[11px] text-neutral-300 font-medium truncate">{g.label}</p>
+                          <span className={`inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded-md border font-semibold ${CAT_COLORS[g.category] || 'bg-neutral-500/20 text-neutral-300 border-neutral-500/30'}`}>
+                            {g.category}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ════════════════════════════════════════════════════
+                SUB-TAB: MODEL PHOTOS (50F + 20M)
+            ═══════════════════════════════════════════════════ */}
+            {collectionSubTab === 'models' && (() => {
+              const allModels = [
+                ...FEMALE_MODELS.map(m => ({ ...m, gender: 'Female' })),
+                ...MALE_MODELS.map(m => ({ ...m, gender: 'Male' })),
+              ];
+              const filteredModels = modelGenderFilter === 'All' ? allModels
+                : allModels.filter(m => m.gender === modelGenderFilter);
+              return (
+                <div className="space-y-5">
+                  {/* Gender filter */}
+                  <div className="flex items-center gap-2">
+                    {['All', 'Female', 'Male'].map(g => (
+                      <button
+                        key={g}
+                        onClick={() => setModelGenderFilter(g)}
+                        className={`px-4 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                          modelGenderFilter === g
+                            ? 'bg-violet-600 border-violet-600 text-white'
+                            : 'bg-white/3 border-white/8 text-neutral-500 hover:text-neutral-300 hover:border-white/20'
+                        }`}
+                      >
+                        {g === 'All' ? `All (${allModels.length})` : g === 'Female' ? `Female (${FEMALE_MODELS.length})` : `Male (${MALE_MODELS.length})`}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {filteredModels.map(m => (
+                      <div
+                        key={m.id}
+                        className="bg-white/3 border border-white/7 rounded-2xl overflow-hidden group cursor-pointer card-hover"
+                        onClick={() => setExpandedImage(m.url)}
+                      >
+                        <div className="aspect-[3/4] overflow-hidden bg-neutral-950 relative">
+                          <img
+                            src={m.url}
+                            alt={m.label}
+                            loading="lazy"
+                            className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500"
+                            onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&q=60'; }}
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                            <Maximize2 size={16} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                          {/* Gender badge */}
+                          <span className={`absolute top-2 left-2 text-[9px] px-1.5 py-0.5 rounded-md font-bold border ${
+                            m.gender === 'Female'
+                              ? 'bg-rose-500/25 text-rose-300 border-rose-500/30'
+                              : 'bg-sky-500/25 text-sky-300 border-sky-500/30'
+                          }`}>{m.gender}</span>
+                        </div>
+                        <div className="p-2.5">
+                          <p className="text-[11px] text-neutral-300 font-medium truncate">{m.label}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
           </div>
         )}
 

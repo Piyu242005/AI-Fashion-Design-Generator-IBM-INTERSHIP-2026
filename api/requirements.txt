@@ -1,4 +1,4 @@
-# Vercel Python serverless — api/design.py, api/health.py, api/try-on.py
-httpx==0.27.0
+# Vercel Python serverless functions — api/design.py, api/products.py, api/try-on.py, api/health.py
+# stdlib only used for HTTP (urllib) — no httpx needed
 gradio_client>=0.20.0
 python-multipart>=0.0.9

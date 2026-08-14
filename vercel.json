@@ -3,14 +3,15 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
-    { "source": "/api/design",           "destination": "/api/design.py"   },
-    { "source": "/api/health",           "destination": "/api/health.py"   },
-    { "source": "/api/try-on",           "destination": "/api/try-on.py"   },
-    { "source": "/api/products/search",  "destination": "/api/products.py" },
-    { "source": "/(.*)",                 "destination": "/index.html"      }
+    { "source": "/api/design",          "destination": "/api/design.py"   },
+    { "source": "/api/health",          "destination": "/api/health.py"   },
+    { "source": "/api/try-on",          "destination": "/api/try-on.py"   },
+    { "source": "/api/products/search", "destination": "/api/products.py" },
+    { "source": "/(.*)",                "destination": "/index.html"      }
   ],
   "functions": {
     "api/try-on.py":   { "maxDuration": 120 },
-    "api/products.py": { "maxDuration": 15  }
+    "api/products.py": { "maxDuration": 15  },
+    "api/design.py":   { "maxDuration": 90  }
   }
 }
