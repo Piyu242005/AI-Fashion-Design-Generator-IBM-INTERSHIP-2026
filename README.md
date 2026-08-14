@@ -2,102 +2,157 @@
 
 # ✂️ AI Fashion Design Generator
 
-**Describe any outfit. AI renders it. Try it on.**
+### Transform Fashion Ideas into AI-Generated Designs, Recommendations & Virtual Try-On
 
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Cloudflare Workers AI](https://img.shields.io/badge/Cloudflare-Workers_AI-F38020?style=flat&logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/workers-ai/)
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
-[![IBM Internship](https://img.shields.io/badge/IBM-Internship_2026-054ADA?style=flat&logo=ibm&logoColor=white)](https://ibm.com)
+<p><strong>IBM Internship 2026 Project &nbsp;·&nbsp; v2.0.0</strong></p>
 
-**Built by [Piyush Ramteke](https://github.com/piyushramteke) · IBM Internship 2026**
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Cloudflare Workers AI](https://img.shields.io/badge/Cloudflare-Workers_AI-F38020?style=flat-square&logo=cloudflare&logoColor=white)](https://developers.cloudflare.com/workers-ai/)
+[![Google Gemini](https://img.shields.io/badge/Google-Gemini_2.5_Flash-4285F4?style=flat-square&logo=google&logoColor=white)](https://aistudio.google.com)
+[![Hugging Face](https://img.shields.io/badge/Hugging_Face-IDM--VTON-FFD21E?style=flat-square&logo=huggingface&logoColor=black)](https://huggingface.co/spaces/yisol/IDM-VTON)
+[![RapidAPI](https://img.shields.io/badge/RapidAPI-H%26M_Store-0055DA?style=flat-square&logo=rapidapi&logoColor=white)](https://rapidapi.com)
+[![IBM Internship](https://img.shields.io/badge/IBM-Internship_2026-054ADA?style=flat-square&logo=ibm&logoColor=white)](https://ibm.com)
+
+<p>
+  <a href="#-quick-start">Quick Start</a> &nbsp;·&nbsp;
+  <a href="#-api-reference">API Reference</a> &nbsp;·&nbsp;
+  <a href="#-how-it-works">Architecture</a> &nbsp;·&nbsp;
+  <a href="#-security">Security</a> &nbsp;·&nbsp;
+  <a href="README-API-SETUP.md">Full API Setup Guide</a> &nbsp;·&nbsp;
+  <a href="#-license">License</a>
+</p>
 
 </div>
 
 ---
 
-## Problem Statement
-
-Many students want to explore fashion design but lack artistic or technical skills. Traditional design tools are expensive, have steep learning curves, and are time-consuming. This project provides a **generative AI solution** that:
-
-- Creates clothing designs from plain-language text prompts
-- Suggests similar, affordable products available online
-- Lets you virtually try on any generated garment
-- Makes fashion design **accessible, fast, and fun** — no design skills required
+> Describe an outfit in natural language. Generate the design, discover matching products, and visualize the garment with AI-powered virtual try-on — all in one unified workflow.
 
 ---
 
-## Overview
+<p align="center">
+  <img src="public/screenshots/DASHBOARD.jpeg" alt="AI Fashion Studio Dashboard" width="100%">
+</p>
 
-**AI Fashion Design Generator** is a full-stack AI web app that lets you describe any outfit in plain English and instantly:
-1. Generate a photorealistic fashion render via Cloudflare Workers AI (FLUX.1-schnell, SDXL, DreamShaper)
-2. See real H&M product recommendations matched to your design via RapidAPI — ranked by category, colour, budget & style
-3. Virtually try the garment on by uploading your own photo via IDM-VTON
-4. Save designs to your local collection and generate manufacturing tech packs
+<p align="center"><strong>AI Fashion Studio — unified fashion ideation and visualization workflow</strong></p>
+
+---
+
+## Why This Project?
+
+### The Problem
+
+Fashion ideation today is fragmented and inaccessible:
+
+- Requires design expertise or expensive tools (Figma, Adobe, CLO 3D)
+- Prompt-to-image tools give generic results — no fashion intelligence layer
+- Product discovery and virtual try-on live in entirely separate applications
+- No single workflow takes you from a text idea to a wearable design concept
+
+### The Solution
+
+**AI Fashion Design Generator** consolidates the entire workflow into one application:
 
 ```
-You type a prompt
-      ↓
-Gemini extracts the fashion spec   (free tier, client-side)
-      ↓
-FastAPI → Cloudflare Workers AI    (image, token stays server-side)
-FastAPI → RapidAPI H&M Store API   (products, key stays server-side)
-      ↓
-FLUX.1 / SDXL / DreamShaper renders the image
-Products ranked by category · colour · budget · style
-      ↓
-React displays design + real product recommendation cards
+Natural Language Prompt
+         ↓
+  Gemini Fashion Spec Extraction
+  (category · fabric · color · style · budget)
+         ↓
+  Prompt Optimization
+         ↓
+  Cloudflare Workers AI → Fashion Design Image
+         ↓
+  RapidAPI H&M Product Search + Ranking
+         ↓
+  IDM-VTON Virtual Try-On
+         ↓
+  Saved Collection / Tech Pack Export
 ```
 
 ---
 
----
-
-## Screenshots
-
-### Dashboard — Runway & Trending Concepts
-![AI Fashion Studio Dashboard](public/screenshots/DASHBOARD.jpeg)
-
-### Studio — Generated Design Output
-![Generated Design Output](public/screenshots/generated-output.png)
-
----
-
-## Features
+## Core Features
 
 | Feature | Description |
 |---|---|
-| 🎨 **AI Design Studio** | Text-to-fashion image generation with 4 selectable models |
-| 🧠 **Model Selector** | Switch between FLUX.1 Schnell, SDXL, DreamShaper, SDXL Lightning |
-| 🛍️ **AI Product Recommendations** | Real H&M products matched to your design via RapidAPI — ranked by category, colour, budget & style |
-| 👗 **Virtual Try-On** | Composite your photo with the generated garment via IDM-VTON |
-| 💾 **Collections** | Save designs locally, set price-drop alerts |
-| 📋 **Tech Pack** | Export manufacturing spec sheet (fabric, colors, cost estimate) |
-| 🔒 **Secure by design** | All API tokens (Cloudflare, HuggingFace, RapidAPI) are server-side only |
-| 🌱 **Eco Score** | Sustainability scoring per design |
+| **AI Design Studio** | Text-to-fashion image generation with 4 selectable Cloudflare Workers AI models |
+| **Fashion Intelligence** | Gemini extracts category, fabric, colors, sustainability score, budget, and style from plain text |
+| **Model Selector** | Switch between FLUX.1 Schnell, SDXL, DreamShaper, SDXL Lightning |
+| **Product Recommendations** | Real H&M products fetched via RapidAPI, ranked by category · color · budget · style |
+| **Virtual Try-On** | Upload a person photo and garment image — composite via IDM-VTON (Hugging Face) |
+| **Tech Pack** | Export a manufacturing-oriented specification sheet |
+| **Collections** | Save generated designs locally for later review |
+| **Secure API Architecture** | All credentials (Cloudflare, HF, RapidAPI) are strictly server-side — never exposed to the browser |
+| **Eco Score** | Sustainability scoring per design |
 
 ---
 
-## Tech Stack
+## How It Works
 
-### Frontend
-- **React 19** + **Vite 8**
-- **Tailwind CSS v4** — utility-first styling
-- **lucide-react** — icons
+### System Architecture
 
-### Backend
-- **FastAPI** — async Python API
-- **httpx** — async HTTP client for Cloudflare
-- **Pydantic v2** — request/response validation
-- **python-dotenv** — environment variable loading
+```
+┌─────────────────────────────────┐
+│         React Frontend          │
+│         Vite 8 + Tailwind 4     │
+└───────────────┬─────────────────┘
+                │  HTTP (JSON / multipart)
+                ▼
+┌─────────────────────────────────┐
+│          FastAPI Backend        │
+│  Routing · Validation · CORS    │
+│  Rate Limiting · Error Handling │
+└──────┬───────────┬──────────┬───┘
+       │           │          │
+       ▼           ▼          ▼
+  Cloudflare    RapidAPI   IDM-VTON
+  Workers AI    H&M Store  Hugging Face
+  (image gen)   (products) (try-on)
+       │
+       ▼
+  Google Gemini
+  (spec extraction, client-side)
+```
 
-### AI & Data Providers
-| Role | Provider | Free? |
-|---|---|---|
-| Image generation | Cloudflare Workers AI | ✅ 10,000 neurons/day free |
-| Fashion spec extraction (optional) | Google Gemini 2.5 Flash | ✅ Free tier |
-| Product recommendations | RapidAPI H&M Store API | ✅ Free tier available |
-| Virtual try-on | HuggingFace IDM-VTON (ZeroGPU) | ✅ Free (with HF account) |
+### Integration Summary
+
+| Integration | Role |
+|---|---|
+| **Google Gemini 2.5 Flash** | Client-side fashion spec extraction — extracts structured attributes from free-text descriptions |
+| **Cloudflare Workers AI** | Server-side image generation — FLUX.1, SDXL, DreamShaper, SDXL Lightning models |
+| **RapidAPI H&M Store** | Server-side product search — fetches real H&M catalogue items matched to the design |
+| **IDM-VTON (Hugging Face)** | Server-side virtual try-on — third-party AI model; composites person and garment images |
+
+---
+
+## AI Pipeline
+
+```
+User Prompt (free text)
+        ↓
+  Google Gemini 2.5 Flash
+  → Fashion Specification JSON
+    (category, fabric, colors, style, budget, sustainability)
+        ↓
+  Prompt Optimization
+  (structured prompt for image generation)
+        ↓
+  FastAPI → Cloudflare Workers AI
+  → Generated Fashion Design Image (base64 PNG)
+        ↓
+  FastAPI → RapidAPI H&M Store
+  → Product Candidates → Ranked Results
+        ↓
+  FastAPI → Hugging Face IDM-VTON
+  → Virtual Try-On Composite Image
+```
+
+The pipeline separates concerns: Gemini handles language understanding client-side, while all credential-bearing API calls run exclusively through the FastAPI backend.
 
 ---
 
@@ -105,105 +160,158 @@ React displays design + real product recommendation cards
 
 Select any model from the **AI Model** dropdown in the Studio tab:
 
-| Model | Badge | Best For |
-|---|---|---|
-| `@cf/black-forest-labs/flux-1-schnell` | ⚡ Fast | Best quality/speed for fashion renders |
-| `@cf/stabilityai/stable-diffusion-xl-base-1.0` | 🔍 Detailed | Higher detail, slightly slower |
-| `@cf/lykon/dreamshaper-8-lcm` | 🎨 Artistic | Painterly, creative illustrations |
-| `@cf/bytedance/stable-diffusion-xl-lightning` | 🚀 Fastest | Ultra-fast 4-step generation |
+| Model | Best For |
+|---|---|
+| `@cf/black-forest-labs/flux-1-schnell` | Best quality / speed ratio for fashion renders |
+| `@cf/stabilityai/stable-diffusion-xl-base-1.0` | Higher detail, slightly slower |
+| `@cf/lykon/dreamshaper-8-lcm` | Painterly, creative illustrations |
+| `@cf/bytedance/stable-diffusion-xl-lightning` | Ultra-fast 4-step generation |
+
+---
+
+## Product Recommendation Engine
+
+Products are retrieved through the **RapidAPI H&M Store API** and ranked using a weighted scoring algorithm based on available product metadata:
+
+| Signal | Weight |
+|---|---|
+| Category match | 40 pts |
+| Color match | 25 pts |
+| Budget fit | 20 pts |
+| Style / brand | 15 pts |
+
+No vector similarity or semantic embeddings are used — ranking is based on structured metadata matching.
+
+---
+
+## Virtual Try-On
+
+```
+Person Photo (full-body)
+        +
+Garment Image (product or generated design)
+        ↓
+  FastAPI → Hugging Face Space: yisol/IDM-VTON
+        ↓
+  AI Try-On Composite Image
+```
+
+**IDM-VTON** is a third-party AI model developed by [yisol](https://github.com/yisol/IDM-VTON). This project integrates it via its public Hugging Face Space — it was not trained or developed as part of this project.
+
+- **License:** [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) (non-commercial)
+- **Repository:** [https://github.com/yisol/IDM-VTON](https://github.com/yisol/IDM-VTON)
+- **Hugging Face Space:** [https://huggingface.co/spaces/yisol/IDM-VTON](https://huggingface.co/spaces/yisol/IDM-VTON)
+
+Use of this integration is subject to IDM-VTON's non-commercial license terms.
+
+---
+
+## Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React 19, Vite 8, Tailwind CSS 4, lucide-react |
+| Backend | Python 3.11, FastAPI 0.115, Pydantic v2, httpx, slowapi |
+| AI — Image Generation | Cloudflare Workers AI (FLUX.1, SDXL, DreamShaper) |
+| AI — Language | Google Gemini 2.5 Flash |
+| Virtual Try-On | IDM-VTON via Hugging Face Spaces |
+| Product Data | RapidAPI H&M Store API |
+| Deployment | Vercel (frontend + serverless functions) |
+| Development | Git, GitHub |
 
 ---
 
 ## Project Structure
 
 ```
-IBM-INTERSHIP-2026/
+AI-Fashion-Design-Generator-IBM-INTERSHIP-2026/
 ├── src/
-│   ├── App.jsx          # Main React component (all UI, ~1200 lines)
-│   ├── main.jsx         # React root mount
-│   └── index.css        # Tailwind v4 entry
+│   ├── App.jsx              # Main React component — all UI
+│   ├── main.jsx             # React root mount
+│   └── index.css            # Tailwind v4 entry
 │
 ├── backend/
 │   ├── app/
-│   │   ├── main.py              # FastAPI app + CORS + rate limiting
+│   │   ├── main.py          # FastAPI app · CORS · rate limiting · health
 │   │   ├── api/
-│   │   │   └── design.py        # POST /api/design router
+│   │   │   ├── design.py    # POST /api/design
+│   │   │   ├── products.py  # GET  /api/products/search
+│   │   │   └── tryon.py     # POST /api/try-on
 │   │   ├── services/
-│   │   │   └── cloudflare_ai.py # Cloudflare Workers AI integration
+│   │   │   ├── cloudflare_ai.py  # Cloudflare Workers AI integration
+│   │   │   ├── idm_vton.py       # Hugging Face IDM-VTON integration
+│   │   │   └── product_api.py    # RapidAPI H&M integration
 │   │   └── schemas/
-│   │       └── design.py        # Pydantic models + model allowlist
+│   │       ├── design.py         # Pydantic models · model allowlist
+│   │       └── product.py        # Product response schema
 │   ├── tests/
-│   │   └── test_design.py       # Unit tests (fully mocked)
+│   │   ├── test_design.py        # Design endpoint tests (fully mocked)
+│   │   └── test_products.py      # Product endpoint tests (fully mocked)
 │   └── requirements.txt
 │
-├── api/                 # Vercel serverless functions (alternative deploy)
-│   ├── design.py        # POST /api/design
-│   └── health.py        # GET /api/health
+├── api/                     # Vercel serverless functions (alternative deploy)
+│   ├── design.py            # POST /api/design
+│   ├── products.py          # GET  /api/products/search
+│   ├── try-on.py            # POST /api/try-on
+│   └── health.py            # GET  /api/health
 │
-├── samples/             # Sample wardrobe images (16 outfits, imported by src/App.jsx)
+├── samples/                 # Sample wardrobe images (16 outfits)
 │
 ├── public/
-│   └── screenshots/     # README screenshots
+│   └── screenshots/         # README screenshots
 │
-├── index.html           # Vite entry point
-├── vite.config.js       # Vite + Tailwind v4 + React plugin
-├── vercel.json          # Vercel deployment config
-├── .env.example         # Template — copy to .env
-├── .gitignore
+├── index.html               # Vite entry point
+├── vite.config.js           # Vite + Tailwind v4 + React plugin
+├── vercel.json              # Vercel deployment configuration
+├── .env.example             # Template — copy to .env
 ├── README.md
-└── README-API-SETUP.md  # Detailed API / environment setup guide
+└── README-API-SETUP.md      # Detailed API and environment setup guide
 ```
+
+---
+
+## Screenshots
+
+### Dashboard — Runway & Trending Concepts
+
+<p align="center">
+  <img src="public/screenshots/DASHBOARD.jpeg" alt="AI Fashion Studio Dashboard" width="100%">
+</p>
+
+### Studio — Generated Design Output
+
+<p align="center">
+  <img src="public/screenshots/generated-output.png" alt="Generated Design Output" width="100%">
+</p>
 
 ---
 
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - Python 3.10+
 - A free [Cloudflare account](https://dash.cloudflare.com)
 
-### 1. Clone & install frontend
+### 1. Clone & install
 
 ```bash
-git clone <your-repo-url>
-cd IBM-INTERSHIP-2026
+git clone https://github.com/Piyu242005/AI-Fashion-Design-Generator-IBM-INTERSHIP-2026.git
+cd AI-Fashion-Design-Generator-IBM-INTERSHIP-2026
 npm install
 ```
 
 ### 2. Configure environment
 
 ```bash
-cp .env.example .env
+cp .env.example .env     # macOS / Linux
+copy .env.example .env   # Windows
 ```
 
-Open `.env` and set:
+Open `.env` and populate the required variables (see [Environment Variables](#-environment-variables)).
 
-```env
-# Required for image generation
-CLOUDFLARE_ACCOUNT_ID=your_account_id
-CLOUDFLARE_API_TOKEN=your_api_token
-
-# Optional — for Gemini fashion spec extraction
-VITE_GEMINI_API_KEY=your_gemini_key
-```
-
-> ⚠️ Never commit `.env`. It is already in `.gitignore`.
-
-### 3. Configure RapidAPI (product recommendations)
-
-1. Sign up at [rapidapi.com](https://rapidapi.com)
-2. Search for **"H&M Store"** and subscribe (free tier available)
-3. Add to `.env`:
-
-```env
-RAPIDAPI_KEY=your_rapidapi_key_here
-RAPIDAPI_HOST=apidojo-hm-hennes-mauritz-v1.p.rapidapi.com
-```
-
-> ⚠️ Never prefix with `VITE_` — this key must stay server-side only.
-
-### 4. Start the FastAPI backend
+### 3. Start the FastAPI backend
 
 ```bash
 cd backend
@@ -219,7 +327,8 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-Check it's running:
+Verify the backend is running:
+
 ```
 GET http://localhost:8000/api/health
 ```
@@ -227,7 +336,7 @@ GET http://localhost:8000/api/health
 ### 4. Start the React frontend
 
 ```bash
-# In a new terminal from project root
+# In a new terminal from the project root
 npm run dev
 ```
 
@@ -235,34 +344,126 @@ Open **http://localhost:5173**
 
 ---
 
-## Cloudflare Workers AI Setup
+## Environment Variables
 
-### Get your Account ID
-Your Account ID is in the **right sidebar** of [dash.cloudflare.com](https://dash.cloudflare.com).
+Copy `.env.example` to `.env` and fill in the values below.
 
-### Create an API Token
-1. Go to **My Profile → API Tokens → Create Token**
-2. Select **"Create Custom Token"**
-3. Set permissions:
-   - **Workers AI** → Read
-   - **Workers AI** → Edit
-4. Click **Continue to summary → Create Token**
-5. Copy the token immediately — it's shown only once
+> **Never commit `.env`.** It is already excluded by `.gitignore`.
+
+### Frontend-visible (browser-safe)
+
+| Variable | Description |
+|---|---|
+| `VITE_GEMINI_API_KEY` | Google AI Studio API key — used client-side for fashion spec extraction |
+| `VITE_GEMINI_MODEL` | Gemini model to use (default: `gemini-2.5-flash`) |
+
+`VITE_*` variables are intentionally exposed to the browser. Only the Gemini key is placed here because spec extraction runs client-side. Never put Cloudflare, Hugging Face, or RapidAPI keys under a `VITE_` prefix.
+
+### Backend secrets (server-side only)
+
+| Variable | Description |
+|---|---|
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID — required for image generation |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare Workers AI API token — required for image generation |
+| `HF_TOKEN` | Hugging Face token (READ permission) — for authenticated IDM-VTON access |
+| `HF_SPACE_ID` | Hugging Face Space ID (default: `yisol/IDM-VTON`) |
+| `RAPIDAPI_KEY` | RapidAPI key — required for product recommendations |
+| `RAPIDAPI_HOST` | RapidAPI host (default: `apidojo-hm-hennes-mauritz-v1.p.rapidapi.com`) |
+
+Full setup instructions for each provider: [README-API-SETUP.md](README-API-SETUP.md)
 
 ---
 
 ## API Reference
 
+Base URL (local dev): `http://localhost:8000`
+
+---
+
+### `POST /api/design`
+
+Generate a fashion image via Cloudflare Workers AI.
+
+**Request body** (`application/json`)
+
+```json
+{
+  "prompt": "Modern Indian half-saree in pastel pink and gold",
+  "model": "@cf/black-forest-labs/flux-1-schnell"
+}
+```
+
+`model` is optional — defaults to `@cf/black-forest-labs/flux-1-schnell`.
+
+**Success response**
+
+```json
+{
+  "success": true,
+  "image": "data:image/png;base64,…",
+  "provider": "cloudflare"
+}
+```
+
+**Error response**
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "IMAGE_GENERATION_FAILED",
+    "message": "Unable to generate the fashion design. Please try again."
+  }
+}
+```
+
+---
+
+### `POST /api/try-on`
+
+AI Virtual Try-On via IDM-VTON (Hugging Face Space).
+
+**Request** (`multipart/form-data`)
+
+| Field | Type | Description |
+|---|---|---|
+| `person` | file | Full-body photo of the user |
+| `garment` | file | Clothing item image |
+| `garment_description` | string (optional) | Text description of the garment — improves quality |
+
+**Success response**
+
+```json
+{
+  "success": true,
+  "image": "data:image/jpeg;base64,…"
+}
+```
+
+---
+
 ### `GET /api/products/search`
 
-Search for real H&M fashion products matched to a design spec.
+Search and rank H&M products matching a design specification.
 
-**Request**
+**Query parameters**
+
+| Parameter | Type | Description |
+|---|---|---|
+| `query` | string (required) | Search query (min 2 chars) |
+| `category` | string | Optional category hint |
+| `color` | string | Optional color hint |
+| `budget` | float | Max price in INR |
+| `limit` | int | Results to return (1–10, default 5) |
+
+**Example request**
+
 ```
 GET /api/products/search?query=black+cotton+shirt&category=shirt&color=black&budget=2500&limit=5
 ```
 
-**Success Response**
+**Success response**
+
 ```json
 {
   "success": true,
@@ -272,7 +473,7 @@ GET /api/products/search?query=black+cotton+shirt&category=shirt&color=black&bud
       "brand": "H&M",
       "price": 1999.0,
       "currency": "INR",
-      "image": "https://lp2.hm.com/...",
+      "image": "https://lp2.hm.com/…",
       "url": "https://www2.hm.com/en_in/productpage.123.html",
       "category": "Tops",
       "rating": null,
@@ -285,62 +486,28 @@ GET /api/products/search?query=black+cotton+shirt&category=shirt&color=black&bud
 }
 ```
 
-**Recommendation Score Breakdown**
-
-| Signal | Weight |
-|---|---|
-| Category match | 40 pts |
-| Colour match | 25 pts |
-| Budget fit | 20 pts |
-| Style / brand | 15 pts |
-
 ---
 
-### `POST /api/design`
-
-Generate a fashion image via Cloudflare Workers AI.
-
-**Request**
-```json
-{
-  "prompt": "Modern Indian half-saree in pastel pink and gold",
-  "model": "@cf/black-forest-labs/flux-1-schnell"
-}
-```
-
-The `model` field is optional — defaults to `@cf/black-forest-labs/flux-1-schnell`.
-
-**Success Response**
-```json
-{
-  "success": true,
-  "image": "data:image/png;base64,...",
-  "provider": "cloudflare"
-}
-```
-
-**Error Response**
-```json
-{
-  "success": false,
-  "error": {
-    "code": "IMAGE_GENERATION_FAILED",
-    "message": "Unable to generate the fashion design. Please try again."
-  }
-}
-```
-
 ### `GET /api/health`
+
+Returns configuration status for all integrated providers.
 
 ```json
 {
   "status": "ok",
-  "provider": "cloudflare",
-  "configured": true
+  "providers": {
+    "cloudflare": { "configured": true },
+    "idm_vton":   { "configured": true, "space": "yisol/IDM-VTON" },
+    "rapidapi":   { "configured": true }
+  }
 }
 ```
 
+---
+
 ### `GET /api/models`
+
+Returns the list of supported image generation models.
 
 ```json
 {
@@ -356,6 +523,19 @@ The `model` field is optional — defaults to `@cf/black-forest-labs/flux-1-schn
 
 ---
 
+## Security
+
+- `CLOUDFLARE_API_TOKEN`, `HF_TOKEN`, and `RAPIDAPI_KEY` are loaded exclusively from the server-side `.env` — they are never returned in API responses, logged, or included in error messages.
+- Raw upstream error bodies from Cloudflare and Hugging Face are sanitized before reaching the client.
+- CORS is an explicit allow-list — no wildcard `*` in production.
+- File uploads (virtual try-on) are validated before forwarding.
+- Rate limiting is enforced per IP via `slowapi` (60 requests / minute default).
+- `.env` is in `.gitignore` and has never been committed. Only `.env.example` (with placeholder values) is tracked.
+
+For full details see [README-API-SETUP.md](README-API-SETUP.md).
+
+---
+
 ## Running Tests
 
 ```bash
@@ -363,26 +543,17 @@ cd backend
 pytest tests/ -v
 ```
 
-7 tests covering:
+Tests cover:
+
 1. Backend starts correctly
 2. `/api/health` returns expected structure
 3. Input validation (prompt too short)
 4. Missing credentials → safe 503 (no token leaked)
-5. Cloudflare errors are sanitised (no raw errors exposed)
-6. Successful generation returns `data:image/png;base64,...`
+5. Cloudflare errors are sanitized before reaching the client
+6. Successful generation returns `data:image/png;base64,…`
 7. Credentials never appear in any response
 
-All tests are **fully mocked** — no real Cloudflare API calls or credits used.
-
----
-
-## Security
-
-- `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` live only in the server-side `.env`
-- Tokens are never logged, printed, or included in error responses
-- Raw Cloudflare error bodies are sanitised before reaching the client
-- CORS is an explicit allow-list (no wildcard `*` in production)
-- `.env` is listed in `.gitignore` and excluded from all commits
+All tests are **fully mocked** — no real API calls or credits are consumed.
 
 ---
 
@@ -391,7 +562,7 @@ All tests are **fully mocked** — no real Cloudflare API calls or credits used.
 ```
 Modern Indian half-saree in pastel pink and gold
 
-Royal Rajasthani bandhani kurta, indigo with gold block print
+Royal Rajasthani bandhani kurta — indigo with gold block print
 
 Oversized linen co-ord set in soft terracotta
 
@@ -404,28 +575,73 @@ Cyberpunk streetwear jacket with neon accents
 
 ---
 
-## License
+## Engineering Challenges
 
-MIT — free for personal, educational, and commercial use.
+| Challenge | Approach |
+|---|---|
+| **AI generation latency** | Backend integration with async FastAPI + client-side loading states and error recovery |
+| **Third-party API credential security** | All keys loaded via server-side environment variables; CORS allow-list prevents cross-origin abuse |
+| **Virtual try-on reliability** | Input validation on file type and size before forwarding; structured error codes returned to the client |
+| **Product matching accuracy** | Weighted scoring algorithm (category 40%, color 25%, budget 20%, style 15%) applied to RapidAPI metadata |
+| **Multi-model image generation** | Pydantic allowlist validates model IDs server-side to prevent prompt injection via model field |
 
 ---
 
+## Future Roadmap
+
+- [ ] Advanced garment extraction for improved segmentation
+- [ ] Higher-fidelity virtual try-on pipeline
+- [ ] Additional fashion marketplace integrations
+- [ ] User authentication and cloud-based collections
+- [ ] Personalized recommendations based on style history
+- [ ] Mobile application
+- [ ] Advanced usage analytics
+
 ---
 
-## Creator
+## Project Status
+
+🟢 **Active Internship Project**
+
+```
+Version  : v2.0.0
+Status   : Functional prototype — IBM Internship 2026 submission
+API      : AI Fashion Studio API v2.0.0
+```
+
+---
 
 <div align="center">
 
-**Piyush Ramteke**
-IBM Internship 2026
+## Built By
 
-*"Making fashion design accessible to everyone through the power of generative AI."*
+### Piyush Ramteke
+
+AI · ML · Data Science · Python
+
+[GitHub →](https://github.com/Piyu242005)
+
+*IBM Internship 2026*
 
 </div>
 
 ---
 
+## License
+
+This project is licensed under the **MIT License** — free for personal, educational, and commercial use.
+
+**Third-party component notice:**
+The virtual try-on feature integrates [IDM-VTON](https://github.com/yisol/IDM-VTON), which is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) (non-commercial). Use of the virtual try-on feature is subject to IDM-VTON's license terms.
+
+---
+
 <div align="center">
-  Built with ❤️ by <strong>Piyush Ramteke</strong> · IBM Internship 2026<br/>
-  Powered by Cloudflare Workers AI · FastAPI · React
+
+### AI Fashion Design Generator
+
+**Built with React · FastAPI · Cloudflare Workers AI · Google Gemini · IDM-VTON**
+
+⭐ Star this repository if you found it useful.
+
 </div>
