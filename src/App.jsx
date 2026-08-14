@@ -361,81 +361,323 @@ const GARMENT_SAMPLES = [
 ];
 
 /* ─── 50 FEMALE MODELS (Unsplash open-source) ────────────────────── */
+/* ─── MODEL PHOTO DATA (kept for Model Photos sub-tab) ───────────── */
 const FEMALE_MODELS = [
-  { id:"fm1",  label:"Elegant Formal Look",        url:"https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=80" },
-  { id:"fm2",  label:"Street Style Casual",        url:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=80" },
-  { id:"fm3",  label:"Summer Floral Dress",        url:"https://images.unsplash.com/photo-1496217590455-aa63a8350eea?w=400&q=80" },
-  { id:"fm4",  label:"Minimal White Outfit",       url:"https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80" },
-  { id:"fm5",  label:"Boho Chic Look",             url:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&q=80" },
-  { id:"fm6",  label:"Editorial Black Dress",      url:"https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=400&q=80" },
-  { id:"fm7",  label:"Corporate Blazer Style",     url:"https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80" },
-  { id:"fm8",  label:"Resort Wear Look",           url:"https://images.unsplash.com/photo-1551803091-e20673f15770?w=400&q=80" },
-  { id:"fm9",  label:"Monochrome Grey Set",        url:"https://images.unsplash.com/photo-1546961342-ea5f62d5a27b?w=400&q=80" },
-  { id:"fm10", label:"Red Evening Gown",           url:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" },
-  { id:"fm11", label:"Denim-on-Denim",             url:"https://images.unsplash.com/photo-1588099768523-f4e6a5679d88?w=400&q=80" },
-  { id:"fm12", label:"Pastel Co-ord Outfit",       url:"https://images.unsplash.com/photo-1589810635657-232948472d98?w=400&q=80" },
-  { id:"fm13", label:"High Fashion Couture",       url:"https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&q=80" },
-  { id:"fm14", label:"Sporty Casual Mix",          url:"https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&q=80" },
-  { id:"fm15", label:"Wrap Dress Look",            url:"https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=400&q=80" },
-  { id:"fm16", label:"Knit Sweater & Jeans",       url:"https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&q=80" },
-  { id:"fm17", label:"Smart Casual Blazer",        url:"https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&q=80" },
-  { id:"fm18", label:"Vintage-Inspired Look",      url:"https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400&q=80" },
-  { id:"fm19", label:"Ethnic Fusion Style",        url:"https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=400&q=80" },
-  { id:"fm20", label:"Summer Beach Attire",        url:"https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400&q=80" },
-  { id:"fm21", label:"Classic Trench & Boots",     url:"https://images.unsplash.com/photo-1548454782-15b189d129ab?w=400&q=80" },
-  { id:"fm22", label:"Monochrome Black Style",     url:"https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&q=80" },
-  { id:"fm23", label:"Soft Neutral Palette",       url:"https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?w=400&q=80" },
-  { id:"fm24", label:"Bold Color Block",           url:"https://images.unsplash.com/photo-1617952739355-46d61416648e?w=400&q=80" },
-  { id:"fm25", label:"Night-Out Look",             url:"https://images.unsplash.com/photo-1609803384069-19f3f6e2d5c1?w=400&q=80" },
-  { id:"fm26", label:"Off-Shoulder Maxi",          url:"https://images.unsplash.com/photo-1571513722275-4b41940f54b8?w=400&q=80" },
-  { id:"fm27", label:"Leather Jacket Edge",        url:"https://images.unsplash.com/photo-1521223890158-f9f7c3d5d504?w=400&q=80" },
-  { id:"fm28", label:"Spring Garden Look",         url:"https://images.unsplash.com/photo-1603344204980-4edb0ea63148?w=400&q=80" },
-  { id:"fm29", label:"Linen Relaxed Outfit",       url:"https://images.unsplash.com/photo-1590736969596-77e04f0c2a0a?w=400&q=80" },
-  { id:"fm30", label:"Structured Suit Set",        url:"https://images.unsplash.com/photo-1614201061439-c86c1de7c37a?w=400&q=80" },
-  { id:"fm31", label:"Ruched Mini Dress",          url:"https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80" },
-  { id:"fm32", label:"Cozy Oversized Sweater",     url:"https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400&q=80" },
-  { id:"fm33", label:"Midi Skirt & Crop Top",      url:"https://images.unsplash.com/photo-1577900232427-18219b9166a0?w=400&q=80" },
-  { id:"fm34", label:"Asymmetric Hem Dress",       url:"https://images.unsplash.com/photo-1550614000-4895a10e1bfd?w=400&q=80" },
-  { id:"fm35", label:"Collarless Blazer",          url:"https://images.unsplash.com/photo-1604176354204-9268737828e4?w=400&q=80" },
-  { id:"fm36", label:"Printed Wrap Top",           url:"https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=400&q=80" },
-  { id:"fm37", label:"Classic White Ensemble",     url:"https://images.unsplash.com/photo-1598032895397-b9472444bf93?w=400&q=80" },
-  { id:"fm38", label:"High-Neck Bodysuit",         url:"https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400&q=80" },
-  { id:"fm39", label:"Flowy Palazzo Pants",        url:"https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=80" },
-  { id:"fm40", label:"Sequined Party Dress",       url:"https://images.unsplash.com/photo-1593032465175-481ac7f401a0?w=400&q=80" },
-  { id:"fm41", label:"Peplum Top & Slacks",        url:"https://images.unsplash.com/photo-1594938298603-c8148c4b4086?w=400&q=80" },
-  { id:"fm42", label:"Tank Top & Joggers",         url:"https://images.unsplash.com/photo-1543508282-6319a3e2621f?w=400&q=80" },
-  { id:"fm43", label:"Checked Blazer",             category:"Formal", url:"https://images.unsplash.com/photo-1547496502-affa22d38842?w=400&q=80" },
-  { id:"fm44", label:"Velvet Evening Look",        url:"https://images.unsplash.com/photo-1470506926202-05d3fca84c9a?w=400&q=80" },
-  { id:"fm45", label:"Crop Top & Maxi Skirt",      url:"https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=80" },
-  { id:"fm46", label:"Breezy Linen Set",           url:"https://images.unsplash.com/photo-1520975867351-d91ff4fa57d9?w=400&q=80" },
-  { id:"fm47", label:"Sporty Chic Athleisure",     url:"https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&q=80" },
-  { id:"fm48", label:"Satin Slip Ensemble",        url:"https://images.unsplash.com/photo-1536766768598-e09213fdcf22?w=400&q=80" },
-  { id:"fm49", label:"Flare Jeans & Blouse",       url:"https://images.unsplash.com/photo-1541727130-6df27d17ab59?w=400&q=80" },
-  { id:"fm50", label:"Bold Print Co-ord",          url:"https://images.unsplash.com/photo-1589810635657-232948472d98?w=400&q=80" },
+  { id:"fm1",  label:"Elegant Formal Look",   url:"https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=80" },
+  { id:"fm2",  label:"Street Style Casual",   url:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=80" },
+  { id:"fm3",  label:"Summer Floral Dress",   url:"https://images.unsplash.com/photo-1496217590455-aa63a8350eea?w=400&q=80" },
+  { id:"fm4",  label:"Minimal White Outfit",  url:"https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80" },
+  { id:"fm5",  label:"Boho Chic Look",        url:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&q=80" },
+  { id:"fm6",  label:"Editorial Black Dress", url:"https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=400&q=80" },
+  { id:"fm7",  label:"Corporate Blazer",      url:"https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80" },
+  { id:"fm8",  label:"Resort Wear Look",      url:"https://images.unsplash.com/photo-1551803091-e20673f15770?w=400&q=80" },
+  { id:"fm9",  label:"Monochrome Grey Set",   url:"https://images.unsplash.com/photo-1546961342-ea5f62d5a27b?w=400&q=80" },
+  { id:"fm10", label:"Red Evening Gown",      url:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80" },
+  { id:"fm11", label:"Denim-on-Denim",        url:"https://images.unsplash.com/photo-1588099768523-f4e6a5679d88?w=400&q=80" },
+  { id:"fm12", label:"Pastel Co-ord",         url:"https://images.unsplash.com/photo-1589810635657-232948472d98?w=400&q=80" },
+  { id:"fm13", label:"High Fashion Couture",  url:"https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&q=80" },
+  { id:"fm14", label:"Sporty Casual Mix",     url:"https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&q=80" },
+  { id:"fm15", label:"Wrap Dress Look",       url:"https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=400&q=80" },
+  { id:"fm16", label:"Knit Sweater & Jeans",  url:"https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&q=80" },
+  { id:"fm17", label:"Smart Casual Blazer",   url:"https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&q=80" },
+  { id:"fm18", label:"Vintage-Inspired Look", url:"https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=400&q=80" },
+  { id:"fm19", label:"Ethnic Fusion Style",   url:"https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=400&q=80" },
+  { id:"fm20", label:"Summer Beach Attire",   url:"https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400&q=80" },
+  { id:"fm21", label:"Classic Trench",        url:"https://images.unsplash.com/photo-1548454782-15b189d129ab?w=400&q=80" },
+  { id:"fm22", label:"Monochrome Black",      url:"https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&q=80" },
+  { id:"fm23", label:"Soft Neutral Palette",  url:"https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?w=400&q=80" },
+  { id:"fm24", label:"Bold Color Block",      url:"https://images.unsplash.com/photo-1617952739355-46d61416648e?w=400&q=80" },
+  { id:"fm25", label:"Night-Out Look",        url:"https://images.unsplash.com/photo-1609803384069-19f3f6e2d5c1?w=400&q=80" },
+  { id:"fm26", label:"Off-Shoulder Maxi",     url:"https://images.unsplash.com/photo-1571513722275-4b41940f54b8?w=400&q=80" },
+  { id:"fm27", label:"Leather Jacket Edge",   url:"https://images.unsplash.com/photo-1521223890158-f9f7c3d5d504?w=400&q=80" },
+  { id:"fm28", label:"Spring Garden Look",    url:"https://images.unsplash.com/photo-1603344204980-4edb0ea63148?w=400&q=80" },
+  { id:"fm29", label:"Linen Relaxed Outfit",  url:"https://images.unsplash.com/photo-1590736969596-77e04f0c2a0a?w=400&q=80" },
+  { id:"fm30", label:"Structured Suit Set",   url:"https://images.unsplash.com/photo-1614201061439-c86c1de7c37a?w=400&q=80" },
+  { id:"fm31", label:"Ruched Mini Dress",     url:"https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80" },
+  { id:"fm32", label:"Cozy Oversized Knit",   url:"https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400&q=80" },
+  { id:"fm33", label:"Midi Skirt & Crop",     url:"https://images.unsplash.com/photo-1577900232427-18219b9166a0?w=400&q=80" },
+  { id:"fm34", label:"Asymmetric Hem Dress",  url:"https://images.unsplash.com/photo-1550614000-4895a10e1bfd?w=400&q=80" },
+  { id:"fm35", label:"Collarless Blazer",     url:"https://images.unsplash.com/photo-1604176354204-9268737828e4?w=400&q=80" },
+  { id:"fm36", label:"Printed Wrap Top",      url:"https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=400&q=80" },
+  { id:"fm37", label:"Classic White Set",     url:"https://images.unsplash.com/photo-1598032895397-b9472444bf93?w=400&q=80" },
+  { id:"fm38", label:"High-Neck Bodysuit",    url:"https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400&q=80" },
+  { id:"fm39", label:"Flowy Palazzo Pants",   url:"https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=400&q=80" },
+  { id:"fm40", label:"Sequined Party Dress",  url:"https://images.unsplash.com/photo-1593032465175-481ac7f401a0?w=400&q=80" },
+  { id:"fm41", label:"Peplum & Slacks",       url:"https://images.unsplash.com/photo-1594938298603-c8148c4b4086?w=400&q=80" },
+  { id:"fm42", label:"Tank & Joggers",        url:"https://images.unsplash.com/photo-1543508282-6319a3e2621f?w=400&q=80" },
+  { id:"fm43", label:"Checked Blazer",        url:"https://images.unsplash.com/photo-1547496502-affa22d38842?w=400&q=80" },
+  { id:"fm44", label:"Velvet Evening Look",   url:"https://images.unsplash.com/photo-1470506926202-05d3fca84c9a?w=400&q=80" },
+  { id:"fm45", label:"Crop Top & Maxi",       url:"https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=80" },
+  { id:"fm46", label:"Breezy Linen Set",      url:"https://images.unsplash.com/photo-1520975867351-d91ff4fa57d9?w=400&q=80" },
+  { id:"fm47", label:"Sporty Chic",           url:"https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400&q=80" },
+  { id:"fm48", label:"Satin Slip Ensemble",   url:"https://images.unsplash.com/photo-1536766768598-e09213fdcf22?w=400&q=80" },
+  { id:"fm49", label:"Flare Jeans & Blouse",  url:"https://images.unsplash.com/photo-1541727130-6df27d17ab59?w=400&q=80" },
+  { id:"fm50", label:"Bold Print Co-ord",     url:"https://images.unsplash.com/photo-1589810635657-232948472d98?w=400&q=80" },
 ];
 
-/* ─── 20 MALE MODELS (Unsplash open-source) ──────────────────────── */
 const MALE_MODELS = [
-  { id:"mm1",  label:"Casual White Tee Look",      url:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" },
-  { id:"mm2",  label:"Smart Casual Blazer",        url:"https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&q=80" },
-  { id:"mm3",  label:"Streetwear Hoodie",          url:"https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=400&q=80" },
-  { id:"mm4",  label:"Business Formal Suit",       url:"https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80" },
-  { id:"mm5",  label:"Denim & Graphic Tee",        url:"https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=400&q=80" },
-  { id:"mm6",  label:"Athletic Sportswear",        url:"https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80" },
-  { id:"mm7",  label:"Linen Shirt Beach Look",     url:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80" },
-  { id:"mm8",  label:"Black Turtleneck Style",     url:"https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=400&q=80" },
-  { id:"mm9",  label:"Leather Jacket Look",        url:"https://images.unsplash.com/photo-1541577141970-eebc83ebe30e?w=400&q=80" },
-  { id:"mm10", label:"Polo & Chinos",              url:"https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80" },
-  { id:"mm11", label:"Trench Coat Winter Look",    url:"https://images.unsplash.com/photo-1463453091185-61582044d556?w=400&q=80" },
-  { id:"mm12", label:"Summer Shorts & Shirt",      url:"https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=80" },
-  { id:"mm13", label:"Bold Pattern Shirt",         url:"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80" },
-  { id:"mm14", label:"Knit Sweater Smart Look",    url:"https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=400&q=80" },
-  { id:"mm15", label:"Monochrome Black Outfit",    url:"https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&q=80" },
-  { id:"mm16", label:"Traditional Ethnic Wear",    url:"https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=400&q=80" },
-  { id:"mm17", label:"Bomber Jacket Street",       url:"https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&q=80" },
-  { id:"mm18", label:"Fitted Crew Neck Tee",       url:"https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=80" },
-  { id:"mm19", label:"Formal White Dress Shirt",   url:"https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=400&q=80" },
-  { id:"mm20", label:"Casual Weekend Outfit",      url:"https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&q=80" },
+  { id:"mm1",  label:"Casual White Tee",      url:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" },
+  { id:"mm2",  label:"Smart Casual Blazer",   url:"https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&q=80" },
+  { id:"mm3",  label:"Streetwear Hoodie",     url:"https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=400&q=80" },
+  { id:"mm4",  label:"Business Formal Suit",  url:"https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80" },
+  { id:"mm5",  label:"Denim & Graphic Tee",   url:"https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=400&q=80" },
+  { id:"mm6",  label:"Athletic Sportswear",   url:"https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400&q=80" },
+  { id:"mm7",  label:"Linen Shirt Beach",     url:"https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80" },
+  { id:"mm8",  label:"Black Turtleneck",      url:"https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?w=400&q=80" },
+  { id:"mm9",  label:"Leather Jacket Look",   url:"https://images.unsplash.com/photo-1541577141970-eebc83ebe30e?w=400&q=80" },
+  { id:"mm10", label:"Polo & Chinos",         url:"https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80" },
+  { id:"mm11", label:"Trench Coat Winter",    url:"https://images.unsplash.com/photo-1463453091185-61582044d556?w=400&q=80" },
+  { id:"mm12", label:"Summer Shorts & Shirt", url:"https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=80" },
+  { id:"mm13", label:"Bold Pattern Shirt",    url:"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80" },
+  { id:"mm14", label:"Knit Sweater Smart",    url:"https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?w=400&q=80" },
+  { id:"mm15", label:"Monochrome Black",      url:"https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&q=80" },
+  { id:"mm16", label:"Traditional Ethnic",    url:"https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=400&q=80" },
+  { id:"mm17", label:"Bomber Jacket Street",  url:"https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&q=80" },
+  { id:"mm18", label:"Fitted Crew Neck Tee",  url:"https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=80" },
+  { id:"mm19", label:"Formal White Shirt",    url:"https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=400&q=80" },
+  { id:"mm20", label:"Casual Weekend",        url:"https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=400&q=80" },
+];
+
+/* ─── FASHION MODELS DIRECTORY — 50 fictional editorial models ──────
+   All photos: Unsplash free-to-use portraits (professional, tasteful,
+   no nudity). Fictional names + bios for fashion-editorial context.
+─────────────────────────────────────────────────────────────────── */
+const FASHION_MODELS = [
+  // ── USA ──────────────────────────────────────────────────────────
+  { id:"p1",  name:"Savannah Brooks",    country:"USA",        region:"Americas",
+    specialty:"High Fashion / Runway",
+    bio:"NYC-based editorial model known for her striking minimalist looks and New York Fashion Week appearances.",
+    url:"https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=85" },
+  { id:"p2",  name:"Maya Delacroix",     country:"USA",        region:"Americas",
+    specialty:"Commercial / Lifestyle",
+    bio:"Versatile Los Angeles model who has fronted campaigns for major denim and streetwear brands.",
+    url:"https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&q=85" },
+  { id:"p3",  name:"Jordan Vale",        country:"USA",        region:"Americas",
+    specialty:"Fitness & Activewear",
+    bio:"Sports-editorial specialist based in Miami; collaborates with athleisure labels across the US.",
+    url:"https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&q=85" },
+  { id:"p4",  name:"Camille Okafor",     country:"USA",        region:"Americas",
+    specialty:"Couture / Evening Wear",
+    bio:"Represented by a top Chicago agency, Camille is celebrated for her commanding presence on the couture circuit.",
+    url:"https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=500&q=85" },
+  { id:"p5",  name:"Tara Winslow",       country:"USA",        region:"Americas",
+    specialty:"Print & Editorial",
+    bio:"Vogue and Harper's Bazaar contributor whose work spans contemporary American fashion narratives.",
+    url:"https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&q=85" },
+  // ── India ─────────────────────────────────────────────────────────
+  { id:"p6",  name:"Aaradhya Sharma",    country:"India",      region:"Asia",
+    specialty:"Ethnic & Fusion Wear",
+    bio:"Jaipur-born model who bridges traditional Indian textiles and contemporary international runways.",
+    url:"https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=500&q=85" },
+  { id:"p7",  name:"Priya Nair",         country:"India",      region:"Asia",
+    specialty:"Bridal & Occasion Wear",
+    bio:"Mumbai-based bridal specialist; known for her work with India's top couture houses and jewellery labels.",
+    url:"https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=500&q=85" },
+  { id:"p8",  name:"Divya Kapoor",       country:"India",      region:"Asia",
+    specialty:"Commercial / Beauty",
+    bio:"Delhi's most-booked beauty model with campaigns spanning skincare, fashion-tech, and luxury accessories.",
+    url:"https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&q=85" },
+  { id:"p9",  name:"Meera Joshi",        country:"India",      region:"Asia",
+    specialty:"Street Style / Casual",
+    bio:"Bangalore creative-scene regular who champions sustainable Indian labels on social and editorial platforms.",
+    url:"https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500&q=85" },
+  // ── Japan ─────────────────────────────────────────────────────────
+  { id:"p10", name:"Haruka Mizuno",      country:"Japan",      region:"Asia",
+    specialty:"Avant-Garde / Editorial",
+    bio:"Tokyo fashion-week fixture renowned for her precise editorial expressions and harajuku-influenced styling.",
+    url:"https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=500&q=85" },
+  { id:"p11", name:"Yuki Tanaka",        country:"Japan",      region:"Asia",
+    specialty:"Minimalist / Contemporary",
+    bio:"Osaka-based model who specialises in clean, architectural silhouettes for luxury Japanese labels.",
+    url:"https://images.unsplash.com/photo-1541727130-6df27d17ab59?w=500&q=85" },
+  { id:"p12", name:"Aiko Hayashi",       country:"Japan",      region:"Asia",
+    specialty:"Beauty / Cosmetics",
+    bio:"The face of several international beauty campaigns, Aiko is celebrated for her versatile editorial range.",
+    url:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=85" },
+  // ── South Korea ───────────────────────────────────────────────────
+  { id:"p13", name:"Ji-Yeon Park",       country:"South Korea",region:"Asia",
+    specialty:"K-Fashion / Contemporary",
+    bio:"Seoul street-fashion icon whose daily looks have earned her a dedicated global following.",
+    url:"https://images.unsplash.com/photo-1609803384069-19f3f6e2d5c1?w=500&q=85" },
+  { id:"p14", name:"Soo-Yeon Han",       country:"South Korea",region:"Asia",
+    specialty:"Runway / Commercial",
+    bio:"Seoul Fashion Week veteran who has walked for both emerging designers and established Korean houses.",
+    url:"https://images.unsplash.com/photo-1546961342-ea5f62d5a27b?w=500&q=85" },
+  // ── China ─────────────────────────────────────────────────────────
+  { id:"p15", name:"Ling Wei Chen",      country:"China",      region:"Asia",
+    specialty:"Luxury / Haute Couture",
+    bio:"Shanghai-based luxury model who regularly appears in Vogue China and international high-fashion editorials.",
+    url:"https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=500&q=85" },
+  { id:"p16", name:"Xiu Mei Lu",         country:"China",      region:"Asia",
+    specialty:"Sportswear & Active",
+    bio:"Beijing model and fitness advocate, the face of several international athletic and wellness campaigns.",
+    url:"https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=500&q=85" },
+  // ── UK ────────────────────────────────────────────────────────────
+  { id:"p17", name:"Eloise Pemberton",   country:"UK",         region:"Europe",
+    specialty:"High Street & Editorial",
+    bio:"London-born model whose effortless British style has graced covers from Elle to The Sunday Times Style.",
+    url:"https://images.unsplash.com/photo-1617952739355-46d61416648e?w=500&q=85" },
+  { id:"p18", name:"Imogen Clarke",      country:"UK",         region:"Europe",
+    specialty:"Evening & Couture",
+    bio:"Manchester native signed to a top London agency; known for her elegance on red carpets and editorial sets.",
+    url:"https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?w=500&q=85" },
+  // ── France ────────────────────────────────────────────────────────
+  { id:"p19", name:"Céline Moreau",      country:"France",     region:"Europe",
+    specialty:"Parisian Chic / Couture",
+    bio:"Born in Lyon, Céline embodies effortless Parisian elegance with an edge — a fixture at Paris Fashion Week.",
+    url:"https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=500&q=85" },
+  { id:"p20", name:"Amélie Fontaine",    country:"France",     region:"Europe",
+    specialty:"Fragrance & Beauty",
+    bio:"The face of multiple international fragrance houses, Amélie's photogenic versatility spans print to film.",
+    url:"https://images.unsplash.com/photo-1604176354204-9268737828e4?w=500&q=85" },
+  // ── Italy ─────────────────────────────────────────────────────────
+  { id:"p21", name:"Valentina Conti",    country:"Italy",      region:"Europe",
+    specialty:"Luxury / Accessories",
+    bio:"Milan-based luxury model whose campaigns for Italian leather houses define modern Italian sophistication.",
+    url:"https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=500&q=85" },
+  { id:"p22", name:"Gioia Ferraro",      country:"Italy",      region:"Europe",
+    specialty:"Runway / Resort",
+    bio:"Florence editorial model who splits her year between Milan shows and exclusive resort-wear shoots.",
+    url:"https://images.unsplash.com/photo-1593032465175-481ac7f401a0?w=500&q=85" },
+  // ── Germany ───────────────────────────────────────────────────────
+  { id:"p23", name:"Lena Brandt",        country:"Germany",    region:"Europe",
+    specialty:"Sportswear & Lifestyle",
+    bio:"Hamburg model and brand ambassador for leading European activewear and outdoor lifestyle brands.",
+    url:"https://images.unsplash.com/photo-1590736969596-77e04f0c2a0a?w=500&q=85" },
+  // ── Spain ─────────────────────────────────────────────────────────
+  { id:"p24", name:"Sofía Montoya",      country:"Spain",      region:"Europe",
+    specialty:"Mediterranean Style",
+    bio:"Barcelona-born with an infectious energy, Sofía works the boundary between street editorial and couture.",
+    url:"https://images.unsplash.com/photo-1589810635657-232948472d98?w=500&q=85" },
+  // ── Sweden ────────────────────────────────────────────────────────
+  { id:"p25", name:"Astrid Lindqvist",   country:"Sweden",     region:"Europe",
+    specialty:"Scandi Minimalism",
+    bio:"Stockholm native whose clean, nordic aesthetic has made her a favourite for Scandinavian design labels.",
+    url:"https://images.unsplash.com/photo-1571513722275-4b41940f54b8?w=500&q=85" },
+  // ── Czech Republic ────────────────────────────────────────────────
+  { id:"p26", name:"Karolína Horáčková", country:"Czech Republic", region:"Europe",
+    specialty:"Editorial / High Fashion",
+    bio:"Prague's leading editorial face; her striking bone structure has opened doors at top European agencies.",
+    url:"https://images.unsplash.com/photo-1594938298603-c8148c4b4086?w=500&q=85" },
+  // ── Poland ────────────────────────────────────────────────────────
+  { id:"p27", name:"Zofia Wiśniewska",   country:"Poland",     region:"Europe",
+    specialty:"Runway / Commercial",
+    bio:"Warsaw-born model who has built a strong runway career across Warsaw, Berlin, and Paris fashion weeks.",
+    url:"https://images.unsplash.com/photo-1614201061439-c86c1de7c37a?w=500&q=85" },
+  // ── Russia / Eastern Europe ───────────────────────────────────────
+  { id:"p28", name:"Natasha Volkov",     country:"Russia",     region:"Europe",
+    specialty:"Editorial / Couture",
+    bio:"Moscow-born model whose high-fashion editorial work has appeared in international editions of Vogue.",
+    url:"https://images.unsplash.com/photo-1603344204980-4edb0ea63148?w=500&q=85" },
+  // ── Ukraine ───────────────────────────────────────────────────────
+  { id:"p29", name:"Oksana Petrenko",    country:"Ukraine",    region:"Europe",
+    specialty:"Bridal & Occasion Wear",
+    bio:"Kyiv-based bridal specialist who has redefined modern Eastern European bridal editorial photography.",
+    url:"https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=500&q=85" },
+  // ── Hungary ───────────────────────────────────────────────────────
+  { id:"p30", name:"Éva Molnár",         country:"Hungary",    region:"Europe",
+    specialty:"Runway / Campaign",
+    bio:"Budapest native who turned heads at her first Budapest Fashion Week and has since gone international.",
+    url:"https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&q=85" },
+  // ── Romania ───────────────────────────────────────────────────────
+  { id:"p31", name:"Elena Ionescu",      country:"Romania",    region:"Europe",
+    specialty:"Commercial / Beauty",
+    bio:"Bucharest beauty model whose expressive editorial range has earned her placements across European campaigns.",
+    url:"https://images.unsplash.com/photo-1577900232427-18219b9166a0?w=500&q=85" },
+  // ── Brazil ────────────────────────────────────────────────────────
+  { id:"p32", name:"Isabella Carvalho",  country:"Brazil",     region:"Americas",
+    specialty:"Swimwear & Resort",
+    bio:"São Paulo model and fitness influencer; the quintessential face of South American summer campaigns.",
+    url:"https://images.unsplash.com/photo-1551803091-e20673f15770?w=500&q=85" },
+  { id:"p33", name:"Bianca Ferreira",    country:"Brazil",     region:"Americas",
+    specialty:"Street Style / Urban",
+    bio:"Rio de Janeiro street-fashion powerhouse whose vibrant style captures the energy of Brazilian youth culture.",
+    url:"https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500&q=85" },
+  // ── Colombia ──────────────────────────────────────────────────────
+  { id:"p34", name:"Valeria Gómez",      country:"Colombia",   region:"Americas",
+    specialty:"Runway / Commercial",
+    bio:"Bogotá-born Valeria brings Latin warmth to the runway — a sought-after face for tropical and resort labels.",
+    url:"https://images.unsplash.com/photo-1550614000-4895a10e1bfd?w=500&q=85" },
+  // ── Canada ────────────────────────────────────────────────────────
+  { id:"p35", name:"Natalie Rousseau",   country:"Canada",     region:"Americas",
+    specialty:"Lifestyle & Commercial",
+    bio:"Toronto-based model whose approachable aesthetic has made her a top choice for Canadian and US lifestyle brands.",
+    url:"https://images.unsplash.com/photo-1520975867351-d91ff4fa57d9?w=500&q=85" },
+  // ── Australia ─────────────────────────────────────────────────────
+  { id:"p36", name:"Zara Mitchell",      country:"Australia",  region:"Oceania",
+    specialty:"Outdoor & Beach Lifestyle",
+    bio:"Sydney surf-and-style model who effortlessly transitions between beach campaigns and high-end editorial.",
+    url:"https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=500&q=85" },
+  // ── South Africa ──────────────────────────────────────────────────
+  { id:"p37", name:"Amahle Dlamini",     country:"South Africa",region:"Africa",
+    specialty:"Afro-Contemporary / Couture",
+    bio:"Cape Town model who champions African design on international stages, appearing at Lagos and Paris shows.",
+    url:"https://images.unsplash.com/photo-1536766768598-e09213fdcf22?w=500&q=85" },
+  // ── Nigeria ───────────────────────────────────────────────────────
+  { id:"p38", name:"Adaeze Okafor",      country:"Nigeria",    region:"Africa",
+    specialty:"Editorial & African Fashion Week",
+    bio:"Lagos model and advocate for African sustainable fashion; regular feature at Lagos Fashion Week.",
+    url:"https://images.unsplash.com/photo-1470506926202-05d3fca84c9a?w=500&q=85" },
+  // ── Ethiopia ──────────────────────────────────────────────────────
+  { id:"p39", name:"Selam Bekele",       country:"Ethiopia",   region:"Africa",
+    specialty:"Runway / International Editorial",
+    bio:"Addis Ababa-born model whose regal presence has graced international campaigns from Paris to New York.",
+    url:"https://images.unsplash.com/photo-1496217590455-aa63a8350eea?w=500&q=85" },
+  // ── Mexico ────────────────────────────────────────────────────────
+  { id:"p40", name:"Fernanda Ríos",      country:"Mexico",     region:"Americas",
+    specialty:"Commercial / Telenovela Fashion",
+    bio:"Mexico City model and creative director whose bold, colourful editorials celebrate Mexican craft heritage.",
+    url:"https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=500&q=85" },
+  // ── Argentina ─────────────────────────────────────────────────────
+  { id:"p41", name:"Luciana Vega",       country:"Argentina",  region:"Americas",
+    specialty:"Evening & Gown",
+    bio:"Buenos Aires model known for her statuesque elegance; a regular at South American fashion weeks.",
+    url:"https://images.unsplash.com/photo-1548454782-15b189d129ab?w=500&q=85" },
+  // ── Turkey ────────────────────────────────────────────────────────
+  { id:"p42", name:"Yasemin Arslan",     country:"Turkey",     region:"Middle East",
+    specialty:"Fusion Editorial",
+    bio:"Istanbul model who blends East-West aesthetics, fronting campaigns that celebrate Turkish fashion heritage.",
+    url:"https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=500&q=85" },
+  // ── UAE ───────────────────────────────────────────────────────────
+  { id:"p43", name:"Layla Al-Hassan",    country:"UAE",        region:"Middle East",
+    specialty:"Luxury & Occasion Wear",
+    bio:"Dubai-based model and luxury brand consultant whose work represents the modern Middle Eastern aesthetic.",
+    url:"https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=500&q=85" },
+  // ── Indonesia ─────────────────────────────────────────────────────
+  { id:"p44", name:"Dewi Rahayu",        country:"Indonesia",  region:"Asia",
+    specialty:"Batik & Contemporary",
+    bio:"Jakarta model whose editorial work celebrates the richness of Indonesian batik in contemporary fashion.",
+    url:"https://images.unsplash.com/photo-1543508282-6319a3e2621f?w=500&q=85" },
+  // ── Thailand ──────────────────────────────────────────────────────
+  { id:"p45", name:"Praewa Suthat",      country:"Thailand",   region:"Asia",
+    specialty:"Resort & Tropical",
+    bio:"Bangkok editorial model who captures the elegance of Thai fashion for both local and international audiences.",
+    url:"https://images.unsplash.com/photo-1547496502-affa22d38842?w=500&q=85" },
+  // ── Philippines ───────────────────────────────────────────────────
+  { id:"p46", name:"Rica Santos",        country:"Philippines",region:"Asia",
+    specialty:"Commercial & Runway",
+    bio:"Manila-based model who brings warmth and vibrancy to campaigns spanning fashion, beauty, and lifestyle.",
+    url:"https://images.unsplash.com/photo-1619895862022-09114b41f16f?w=500&q=85" },
+  // ── Vietnam ───────────────────────────────────────────────────────
+  { id:"p47", name:"Linh Phuong",        country:"Vietnam",    region:"Asia",
+    specialty:"Ao Dai & Contemporary",
+    bio:"Ho Chi Minh City model who champions Vietnamese ao dai on international editorial stages.",
+    url:"https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=500&q=85" },
+  // ── Egypt ─────────────────────────────────────────────────────────
+  { id:"p48", name:"Nadia El-Masry",     country:"Egypt",      region:"Middle East",
+    specialty:"Resort & Occasion Wear",
+    bio:"Cairo-born model whose Mediterranean-inspired editorial work is synonymous with timeless elegance.",
+    url:"https://images.unsplash.com/photo-1551803091-e20673f15770?w=500&q=85" },
+  // ── Greece ────────────────────────────────────────────────────────
+  { id:"p49", name:"Dimitra Papadakis",  country:"Greece",     region:"Europe",
+    specialty:"Resort & Mediterranean",
+    bio:"Athens model whose sun-drenched editorial work captures the spirit of Greek island luxury.",
+    url:"https://images.unsplash.com/photo-1614201061439-c86c1de7c37a?w=500&q=85" },
+  // ── Netherlands ───────────────────────────────────────────────────
+  { id:"p50", name:"Fleur van den Berg", country:"Netherlands",region:"Europe",
+    specialty:"Sustainable Fashion",
+    bio:"Amsterdam-based sustainable fashion advocate whose campaigns champion ethical design and circular fashion.",
+    url:"https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=500&q=85" },
 ];
 
 /* ─── WARDROBE DATA ───────────────────────────────────────────────── */
@@ -527,9 +769,11 @@ export default function App() {
   const [wardrobeFilter, setWardrobeFilter] = useState('All');
   const [copySpecPulse, setCopySpecPulse] = useState(false);
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
-  const [collectionSubTab, setCollectionSubTab] = useState('saved'); // 'saved' | 'garments' | 'models'
+  const [collectionSubTab, setCollectionSubTab] = useState('saved'); // 'saved' | 'garments' | 'models' | 'people'
   const [garmentCatFilter, setGarmentCatFilter] = useState('All');
   const [modelGenderFilter, setModelGenderFilter] = useState('All'); // 'All' | 'Female' | 'Male'
+  const [peopleRegionFilter, setPeopleRegionFilter] = useState('All');
+  const [peopleSearch, setPeopleSearch] = useState('');
   const fileInputRef  = useRef(null);
   const promptRef     = useRef(null);
 
@@ -1634,6 +1878,7 @@ export default function App() {
                   {collectionSubTab === 'saved'    && `${savedDesigns.length} design${savedDesigns.length !== 1 ? 's' : ''} saved locally`}
                   {collectionSubTab === 'garments' && `${GARMENT_SAMPLES.length} garment samples · open-source photos`}
                   {collectionSubTab === 'models'   && `${FEMALE_MODELS.length + MALE_MODELS.length} model photos · ${FEMALE_MODELS.length} female · ${MALE_MODELS.length} male`}
+                  {collectionSubTab === 'people'   && `${FASHION_MODELS.length} editorial models · ${Array.from(new Set(FASHION_MODELS.map(m=>m.region))).length} regions · fictional profiles`}
                 </p>
               </div>
               <button
@@ -1645,11 +1890,12 @@ export default function App() {
             </div>
 
             {/* ── Sub-tab pills ────────────────────────────────────── */}
-            <div className="flex items-center gap-2 bg-white/3 border border-white/7 rounded-2xl p-1.5 w-fit">
+            <div className="flex flex-wrap items-center gap-2 bg-white/3 border border-white/7 rounded-2xl p-1.5 w-fit">
               {[
                 { id: 'saved',    label: `Saved Designs${savedDesigns.length > 0 ? ` (${savedDesigns.length})` : ''}` },
                 { id: 'garments', label: `Garment Samples (${GARMENT_SAMPLES.length})` },
                 { id: 'models',   label: `Model Photos (${FEMALE_MODELS.length + MALE_MODELS.length})` },
+                { id: 'people',   label: `Models Directory (${FASHION_MODELS.length})` },
               ].map(st => (
                 <button
                   key={st.id}
@@ -1856,6 +2102,131 @@ export default function App() {
                       </div>
                     ))}
                   </div>
+                </div>
+              );
+            })()}
+
+            {/* ════════════════════════════════════════════════════
+                SUB-TAB: MODELS DIRECTORY — 50 fictional editorial
+            ═══════════════════════════════════════════════════ */}
+            {collectionSubTab === 'people' && (() => {
+              const allRegions = ['All', ...Array.from(new Set(FASHION_MODELS.map(m => m.region)))].sort((a,b) => a === 'All' ? -1 : b === 'All' ? 1 : a.localeCompare(b));
+              const q = peopleSearch.toLowerCase().trim();
+              const filtered = FASHION_MODELS.filter(m => {
+                const matchRegion = peopleRegionFilter === 'All' || m.region === peopleRegionFilter;
+                const matchSearch = !q || m.name.toLowerCase().includes(q) || m.country.toLowerCase().includes(q) || m.specialty.toLowerCase().includes(q);
+                return matchRegion && matchSearch;
+              });
+              const REGION_COLORS = {
+                Americas:     'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+                Europe:       'bg-blue-500/20 text-blue-300 border-blue-500/30',
+                Asia:         'bg-rose-500/20 text-rose-300 border-rose-500/30',
+                Africa:       'bg-amber-500/20 text-amber-300 border-amber-500/30',
+                'Middle East':'bg-orange-500/20 text-orange-300 border-orange-500/30',
+                Oceania:      'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+              };
+              return (
+                <div className="space-y-5">
+                  {/* Search + region filters */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {/* Search box */}
+                    <div className="relative flex-1 max-w-xs">
+                      <input
+                        type="text"
+                        placeholder="Search by name, country, specialty…"
+                        value={peopleSearch}
+                        onChange={e => setPeopleSearch(e.target.value)}
+                        className="w-full bg-white/4 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 placeholder-neutral-600 focus:outline-none focus:border-violet-500/50 focus:bg-white/6 transition-all"
+                      />
+                      {peopleSearch && (
+                        <button
+                          onClick={() => setPeopleSearch('')}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-600 hover:text-neutral-300 transition-colors"
+                        >
+                          <X size={11} />
+                        </button>
+                      )}
+                    </div>
+                    {/* Region pills */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {allRegions.map(r => (
+                        <button
+                          key={r}
+                          onClick={() => setPeopleRegionFilter(r)}
+                          className={`px-3 py-1 rounded-lg text-[11px] font-semibold border transition-all ${
+                            peopleRegionFilter === r
+                              ? 'bg-violet-600 border-violet-600 text-white'
+                              : 'bg-white/3 border-white/8 text-neutral-500 hover:text-neutral-300 hover:border-white/20'
+                          }`}
+                        >
+                          {r === 'All' ? `All (${FASHION_MODELS.length})` : r}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Result count */}
+                  {q || peopleRegionFilter !== 'All' ? (
+                    <p className="text-[11px] text-neutral-600">
+                      Showing {filtered.length} of {FASHION_MODELS.length} models
+                      {peopleRegionFilter !== 'All' && ` · ${peopleRegionFilter}`}
+                      {q && ` · "${peopleSearch}"`}
+                    </p>
+                  ) : null}
+
+                  {/* Cards grid */}
+                  {filtered.length === 0 ? (
+                    <div className="bg-white/2 border border-white/5 rounded-2xl py-14 text-center">
+                      <p className="text-sm text-neutral-600">No models match your search.</p>
+                      <button onClick={() => { setPeopleSearch(''); setPeopleRegionFilter('All'); }}
+                        className="mt-3 text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                        Clear filters
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+                      {filtered.map(m => (
+                        <div
+                          key={m.id}
+                          className="bg-white/3 border border-white/7 rounded-2xl overflow-hidden flex flex-col group card-hover cursor-pointer"
+                          onClick={() => setExpandedImage(m.url)}
+                        >
+                          {/* Photo */}
+                          <div className="aspect-[3/4] overflow-hidden bg-neutral-950 relative">
+                            <img
+                              src={m.url}
+                              alt={m.name}
+                              loading="lazy"
+                              className="w-full h-full object-cover object-top group-hover:scale-[1.05] transition-transform duration-500"
+                              onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=60'; }}
+                            />
+                            {/* Hover overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <div className="absolute bottom-2.5 left-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <p className="text-[10px] text-white/80 leading-relaxed line-clamp-3">{m.bio}</p>
+                            </div>
+                            {/* Region badge */}
+                            <span className={`absolute top-2 right-2 text-[9px] px-1.5 py-0.5 rounded-md font-bold border backdrop-blur-sm ${REGION_COLORS[m.region] || 'bg-neutral-500/25 text-neutral-300 border-neutral-500/30'}`}>
+                              {m.region}
+                            </span>
+                            {/* Expand icon */}
+                            <div className="absolute top-2 left-2 w-6 h-6 bg-black/50 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Maximize2 size={10} className="text-white" />
+                            </div>
+                          </div>
+                          {/* Card info */}
+                          <div className="p-3 flex flex-col gap-1.5">
+                            <p className="text-[12px] text-white font-semibold leading-tight truncate">{m.name}</p>
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <span className="text-[10px] text-neutral-500">🌍</span>
+                              <span className="text-[10px] text-neutral-400 font-medium">{m.country}</span>
+                            </div>
+                            <span className="text-[9px] text-violet-400 font-semibold truncate">{m.specialty}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })()}
