@@ -26,8 +26,6 @@ Required Vercel Environment Variables:
 from __future__ import annotations
 
 import base64
-import cgi
-import io
 import json
 import logging
 import os
@@ -210,46 +208,95 @@ class handler(BaseHTTPRequestHandler):
         raw_body     = self.rfile.read(length) if length else b""
 
         # ── Parse multipart form ─────────────────────────────────────────────
-        environ = {
-            "REQUEST_METHOD": "POST",
-            "CONTENT_TYPE":   content_type,
-            "CONTENT_LENGTH": str(length),
-        }
+        # cgi.FieldStorage was removed in Python 3.13; use python-multipart instead.
         try:
-            form = cgi.FieldStorage(
-                fp      = io.BytesIO(raw_body),
-                headers = self.headers,
-                environ = environ,
-            )
-        except Exception:
-            self._send_json(400, _json_error("BAD_REQUEST", "Could not parse multipart form data."))
-            return
+            from multipart import MultipartParser  # type: ignore[import]
+        except ImportError:
+            MultipartParser = None
 
-        person_field       = form.get("person")
-        garment_field      = form.get("garment")
-        desc_field         = form.get("garment_description")
-        garment_description = (desc_field.value if hasattr(desc_field, "value") else str(desc_field or "")).strip()
+        person_bytes        = b""
+        garment_bytes       = b""
+        person_ct           = ""
+        garment_ct          = ""
+        garment_description = ""
 
-        if person_field is None or garment_field is None:
+        if MultipartParser is not None:
+            # python-multipart path (preferred, Python-3.13-safe)
+            try:
+                boundary = ""
+                for part in content_type.split(";"):
+                    part = part.strip()
+                    if part.startswith("boundary="):
+                        boundary = part[len("boundary="):].strip().strip('"')
+                        break
+                if not boundary:
+                    raise ValueError("No boundary in Content-Type")
+
+                fields: dict = {}
+                def _on_field(field):
+                    fields[field.field_name.decode()] = field.value.decode("utf-8", errors="replace")
+                def _on_file(field):
+                    fields[field.field_name.decode()] = (field.file_object.read(), field.headers)
+
+                parser = MultipartParser(boundary.encode(), on_field=_on_field, on_file=_on_file)
+                parser.write(raw_body)
+                parser.finalize()
+
+                if "person" in fields and isinstance(fields["person"], tuple):
+                    person_bytes = fields["person"][0]
+                    hdrs = fields["person"][1]
+                    person_ct = hdrs.get(b"Content-Type", b"").decode() if isinstance(hdrs, dict) else ""
+                if "garment" in fields and isinstance(fields["garment"], tuple):
+                    garment_bytes = fields["garment"][0]
+                    hdrs = fields["garment"][1]
+                    garment_ct = hdrs.get(b"Content-Type", b"").decode() if isinstance(hdrs, dict) else ""
+                if "garment_description" in fields:
+                    val = fields["garment_description"]
+                    garment_description = (val if isinstance(val, str) else val.decode("utf-8", errors="replace")).strip()
+            except Exception:
+                pass  # fall through to email-based parser
+
+        if not person_bytes and not garment_bytes:
+            # Fallback: parse via stdlib email.parser (works Python 3.0–3.13+)
+            try:
+                from email import message_from_bytes as _mfb
+                from email.policy import default as _ep
+                # email.parser needs a full MIME message with headers
+                mime_data = (
+                    f"MIME-Version: 1.0\r\nContent-Type: {content_type}\r\n\r\n".encode()
+                    + raw_body
+                )
+                msg = _mfb(mime_data, policy=_ep)
+                for part in msg.iter_parts():
+                    disp = part.get_content_disposition() or ""
+                    name_val = part.get_param("name", header="content-disposition") or ""
+                    payload = part.get_payload(decode=True) or b""
+                    pct = part.get_content_type() or ""
+                    if name_val == "person":
+                        person_bytes = payload
+                        person_ct    = pct
+                    elif name_val == "garment":
+                        garment_bytes = payload
+                        garment_ct    = pct
+                    elif name_val == "garment_description":
+                        garment_description = payload.decode("utf-8", errors="replace").strip()
+            except Exception:
+                self._send_json(400, _json_error("BAD_REQUEST", "Could not parse multipart form data."))
+                return
+
+        if not person_bytes or not garment_bytes:
             self._send_json(400, _json_error(
                 "MISSING_FILES",
                 "Both 'person' and 'garment' image fields are required.",
             ))
             return
 
-        person_bytes  = person_field.file.read()  if hasattr(person_field,  "file") else b""
-        garment_bytes = garment_field.file.read() if hasattr(garment_field, "file") else b""
-
-        if not person_bytes or not garment_bytes:
-            self._send_json(400, _json_error("EMPTY_FILE", "One or both uploaded files are empty."))
-            return
-
         if len(person_bytes) > MAX_BYTES or len(garment_bytes) > MAX_BYTES:
             self._send_json(413, _json_error("FILE_TOO_LARGE", "Each image must be under 10 MB."))
             return
 
-        person_ext  = _ext_from_type(getattr(person_field,  "type", ""))
-        garment_ext = _ext_from_type(getattr(garment_field, "type", ""))
+        person_ext  = _ext_from_type(person_ct)
+        garment_ext = _ext_from_type(garment_ct)
 
         logger.info("POST /api/try-on  person=%d B  garment=%d B  desc=%r  space=%s",
                     len(person_bytes), len(garment_bytes), garment_description[:60], SPACE_ID)

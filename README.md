@@ -371,7 +371,7 @@ Verify the backend is running:
 GET http://localhost:8000/api/health
 ```
 
-### 5. Start the React frontend
+### 4. Start the React frontend
 
 ```bash
 # In a new terminal from the project root

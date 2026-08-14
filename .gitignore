@@ -24,6 +24,8 @@ backend/__pycache__/
 backend/*.pyc
 backend/venv/
 backend/.venv/
+api/__pycache__/
+backend/.venv/
 *.pyc
 __pycache__/
 

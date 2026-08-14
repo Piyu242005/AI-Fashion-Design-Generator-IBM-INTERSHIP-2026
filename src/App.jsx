@@ -22,8 +22,8 @@ import {
   Sparkles, Image as ImageIcon, Loader2, Download,
   Scissors, ShoppingBag, User, Upload, Layers, Trash2,
   Maximize2, RefreshCw, X, Camera, Palette, Leaf, FileText,
-  Bell, BellRing, Activity, Wand2, ChevronRight,
-  Zap, ArrowRight, Cpu, Plus, Copy, Check, Columns2
+  Bell, BellRing, Activity, Wand2,
+  ArrowRight, Cpu, Plus, Copy, Check, Columns2
 } from 'lucide-react';
 
 /* ─── CONFIG ──────────────────────────────────────────────────────── */

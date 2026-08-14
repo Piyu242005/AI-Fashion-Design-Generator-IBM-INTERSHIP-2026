@@ -5,18 +5,16 @@
 ```
 Browser (React + Vite)
     │
-    ├─ Text / Spec extraction ──► Gemini 2.5 Flash (free tier)  [client-side]
+    ├─ Spec extraction  ──► Gemini 2.5 Flash (free tier)  [client-side]
     │
-    └─ Image generation
+    └─ HTTP calls
             │
             ▼
-       FastAPI backend  (port 8000)
+       FastAPI backend (port 8000)  —OR—  Vercel serverless functions
             │
-            ├─ PRIMARY  ──► Cloudflare Workers AI → FLUX.1-schnell
-            │
-            └─ FALLBACK ──► HuggingFace Inference API → FLUX.1-schnell
-                                    │
-                                    └─ (credits exhausted) ──► Unsplash placeholder
+            ├─ Image generation  ──► Cloudflare Workers AI → FLUX / SDXL
+            ├─ Product search    ──► RapidAPI H&M Store
+            └─ Virtual try-on   ──► Hugging Face IDM-VTON (gradio_client)
 ```
 
 **Your API tokens never reach the browser.** They live only in the server-side `.env` file.
@@ -116,7 +114,8 @@ Expected response:
   "status": "ok",
   "providers": {
     "cloudflare": { "configured": true },
-    "huggingface": { "configured": false }
+    "idm_vton":   { "configured": false, "space": "yisol/IDM-VTON" },
+    "rapidapi":   { "configured": false }
   }
 }
 ```
@@ -175,13 +174,12 @@ All 7 tests run with mocked Cloudflare responses — no real API calls or credit
 {
   "status": "ok",
   "providers": {
-    "cloudflare":   { "configured": true },
-    "huggingface":  { "configured": false, "model": "black-forest-labs/FLUX.1-schnell" }
+    "cloudflare": { "configured": true },
+    "idm_vton":   { "configured": false, "space": "yisol/IDM-VTON" },
+    "rapidapi":   { "configured": false }
   }
 }
 ```
-
-### `POST /api/generate-image`  ← Legacy (HuggingFace, kept for compatibility)
 
 ---
 
@@ -189,17 +187,17 @@ All 7 tests run with mocked Cloudflare responses — no real API calls or credit
 
 | Provider | Free Allowance | Notes |
 |---|---|---|
-| Cloudflare Workers AI | Generous free tier (10,000 neurons/day) | Recommended for production |
-| Google Gemini | Free tier for text | Spec extraction only |
-| HuggingFace | $0.10/month credits | Dev fallback |
-| Unsplash placeholder | Unlimited | Offline fallback |
+| Cloudflare Workers AI | Generous free tier (10,000 neurons/day) | Required for image generation |
+| Google Gemini | Free tier for text generation | Spec extraction only |
+| Hugging Face IDM-VTON | ZeroGPU quota (~2 GPU-min/day unauthenticated) | HF_TOKEN increases quota |
+| RapidAPI H&M Store | Free tier available | Required for product recommendations |
 
 ---
 
 ## Security
 
-- `CLOUDFLARE_API_TOKEN` lives only in `backend/.env` — never in browser code
+- `CLOUDFLARE_API_TOKEN`, `HF_TOKEN`, and `RAPIDAPI_KEY` live only in the server-side `.env` — never in browser code
 - `CLOUDFLARE_ACCOUNT_ID` is also server-side only
-- Raw Cloudflare errors are sanitised before being sent to the client
+- Raw upstream errors (Cloudflare, HuggingFace, RapidAPI) are sanitised before being sent to the client
 - No credentials appear in logs, error responses, or the frontend bundle
-- `.env` is listed in `.gitignore`
+- `.env` is listed in `.gitignore` and has never been committed
