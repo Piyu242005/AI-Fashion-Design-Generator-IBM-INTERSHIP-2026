@@ -1112,7 +1112,7 @@ export default function App() {
   const [wardrobeFilter, setWardrobeFilter] = useState('All');
   const [copySpecPulse, setCopySpecPulse] = useState(false);
   const [showBeforeAfter, setShowBeforeAfter] = useState(false);
-  const [collectionSubTab, setCollectionSubTab] = useState('missUniverse'); // 'saved' | 'garments' | 'models' | 'people' | 'missUniverse'
+  const [collectionSubTab, setCollectionSubTab] = useState('models'); // 'saved' | 'garments' | 'models' | 'people'
   const [garmentCatFilter, setGarmentCatFilter] = useState('All');
   const [modelGenderFilter, setModelGenderFilter] = useState('All'); // 'All' | 'Female' | 'Male'
   const [peopleRegionFilter, setPeopleRegionFilter] = useState('All');
@@ -2222,7 +2222,6 @@ export default function App() {
                   {collectionSubTab === 'garments' && `${GARMENT_SAMPLES.length} garment samples · open-source photos`}
                   {collectionSubTab === 'models'   && `${FEMALE_MODELS.length + MALE_MODELS.length} model photos · ${FEMALE_MODELS.length} female · ${MALE_MODELS.length} male`}
                   {collectionSubTab === 'people'       && `${FASHION_MODELS.length} editorial models · ${Array.from(new Set(FASHION_MODELS.map(m=>m.region))).length} regions · fictional profiles`}
-                  {collectionSubTab === 'missUniverse' && `${MISS_UNIVERSE_PHOTOS.length} Miss Universe participant photos · ${Array.from(new Set(MISS_UNIVERSE_PHOTOS.map(m=>m.country))).length} countries`}
                 </p>
               </div>
               <button
@@ -2240,7 +2239,6 @@ export default function App() {
                 { id: 'garments', label: `Garment Samples (${GARMENT_SAMPLES.length})` },
                 { id: 'models',   label: `Model Photos (${FEMALE_MODELS.length + MALE_MODELS.length})` },
                 { id: 'people',   label: `Models Directory (${FASHION_MODELS.length})` },
-                { id: 'missUniverse', label: `Miss Universe Winners (${MISS_UNIVERSE_PHOTOS.length})` },
               ].map(st => (
                 <button
                   key={st.id}
@@ -2575,13 +2573,6 @@ export default function App() {
                 </div>
               );
             })()}
-
-            {/* ════════════════════════════════════════════════════
-                SUB-TAB: MISS UNIVERSE — 100 participant portraits
-            ═══════════════════════════════════════════════════ */}
-            {collectionSubTab === 'missUniverse' && (
-              <MissUniverseGallery photos={MISS_UNIVERSE_PHOTOS} onExpand={setExpandedImage} />
-            )}
 
           </div>
         )}
