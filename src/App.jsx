@@ -23,7 +23,7 @@ import {
   Scissors, ShoppingBag, User, Upload, Layers, Trash2,
   Maximize2, RefreshCw, X, Camera, Palette, Leaf, FileText,
   Bell, BellRing, Activity, Wand2, ChevronRight,
-  Zap, ArrowRight, Cpu, Plus
+  Zap, ArrowRight, Cpu, Plus, Copy, Check, Columns2
 } from 'lucide-react';
 
 /* ─── CONFIG ──────────────────────────────────────────────────────── */
@@ -306,6 +306,30 @@ const QUICK_PROMPTS = [
 /* ════════════════════════════════════════════════════════════════════
    MAIN APP
 ═══════════════════════════════════════════════════════════════════ */
+/* ─── HELPERS ─────────────────────────────────────────────────── */
+/** Download any image src (data-URI or URL) as a PNG file */
+function downloadImage(src, filename = 'design.png') {
+  if (src.startsWith('data:')) {
+    const a = document.createElement('a');
+    a.href = src;
+    a.download = filename;
+    a.click();
+  } else {
+    // Cross-origin URL — fetch and re-download as blob
+    fetch(src)
+      .then(r => r.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      })
+      .catch(() => { window.open(src, '_blank'); });
+  }
+}
+
 export default function App() {
   const [activeTab, setActiveTab]         = useState('runway');
   const [prompt, setPrompt]               = useState('');
@@ -321,6 +345,8 @@ export default function App() {
   const [savedDesigns, setSavedDesigns]   = useState([]);
   const [savePulse, setSavePulse]         = useState(false);
   const [wardrobeFilter, setWardrobeFilter] = useState('All');
+  const [copySpecPulse, setCopySpecPulse] = useState(false);
+  const [showBeforeAfter, setShowBeforeAfter] = useState(false);
   const fileInputRef  = useRef(null);
   const promptRef     = useRef(null);
 
@@ -353,6 +379,15 @@ export default function App() {
     } catch {
       setDesignJob({ status: 'failed', spec: null, image: null, products: [], garmentSource: null, garmentDescription: '' });
     }
+  };
+
+  const handleCopySpec = () => {
+    if (!designJob.spec) return;
+    const text = JSON.stringify(designJob.spec, null, 2);
+    navigator.clipboard.writeText(text).then(() => {
+      setCopySpecPulse(true);
+      setTimeout(() => setCopySpecPulse(false), 1600);
+    });
   };
 
   const handleSaveDesign = () => {
@@ -539,12 +574,24 @@ export default function App() {
                   <li className="text-neutral-700 italic line-clamp-1">"{designJob.prompt}"</li>
                 </ul>
               </div>
-              <button
-                onClick={() => setShowTechPack(false)}
-                className="w-full bg-white text-black py-3 rounded-xl text-sm font-semibold hover:bg-neutral-100 active:scale-[.98] transition-all"
-              >
-                Close
-              </button>
+              {/* Copy spec / Close row */}
+              <div className="flex gap-2.5">
+                <button
+                  onClick={handleCopySpec}
+                  className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all border active:scale-[.98] flex items-center justify-center gap-2
+                    ${copySpecPulse
+                      ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                      : 'bg-white/5 border-white/10 text-neutral-300 hover:bg-white/10 hover:text-white'}`}
+                >
+                  {copySpecPulse ? <><Check size={13} /> Copied!</> : <><Copy size={13} /> Copy Spec</>}
+                </button>
+                <button
+                  onClick={() => setShowTechPack(false)}
+                  className="flex-1 bg-white text-black py-3 rounded-xl text-sm font-semibold hover:bg-neutral-100 active:scale-[.98] transition-all"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -842,7 +889,7 @@ export default function App() {
                   <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 z-10">
                     {[
                       { icon: RefreshCw, title: "Regenerate", action: () => handleGenerateDesign() },
-                      { icon: Download,  title: "Download",   action: () => { const a = document.createElement('a'); a.href = designJob.image; a.download = 'design.png'; a.click(); } },
+                      { icon: Download,  title: "Download",   action: () => downloadImage(designJob.image, 'studio-ai-design.png') },
                       { icon: Maximize2, title: "Expand",     action: () => setExpandedImage(designJob.image) },
                     ].map(({ icon: Icon, title, action }) => (
                       <button
@@ -1225,7 +1272,44 @@ export default function App() {
                       {tryOnJob.status === 'completed' && tryOnJob.resultImage ? '✓' : '3'}
                     </div>
                     <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">Result</p>
+                    {/* Before/After toggle — only shown once result is ready */}
+                    {tryOnJob.resultImage && personImage && (
+                      <button
+                        onClick={() => setShowBeforeAfter(v => !v)}
+                        title="Toggle Before / After"
+                        className={`ml-auto flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-lg border transition-all
+                          ${showBeforeAfter
+                            ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
+                            : 'bg-white/5 border-white/10 text-neutral-500 hover:text-white hover:border-white/20'}`}
+                      >
+                        <Columns2 size={11} /> Before / After
+                      </button>
+                    )}
                   </div>
+
+                  {/* ── Before / After side-by-side ── */}
+                  {showBeforeAfter && tryOnJob.resultImage && personImage ? (
+                    <div className="flex gap-2 rounded-2xl overflow-hidden border border-white/8 bg-black/30">
+                      <div className="flex-1 relative min-h-[220px]">
+                        <img src={personImage} className="w-full h-full object-cover" alt="Before" />
+                        <div className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm py-1.5 text-center">
+                          <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest">Before</span>
+                        </div>
+                      </div>
+                      <div className="flex-1 relative min-h-[220px]">
+                        <img src={tryOnJob.resultImage} className="w-full h-full object-cover" alt="After" />
+                        <div className="absolute bottom-0 inset-x-0 bg-violet-600/70 backdrop-blur-sm py-1.5 text-center">
+                          <span className="text-[10px] font-bold text-white uppercase tracking-widest">After</span>
+                        </div>
+                        <button
+                          onClick={() => setExpandedImage(tryOnJob.resultImage)}
+                          className="absolute top-2 right-2 w-7 h-7 bg-black/60 backdrop-blur rounded-lg text-white border border-white/10 flex items-center justify-center"
+                        >
+                          <Maximize2 size={11} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
                   <div className="flex-1 min-h-[220px] bg-black/30 border border-white/8 rounded-2xl overflow-hidden flex items-center justify-center relative">
                     {tryOnJob.status === 'processing' ? (
                       <div className="text-center space-y-3 p-4">
@@ -1266,6 +1350,17 @@ export default function App() {
                       </div>
                     )}
                   </div>
+                  )}
+
+                  {/* Download try-on result */}
+                  {tryOnJob.resultImage && (
+                    <button
+                      onClick={() => downloadImage(tryOnJob.resultImage, 'studio-ai-tryon.png')}
+                      className="w-full flex items-center justify-center gap-2 text-xs font-semibold text-neutral-400 hover:text-white bg-white/4 border border-white/8 hover:border-white/16 py-2 rounded-xl transition-all"
+                    >
+                      <Download size={12} /> Download Result
+                    </button>
+                  )}
                   <button
                     onClick={handleTryOn}
                     disabled={!personFile || !designJob.image || tryOnJob.status === 'processing'}
@@ -1423,21 +1518,28 @@ export default function App() {
                           {design.isTracking ? 'Tracking' : 'Track'}
                         </button>
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleGenerateDesign(design.prompt)}
-                            title="Remix"
-                            className="w-7 h-7 text-neutral-700 hover:text-violet-400 hover:bg-violet-400/10 rounded-lg flex items-center justify-center transition-all"
-                          >
-                            <RefreshCw size={12} />
-                          </button>
-                          <button
-                            onClick={() => { StorageService.deleteDesign(design.id); setSavedDesigns(StorageService.getCollections()); }}
-                            title="Delete"
-                            className="w-7 h-7 text-neutral-800 hover:text-red-400 hover:bg-red-400/10 rounded-lg flex items-center justify-center transition-all"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
+                           <button
+                             onClick={() => downloadImage(design.image, `studio-ai-design-${design.id}.png`)}
+                             title="Download"
+                             className="w-7 h-7 text-neutral-700 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg flex items-center justify-center transition-all"
+                           >
+                             <Download size={12} />
+                           </button>
+                           <button
+                             onClick={() => handleGenerateDesign(design.prompt)}
+                             title="Remix"
+                             className="w-7 h-7 text-neutral-700 hover:text-violet-400 hover:bg-violet-400/10 rounded-lg flex items-center justify-center transition-all"
+                           >
+                             <RefreshCw size={12} />
+                           </button>
+                           <button
+                             onClick={() => { StorageService.deleteDesign(design.id); setSavedDesigns(StorageService.getCollections()); }}
+                             title="Delete"
+                             className="w-7 h-7 text-neutral-800 hover:text-red-400 hover:bg-red-400/10 rounded-lg flex items-center justify-center transition-all"
+                           >
+                             <Trash2 size={12} />
+                           </button>
+                         </div>
                       </div>
                     </div>
                   </div>
