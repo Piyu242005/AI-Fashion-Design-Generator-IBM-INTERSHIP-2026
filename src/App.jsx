@@ -1117,6 +1117,11 @@ export default function App() {
   const [modelGenderFilter, setModelGenderFilter] = useState('All'); // 'All' | 'Female' | 'Male'
   const [peopleRegionFilter, setPeopleRegionFilter] = useState('All');
   const [peopleSearch, setPeopleSearch] = useState('');
+  // Buy Similar filters
+  const [productCatFilter, setProductCatFilter]   = useState('All');
+  const [productColorFilter, setProductColorFilter] = useState('All');
+  const [productPriceFilter, setProductPriceFilter] = useState('All'); // 'All' | 'under500' | '500-1500' | '1500-5000' | 'above5000'
+  const [productSort, setProductSort]             = useState('match'); // 'match' | 'price_asc' | 'price_desc'
   const fileInputRef  = useRef(null);
   const promptRef     = useRef(null);
 
@@ -1761,6 +1766,86 @@ export default function App() {
                       )}
                     </div>
 
+                    {/* Filter & Sort bar — always visible */}
+                    <div className="px-4 py-3 border-b border-white/5 flex flex-col gap-2.5">
+                      {/* Row 1: Category + Color */}
+                      <div className="flex gap-2 flex-wrap">
+                        {/* Category */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] text-neutral-700 uppercase tracking-wider shrink-0">Category</span>
+                          {['All','Tops','Bottoms','Dresses','Outerwear','Ethnic'].map(cat => (
+                            <button
+                              key={cat}
+                              onClick={() => setProductCatFilter(cat)}
+                              className={`text-[10px] px-2.5 py-1 rounded-full border transition-all
+                                ${productCatFilter === cat
+                                  ? 'bg-violet-500/20 text-violet-300 border-violet-500/40'
+                                  : 'bg-white/3 text-neutral-600 border-white/8 hover:text-neutral-300 hover:border-white/15'}`}
+                            >
+                              {cat}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Row 2: Color */}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] text-neutral-700 uppercase tracking-wider shrink-0">Colour</span>
+                        {['All','Black','White','Blue','Red','Green','Pink','Beige','Grey'].map(color => (
+                          <button
+                            key={color}
+                            onClick={() => setProductColorFilter(color)}
+                            className={`text-[10px] px-2.5 py-1 rounded-full border transition-all
+                              ${productColorFilter === color
+                                ? 'bg-violet-500/20 text-violet-300 border-violet-500/40'
+                                : 'bg-white/3 text-neutral-600 border-white/8 hover:text-neutral-300 hover:border-white/15'}`}
+                          >
+                            {color}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Row 3: Price Range + Sort */}
+                      <div className="flex items-center gap-3 flex-wrap">
+                        {/* Price */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] text-neutral-700 uppercase tracking-wider shrink-0">Price</span>
+                          {[
+                            { label: 'All',      value: 'All' },
+                            { label: 'Under ₹500',   value: 'under500' },
+                            { label: '₹500–1500', value: '500-1500' },
+                            { label: '₹1500–5000',value: '1500-5000' },
+                            { label: 'Above ₹5000',  value: 'above5000' },
+                          ].map(p => (
+                            <button
+                              key={p.value}
+                              onClick={() => setProductPriceFilter(p.value)}
+                              className={`text-[10px] px-2.5 py-1 rounded-full border transition-all
+                                ${productPriceFilter === p.value
+                                  ? 'bg-violet-500/20 text-violet-300 border-violet-500/40'
+                                  : 'bg-white/3 text-neutral-600 border-white/8 hover:text-neutral-300 hover:border-white/15'}`}
+                            >
+                              {p.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Sort */}
+                        <div className="flex items-center gap-1.5 ml-auto">
+                          <span className="text-[10px] text-neutral-700 uppercase tracking-wider shrink-0">Sort</span>
+                          <select
+                            value={productSort}
+                            onChange={e => setProductSort(e.target.value)}
+                            className="text-[10px] bg-white/4 border border-white/8 text-neutral-400 rounded-lg px-2 py-1 focus:outline-none focus:border-violet-500/40 cursor-pointer"
+                          >
+                            <option value="match">Best Match</option>
+                            <option value="price_asc">Price: Low → High</option>
+                            <option value="price_desc">Price: High → Low</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Body */}
                     <div className="flex-1 overflow-y-auto">
                       {/* Loading state */}
@@ -1774,70 +1859,127 @@ export default function App() {
                         </div>
 
                       /* Has real products */
-                      ) : designJob.products?.length > 0 ? (
-                        <div className="divide-y divide-white/5">
-                          {designJob.products.map((product, idx) => (
-                            <div key={idx} className="flex gap-3 p-4 hover:bg-white/3 transition-colors group/prod">
-                              {/* Product image */}
-                              <div className="w-16 h-20 shrink-0 bg-neutral-900 rounded-xl overflow-hidden border border-white/6">
-                                {product.image ? (
-                                  <img
-                                    src={product.image}
-                                    alt={product.name}
-                                    className="w-full h-full object-cover group-hover/prod:scale-105 transition-transform duration-300"
-                                    onError={e => { e.target.style.display = 'none'; }}
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <ShoppingBag size={14} className="text-neutral-800" />
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Product info */}
-                              <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                                <div>
-                                  <p className="text-xs font-semibold text-neutral-200 leading-snug line-clamp-2 mb-1">
-                                    {product.name}
-                                  </p>
-                                  <p className="text-[10px] text-neutral-600 mb-1.5">
-                                    {product.brand || product.source}
-                                  </p>
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    {product.price != null && (
-                                      <span className="text-[11px] font-bold text-white">
-                                        ₹{Number(product.price).toLocaleString('en-IN')}
-                                      </span>
-                                    )}
-                                    {product.recommendation_score != null && (
-                                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border
-                                        ${product.recommendation_score >= 80
-                                          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25'
-                                          : product.recommendation_score >= 55
-                                          ? 'bg-sky-500/15 text-sky-400 border-sky-500/25'
-                                          : 'bg-neutral-500/15 text-neutral-500 border-neutral-500/25'}`}>
-                                        {product.recommendation_score}% match
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                                {product.url && (
-                                  <a
-                                    href={product.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-violet-400 hover:text-violet-300 transition-colors"
-                                  >
-                                    View Product <ArrowRight size={9} />
-                                  </a>
-                                )}
-                              </div>
+                      ) : designJob.products?.length > 0 ? (() => {
+                        // ── Apply filters ──────────────────────────────────
+                        const PRICE_RANGES = {
+                          'under500':   [0, 500],
+                          '500-1500':   [500, 1500],
+                          '1500-5000':  [1500, 5000],
+                          'above5000':  [5000, Infinity],
+                        };
+                        const CAT_KEYWORDS = {
+                          Tops:      ['top','shirt','tee','blouse','sweater','hoodie','kurta','tank','polo'],
+                          Bottoms:   ['pant','trouser','jeans','skirt','shorts','culotte','legging'],
+                          Dresses:   ['dress','gown','maxi','mini','midi','saree','lehenga'],
+                          Outerwear: ['jacket','blazer','coat','overcoat','cardigan'],
+                          Ethnic:    ['kurta','saree','lehenga','salwar','dupatta','anarkali'],
+                        };
+                        let filtered = (designJob.products || []).filter(product => {
+                          const nameLower = (product.name || '').toLowerCase();
+                          // Category filter
+                          if (productCatFilter !== 'All') {
+                            const kws = CAT_KEYWORDS[productCatFilter] || [];
+                            if (!kws.some(k => nameLower.includes(k))) return false;
+                          }
+                          // Color filter
+                          if (productColorFilter !== 'All') {
+                            if (!nameLower.includes(productColorFilter.toLowerCase())) return false;
+                          }
+                          // Price filter
+                          if (productPriceFilter !== 'All') {
+                            const [min, max] = PRICE_RANGES[productPriceFilter];
+                            const price = Number(product.price);
+                            if (isNaN(price) || price < min || price >= max) return false;
+                          }
+                          return true;
+                        });
+                        // ── Apply sort ─────────────────────────────────────
+                        if (productSort === 'price_asc') {
+                          filtered = [...filtered].sort((a, b) => Number(a.price ?? 0) - Number(b.price ?? 0));
+                        } else if (productSort === 'price_desc') {
+                          filtered = [...filtered].sort((a, b) => Number(b.price ?? 0) - Number(a.price ?? 0));
+                        }
+                        // ── Render ─────────────────────────────────────────
+                        if (filtered.length === 0) {
+                          return (
+                            <div className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[140px]">
+                              <ShoppingBag size={14} className="text-neutral-700 mb-2" />
+                              <p className="text-xs text-neutral-600 mb-0.5">No products match your filters.</p>
+                              <button
+                                onClick={() => { setProductCatFilter('All'); setProductColorFilter('All'); setProductPriceFilter('All'); setProductSort('match'); }}
+                                className="mt-2 text-[10px] text-violet-400 hover:text-violet-300 underline"
+                              >
+                                Clear filters
+                              </button>
                             </div>
-                          ))}
-                        </div>
+                          );
+                        }
+                        return (
+                          <div className="divide-y divide-white/5">
+                            {filtered.map((product, idx) => (
+                              <div key={idx} className="flex gap-3 p-4 hover:bg-white/3 transition-colors group/prod">
+                                {/* Product image */}
+                                <div className="w-16 h-20 shrink-0 bg-neutral-900 rounded-xl overflow-hidden border border-white/6">
+                                  {product.image ? (
+                                    <img
+                                      src={product.image}
+                                      alt={product.name}
+                                      className="w-full h-full object-cover group-hover/prod:scale-105 transition-transform duration-300"
+                                      onError={e => { e.target.style.display = 'none'; }}
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <ShoppingBag size={14} className="text-neutral-800" />
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Product info */}
+                                <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                                  <div>
+                                    <p className="text-xs font-semibold text-neutral-200 leading-snug line-clamp-2 mb-1">
+                                      {product.name}
+                                    </p>
+                                    <p className="text-[10px] text-neutral-600 mb-1.5">
+                                      {product.brand || product.source}
+                                    </p>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      {product.price != null && (
+                                        <span className="text-[11px] font-bold text-white">
+                                          ₹{Number(product.price).toLocaleString('en-IN')}
+                                        </span>
+                                      )}
+                                      {product.recommendation_score != null && (
+                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border
+                                          ${product.recommendation_score >= 80
+                                            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25'
+                                            : product.recommendation_score >= 55
+                                            ? 'bg-sky-500/15 text-sky-400 border-sky-500/25'
+                                            : 'bg-neutral-500/15 text-neutral-500 border-neutral-500/25'}`}>
+                                          {product.recommendation_score}% match
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {product.url && (
+                                    <a
+                                      href={product.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-violet-400 hover:text-violet-300 transition-colors"
+                                    >
+                                      View Product <ArrowRight size={9} />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()
 
                       /* No results after search completed */
-                      ) : designJob.status === 'completed' ? (
+                      : designJob.status === 'completed' ? (
                         <div className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[160px]">
                           <div className="w-9 h-9 bg-white/4 border border-white/8 rounded-xl flex items-center justify-center mb-3 mx-auto">
                             <ShoppingBag size={14} className="text-neutral-700" />
