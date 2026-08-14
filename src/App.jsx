@@ -850,6 +850,21 @@ const CAT_COLORS = {
   Evening:    "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
 };
 
+const SHOP_DEMO_PRODUCTS = [
+  { id:"sd1",  name:"White Oversized Cotton Tee",      brand:"H&M",     price:599,  recommendation_score:92, category:"Tops",      color:"white", image:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80",  url:"https://www2.hm.com" },
+  { id:"sd2",  name:"Black Slim Fit Jeans",            brand:"Zara",    price:1999, recommendation_score:87, category:"Bottoms",   color:"black", image:"https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&q=80",  url:"https://www.zara.com" },
+  { id:"sd3",  name:"Beige Trench Coat Outerwear",     brand:"Mango",   price:4999, recommendation_score:83, category:"Outerwear", color:"beige", image:"https://images.unsplash.com/photo-1548454782-15b189d129ab?w=400&q=80",  url:"https://shop.mango.com" },
+  { id:"sd4",  name:"Floral Midi Dress Summer",        brand:"FabAlley",price:1499, recommendation_score:79, category:"Dresses",   color:"pink",  image:"https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&q=80",  url:"https://www.faballey.com" },
+  { id:"sd5",  name:"Navy Blue Polo Shirt",            brand:"H&M",     price:799,  recommendation_score:75, category:"Tops",      color:"blue",  image:"https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=400&q=80",  url:"https://www2.hm.com" },
+  { id:"sd6",  name:"Grey Oversized Hoodie Sweatshirt",brand:"Bewakoof", price:899, recommendation_score:88, category:"Tops",      color:"grey",  image:"https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&q=80",  url:"https://www.bewakoof.com" },
+  { id:"sd7",  name:"Olive Green Cargo Jacket",        brand:"Roadster", price:2499,recommendation_score:81, category:"Outerwear", color:"green", image:"https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80",  url:"https://www.myntra.com" },
+  { id:"sd8",  name:"Pastel Pink Kurta Ethnic Wear",   brand:"W",       price:1299, recommendation_score:77, category:"Ethnic",    color:"pink",  image:"https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?w=400&q=80",  url:"https://www.wforwoman.com" },
+  { id:"sd9",  name:"Classic Navy Blazer Formal",      brand:"Arrow",   price:3499, recommendation_score:85, category:"Outerwear", color:"blue",  image:"https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400&q=80",  url:"https://www.arrowshirts.com" },
+  { id:"sd10", name:"Red Ribbed Turtleneck Top",       brand:"Zara",    price:1199, recommendation_score:72, category:"Tops",      color:"red",   image:"https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80",  url:"https://www.zara.com" },
+  { id:"sd11", name:"Striped Linen Shirt Casual",      brand:"H&M",     price:999,  recommendation_score:80, category:"Tops",      color:"white", image:"https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&q=80",  url:"https://www2.hm.com" },
+  { id:"sd12", name:"Black Bodycon Mini Dress",        brand:"Myntra",  price:1799, recommendation_score:74, category:"Dresses",   color:"black", image:"https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=400&q=80",  url:"https://www.myntra.com" },
+];
+
 const QUICK_PROMPTS = [
   { label: "Saree",   prompt: "An elegant silk saree with contemporary geometric border in deep teal and gold" },
   { label: "Kurta",   prompt: "A minimalist cotton kurta with subtle white embroidery, earthy tones, under ₹2500" },
@@ -1978,27 +1993,99 @@ export default function App() {
                         );
                       })()
 
-                      /* No results after search completed */
-                      : designJob.status === 'completed' ? (
-                        <div className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[160px]">
-                          <div className="w-9 h-9 bg-white/4 border border-white/8 rounded-xl flex items-center justify-center mb-3 mx-auto">
-                            <ShoppingBag size={14} className="text-neutral-700" />
-                          </div>
-                          <p className="text-xs text-neutral-600 mb-0.5">No matching products found.</p>
-                          <p className="text-[10px] text-neutral-800 leading-relaxed">
-                            Try changing the category, colour, or budget in your prompt.
-                          </p>
-                        </div>
+                      /* No results / Idle — show demo products */
+                      : (() => {
+                        const PRICE_RANGES = {
+                          'under500':   [0, 500],
+                          '500-1500':   [500, 1500],
+                          '1500-5000':  [1500, 5000],
+                          'above5000':  [5000, Infinity],
+                        };
+                        const CAT_KEYWORDS = {
+                          Tops:      ['top','shirt','tee','blouse','sweater','hoodie','kurta','tank','polo'],
+                          Bottoms:   ['pant','trouser','jeans','skirt','shorts','culotte','legging'],
+                          Dresses:   ['dress','gown','maxi','mini','midi','saree','lehenga'],
+                          Outerwear: ['jacket','blazer','coat','overcoat','cardigan'],
+                          Ethnic:    ['kurta','saree','lehenga','salwar','dupatta','anarkali'],
+                        };
+                        let demo = SHOP_DEMO_PRODUCTS.filter(product => {
+                          const nameLower = product.name.toLowerCase();
+                          if (productCatFilter !== 'All') {
+                            const kws = CAT_KEYWORDS[productCatFilter] || [];
+                            if (!kws.some(k => nameLower.includes(k))) return false;
+                          }
+                          if (productColorFilter !== 'All') {
+                            if (!nameLower.includes(productColorFilter.toLowerCase()) && product.color !== productColorFilter.toLowerCase()) return false;
+                          }
+                          if (productPriceFilter !== 'All') {
+                            const [min, max] = PRICE_RANGES[productPriceFilter];
+                            if (product.price < min || product.price >= max) return false;
+                          }
+                          return true;
+                        });
+                        if (productSort === 'price_asc') demo = [...demo].sort((a, b) => a.price - b.price);
+                        else if (productSort === 'price_desc') demo = [...demo].sort((a, b) => b.price - a.price);
 
-                      /* Idle — nothing generated yet */
-                      ) : (
-                        <div className="flex flex-col items-center justify-center p-8 text-center h-full min-h-[160px]">
-                          <div className="w-9 h-9 bg-white/4 border border-white/8 rounded-xl flex items-center justify-center mb-3 mx-auto">
-                            <ShoppingBag size={14} className="text-neutral-700" />
+                        return (
+                          <div>
+                            {/* "Trending picks" label */}
+                            <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+                              <span className="text-[10px] text-neutral-700 uppercase tracking-widest">Trending Picks</span>
+                              <span className="text-[9px] text-neutral-800">{demo.length} items</span>
+                            </div>
+                            {demo.length === 0 ? (
+                              <div className="flex flex-col items-center justify-center p-8 text-center min-h-[120px]">
+                                <ShoppingBag size={14} className="text-neutral-700 mb-2" />
+                                <p className="text-xs text-neutral-600 mb-1">No items match your filters.</p>
+                                <button
+                                  onClick={() => { setProductCatFilter('All'); setProductColorFilter('All'); setProductPriceFilter('All'); setProductSort('match'); }}
+                                  className="text-[10px] text-violet-400 hover:text-violet-300 underline"
+                                >Clear filters</button>
+                              </div>
+                            ) : (
+                              <div className="divide-y divide-white/5">
+                                {demo.map(product => (
+                                  <div key={product.id} className="flex gap-3 p-4 hover:bg-white/3 transition-colors group/prod">
+                                    <div className="w-16 h-20 shrink-0 bg-neutral-900 rounded-xl overflow-hidden border border-white/6">
+                                      <img
+                                        src={product.image}
+                                        alt={product.name}
+                                        className="w-full h-full object-cover group-hover/prod:scale-105 transition-transform duration-300"
+                                        onError={e => { e.target.style.display = 'none'; }}
+                                      />
+                                    </div>
+                                    <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                                      <div>
+                                        <p className="text-xs font-semibold text-neutral-200 leading-snug line-clamp-2 mb-1">{product.name}</p>
+                                        <p className="text-[10px] text-neutral-600 mb-1.5">{product.brand}</p>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          <span className="text-[11px] font-bold text-white">₹{product.price.toLocaleString('en-IN')}</span>
+                                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border
+                                            ${product.recommendation_score >= 80
+                                              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25'
+                                              : product.recommendation_score >= 55
+                                              ? 'bg-sky-500/15 text-sky-400 border-sky-500/25'
+                                              : 'bg-neutral-500/15 text-neutral-500 border-neutral-500/25'}`}>
+                                            {product.recommendation_score}% match
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <a
+                                        href={product.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-violet-400 hover:text-violet-300 transition-colors"
+                                      >
+                                        Shop Now <ArrowRight size={9} />
+                                      </a>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                          <p className="text-xs text-neutral-600">Generate a design to see real product recommendations.</p>
-                        </div>
-                      )}
+                        );
+                      })()}
                     </div>
                   </div>
 
