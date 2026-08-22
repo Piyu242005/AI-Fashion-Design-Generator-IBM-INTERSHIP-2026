@@ -43,13 +43,12 @@ const FashionIntelligenceService = {
 
 `;
 
-      // Preserve StorageService + cleanJSON. Replace only CONFIG and the old
-      // browser Gemini service, which fixes the previous undefined-reference bug.
+      // Preserve StorageService and cleanJSON exactly as authored in App.jsx.
+      // Remove only the old CONFIG and browser-side Gemini service.
       const transformed =
         code.slice(0, configStart) +
         secureService +
         code.slice(storageStart, aiServicesStart) +
-        secureService +
         code.slice(aiServicesEnd);
 
       return { code: transformed, map: null };
