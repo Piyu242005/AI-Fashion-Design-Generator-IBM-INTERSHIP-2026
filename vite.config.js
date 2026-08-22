@@ -2,12 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
-/*
- * Keep Gemini server-side and preserve every other App.jsx declaration.
- * The previous transform replaced the whole CONFIG -> JSDoc section, which
- * accidentally removed StorageService from the compiled bundle and caused:
- *   ReferenceError: StorageService is not defined
- */
+/* Keep Gemini server-side without deleting unrelated App.jsx declarations. */
 function serverSideGeminiPlugin() {
   return {
     name: 'server-side-gemini',
@@ -22,9 +17,7 @@ function serverSideGeminiPlugin() {
       const aiServicesStart = code.indexOf('/* ─── AI SERVICES', cleanJsonStart + 1);
       const aiServicesEnd = code.indexOf('/**', aiServicesStart + 1);
 
-      if ([configStart, storageStart, cleanJsonStart, aiServicesStart, aiServicesEnd].some(v => v < 0)) {
-        return null;
-      }
+      if ([configStart, storageStart, cleanJsonStart, aiServicesStart, aiServicesEnd].some(v => v < 0)) return null;
 
       const secureService = `/* ─── SECURE AI SERVICES ─────────────────────────────────────── */
 const GEMINI_MODEL = import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-flash';
@@ -50,10 +43,12 @@ const FashionIntelligenceService = {
 
 `;
 
-      // Keep the existing StorageService and cleanJSON declarations intact.
-      // Replace only the browser-side Gemini config/service.
+      // Preserve StorageService + cleanJSON. Replace only CONFIG and the old
+      // browser Gemini service, which fixes the previous undefined-reference bug.
       const transformed =
         code.slice(0, configStart) +
+        secureService +
+        code.slice(storageStart, aiServicesStart) +
         secureService +
         code.slice(aiServicesEnd);
 
@@ -63,9 +58,5 @@ const FashionIntelligenceService = {
 }
 
 export default defineConfig({
-  plugins: [
-    serverSideGeminiPlugin(),
-    react(),
-    tailwindcss(),
-  ],
+  plugins: [serverSideGeminiPlugin(), react(), tailwindcss()],
 });
