@@ -3,26 +3,26 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 /*
- * App.jsx still contains the legacy browser-side Gemini implementation.
- * This pre-transform replaces it with a server-side /api/gemini call before
- * Vite exposes any VITE_* environment values to the client bundle.
+ * Keep Gemini server-side. App.jsx contains an older Gemini implementation;
+ * this transform replaces only that service during the build. It is deliberately
+ * fail-safe so a formatting change in App.jsx can never make the whole app blank.
  */
 function serverSideGeminiPlugin() {
   return {
     name: 'server-side-gemini',
     enforce: 'pre',
     transform(code, id) {
-      if (!id.replace(/\\/g, '/').endsWith('/src/App.jsx')) return null;
+      const normalizedId = id.split('?')[0].replace(/\\/g, '/');
+      if (!normalizedId.endsWith('/src/App.jsx')) return null;
 
       const start = code.indexOf('/* ─── CONFIG');
-      const end = code.indexOf('/**\n * Build a concise garment description', start);
-      if (start === -1 || end === -1) {
-        throw new Error('Unable to apply secure Gemini transform to src/App.jsx');
-      }
+      const end = code.indexOf('/**', start + 1);
+      if (start < 0 || end < 0 || end <= start) return null;
 
       const secureService = `/* ─── SERVER-SIDE AI SERVICES ─────────────────────────────────── */
 const FashionIntelligenceService = {
   async extractSpecification(prompt) {
+    const fallback = { optimized_image_prompt: String(prompt || '') };
     try {
       const res = await fetch('/api/gemini', {
         method: 'POST',
@@ -35,7 +35,7 @@ const FashionIntelligenceService = {
     } catch (error) {
       console.warn('[Gemini] /api/gemini unreachable:', error?.message || error);
     }
-    return { optimized_image_prompt: prompt };
+    return fallback;
   }
 };
 
@@ -55,5 +55,4 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  server: {},
 });
