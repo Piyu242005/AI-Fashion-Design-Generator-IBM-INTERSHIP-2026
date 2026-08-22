@@ -41,10 +41,26 @@ const FashionIntelligenceService = {
 
 `;
 
-      return {
-        code: code.slice(0, start) + secureService + code.slice(end),
-        map: null,
-      };
+      let transformed = code.slice(0, start) + secureService + code.slice(end);
+
+      // Prevent a corrupted/blocked localStorage value from crashing the entire React tree.
+      transformed = transformed.replace(
+        "getCollections: () => JSON.parse(localStorage.getItem('ai_fashion_collections') || '[]'),",
+        `getCollections: () => {
+          try {
+            const raw = localStorage.getItem('ai_fashion_collections');
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (error) {
+            console.warn('[Storage] Resetting invalid collection data:', error?.message || error);
+            try { localStorage.removeItem('ai_fashion_collections'); } catch (_) {}
+            return [];
+          }
+        },`
+      );
+
+      return { code: transformed, map: null };
     },
   };
 }
