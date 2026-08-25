@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App.jsx';
 import ErrorBoundary from './ErrorBoundary.jsx';
+import FeatureHub from './FeatureHub.jsx';
+import VTONModelCollection from './VTONModelCollection.jsx';
 
 function repairPersistedState() {
   try {
@@ -25,6 +27,8 @@ ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <ErrorBoundary>
       <App />
+      <FeatureHub />
+      <VTONModelCollection />
     </ErrorBoundary>
   </React.StrictMode>
 );
