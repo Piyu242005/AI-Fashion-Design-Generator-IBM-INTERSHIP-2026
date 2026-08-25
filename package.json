@@ -3,7 +3,10 @@
   "scripts": {
     "dev": "npx vercel dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "python -m pytest -q",
+    "test:coverage": "python -m pytest --cov=api --cov-report=term-missing",
+    "ci": "npm run build && npm test"
   },
   "dependencies": {
     "lucide-react": "^0.460.0",
