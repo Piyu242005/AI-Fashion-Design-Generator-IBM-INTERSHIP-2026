@@ -11,6 +11,7 @@ export default function MissUniverseCollection() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [selecting, setSelecting] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,8 +56,6 @@ export default function MissUniverseCollection() {
   }, [open]);
 
   useEffect(() => {
-    // Add a Collection-only sub-tab beside the existing Model Photos tab.
-    // This keeps the original navbar untouched.
     const timer = setInterval(() => {
       const buttons = [...document.querySelectorAll('button')];
       const target = buttons.find(b => b.textContent?.includes('Model Photos'));
@@ -72,6 +71,41 @@ export default function MissUniverseCollection() {
     return () => clearInterval(timer);
   }, []);
 
+  const useModelForVTON = async (item) => {
+    if (!item?.url || selecting) return;
+    setSelecting(item.id);
+    try {
+      const response = await fetch(item.url);
+      if (!response.ok) throw new Error(`Image request failed (${response.status})`);
+      const blob = await response.blob();
+      const ext = blob.type?.split('/')[1] || 'jpeg';
+      const file = new File([blob], `miss-universe-${item.id}.${ext}`, { type: blob.type || 'image/jpeg' });
+
+      // The existing VTON UI owns the real person File state. Populate its
+      // hidden file input so the normal upload/change handler remains the
+      // single source of truth and IDM-VTON receives a real File object.
+      const input = [...document.querySelectorAll('input[type="file"]')]
+        .find(el => el.accept?.includes('image'));
+      if (!input) throw new Error('VTON image input is not available. Open Try-On and retry.');
+
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      input.files = transfer.files;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+
+      // Select the existing Try-On tab without changing the original navbar.
+      const tryOnButton = [...document.querySelectorAll('button')]
+        .find(b => b.textContent?.trim() === 'Try-On');
+      if (tryOnButton) tryOnButton.click();
+
+      setOpen(false);
+    } catch (error) {
+      window.alert(`Could not load this model for VTON: ${error.message}`);
+    } finally {
+      setSelecting(null);
+    }
+  };
+
   if (!open) return null;
 
   const maxPage = Math.max(0, Math.ceil(total / PAGE_SIZE) - 1);
@@ -84,7 +118,7 @@ export default function MissUniverseCollection() {
           <div>
             <div style={S.eyebrow}>COLLECTION · PAGEANT ARCHIVE</div>
             <h1 style={S.title}>👑 Miss Universe Image Collection</h1>
-            <p style={S.sub}>Up to 10,000+ searchable Miss Universe images for fashion inspiration and VTON model selection.</p>
+            <p style={S.sub}>Up to 10,000+ searchable Miss Universe images. Select any suitable image and send it directly to Virtual Try-On.</p>
           </div>
           <button style={S.close} onClick={() => setOpen(false)}>×</button>
         </header>
@@ -103,13 +137,22 @@ export default function MissUniverseCollection() {
 
         <div style={S.grid}>
           {items.map(item => (
-            <a key={item.id} href={item.source} target="_blank" rel="noopener noreferrer" style={S.card}>
-              <img src={item.url} loading="lazy" alt={item.name} style={S.img} />
+            <div key={item.id} style={S.card}>
+              <a href={item.source} target="_blank" rel="noopener noreferrer" style={{display:'block',textDecoration:'none',color:'#fff'}}>
+                <img src={item.url} loading="lazy" alt={item.name} style={S.img} />
+              </a>
               <div style={S.meta}>
                 <span title={item.name}>{item.name}</span>
                 <small>Wikimedia Commons ↗</small>
+                <button
+                  onClick={() => useModelForVTON(item)}
+                  disabled={selecting === item.id}
+                  style={S.vtonBtn}
+                >
+                  {selecting === item.id ? 'Loading…' : '✨ Use for VTON'}
+                </button>
               </div>
-            </a>
+            </div>
           ))}
         </div>
 
@@ -122,7 +165,7 @@ export default function MissUniverseCollection() {
         </div>
 
         <p style={S.footer}>
-          The collection is loaded on demand; images are not copied into the repository. Wikimedia Commons provides the source file and licensing information for each result. The 10,000 limit is an application catalog cap, subject to the number of matching public images available.
+          Images load on demand and are not copied into the repository. Wikimedia Commons provides source and licensing information for each result. The 10,000 limit is an application catalog cap. VTON works by passing the selected image through the existing person-image upload flow to IDM-VTON.
         </p>
       </section>
     </div>
@@ -142,9 +185,10 @@ const S = {
   count:{color:'#777',whiteSpace:'nowrap',fontSize:12},
   notice:{padding:12,borderRadius:12,background:'#151515',color:'#999',marginBottom:14},
   grid:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:12},
-  card:{background:'#151515',border:'1px solid #292929',borderRadius:14,overflow:'hidden',textDecoration:'none',color:'#fff'},
+  card:{background:'#151515',border:'1px solid #292929',borderRadius:14,overflow:'hidden',color:'#fff'},
   img:{width:'100%',height:230,objectFit:'cover',display:'block'},
-  meta:{padding:9,display:'grid',gap:4},
+  meta:{padding:9,display:'grid',gap:5},
+  vtonBtn:{padding:'9px 10px',border:0,borderRadius:9,background:'#fff',color:'#000',fontWeight:800,cursor:'pointer'},
   empty:{padding:50,textAlign:'center',color:'#666'},
   pagination:{display:'flex',justifyContent:'center',alignItems:'center',gap:18,marginTop:22,color:'#888',fontSize:12},
   pageBtn:{padding:'10px 14px',border:'1px solid #333',background:'#171717',color:'#fff',borderRadius:10,cursor:'pointer'},
