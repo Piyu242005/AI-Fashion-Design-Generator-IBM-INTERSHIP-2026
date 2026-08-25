@@ -4,6 +4,7 @@ import './index.css';
 import App from './App.jsx';
 import ErrorBoundary from './ErrorBoundary.jsx';
 import FeatureHub from './FeatureHub.jsx';
+import MissUniverseCollection from './MissUniverseCollection.jsx';
 
 function repairPersistedState() {
   try {
@@ -27,6 +28,7 @@ ReactDOM.createRoot(root).render(
     <ErrorBoundary>
       <App />
       <FeatureHub />
+      <MissUniverseCollection />
     </ErrorBoundary>
   </React.StrictMode>
 );
