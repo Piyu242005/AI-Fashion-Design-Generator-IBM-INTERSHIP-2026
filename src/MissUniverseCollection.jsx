@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
-const API = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=60&gsrsearch=';
+// Wikimedia Commons: request both search results and image metadata in one call.
+const API = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=60&prop=imageinfo&iiprop=url|mime|size&iiurlwidth=600&gsrsearch=';
 const PAGE_SIZE = 60;
 const MAX_IMAGES = 10000;
 
@@ -11,6 +12,7 @@ export default function MissUniverseCollection() {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [selecting, setSelecting] = useState(null);
 
   useEffect(() => {
@@ -18,28 +20,39 @@ export default function MissUniverseCollection() {
     const load = async () => {
       if (!open) return;
       setLoading(true);
+      setError('');
       try {
         const offset = page * PAGE_SIZE;
         if (offset >= MAX_IMAGES) return;
-        const url = API + encodeURIComponent(query || 'Miss Universe') + `&gsroffset=${offset}`;
+
+        const url = API + encodeURIComponent(query.trim() || 'Miss Universe') + `&gsroffset=${offset}`;
         const response = await fetch(url);
+        if (!response.ok) throw new Error(`Wikimedia request failed (${response.status})`);
         const data = await response.json();
+        if (data.error) throw new Error(data.error.info || 'Wikimedia API error');
+
         const pages = Object.values(data.query?.pages || {});
         const mapped = pages.map(p => {
           const info = p.imageinfo?.[0];
           return {
             id: p.pageid,
-            name: p.title?.replace(/^File:/, ''),
+            name: p.title?.replace(/^File:/, '') || 'Miss Universe image',
             url: info?.thumburl || info?.url,
             source: `https://commons.wikimedia.org/wiki/${encodeURIComponent(p.title || '')}`,
           };
         }).filter(x => x.url);
+
         if (!cancelled) {
           setItems(mapped);
           setTotal(Math.min(Number(data.query?.searchinfo?.totalhits || 0), MAX_IMAGES));
+          if (!mapped.length) setError('Wikimedia returned no usable image files for this search. Try “Miss Universe winner” or a year.');
         }
-      } catch {
-        if (!cancelled) setItems([]);
+      } catch (err) {
+        if (!cancelled) {
+          setItems([]);
+          setTotal(0);
+          setError(err.message || 'Unable to load the Miss Universe collection.');
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -75,8 +88,8 @@ export default function MissUniverseCollection() {
         .find(b => b.textContent?.trim() === 'Try-On');
       if (tryOnButton) tryOnButton.click();
       setOpen(false);
-    } catch (error) {
-      window.alert(`Could not load this model for VTON: ${error.message}`);
+    } catch (err) {
+      window.alert(`Could not load this model for VTON: ${err.message}`);
     } finally {
       setSelecting(null);
     }
@@ -88,14 +101,8 @@ export default function MissUniverseCollection() {
   return (
     <>
       {!open && (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Open Miss Universe image collection"
-          style={S.launcher}
-        >
-          👑 Miss Universe
-          <span style={S.launcherBadge}>10K</span>
+        <button type="button" onClick={() => setOpen(true)} aria-label="Open Miss Universe image collection" style={S.launcher}>
+          👑 Miss Universe <span style={S.launcherBadge}>10K</span>
         </button>
       )}
 
@@ -106,7 +113,7 @@ export default function MissUniverseCollection() {
               <div>
                 <div style={S.eyebrow}>COLLECTION · PAGEANT ARCHIVE</div>
                 <h1 style={S.title}>👑 Miss Universe Image Collection</h1>
-                <p style={S.sub}>Up to 10,000+ searchable Miss Universe images. Select any suitable image and send it directly to Virtual Try-On.</p>
+                <p style={S.sub}>Browse up to 10,000+ searchable public Miss Universe images and send a suitable model image directly to Virtual Try-On.</p>
               </div>
               <button style={S.close} onClick={() => setOpen(false)}>×</button>
             </header>
@@ -117,6 +124,7 @@ export default function MissUniverseCollection() {
             </div>
 
             {loading && <div style={S.notice}>Loading images from Wikimedia Commons…</div>}
+            {error && !loading && <div style={S.error}>{error}</div>}
 
             <div style={S.grid}>
               {items.map(item => (
@@ -135,7 +143,7 @@ export default function MissUniverseCollection() {
               ))}
             </div>
 
-            {!loading && !items.length && <div style={S.empty}>No images found. Try another search.</div>}
+            {!loading && !items.length && !error && <div style={S.empty}>No images found. Try another search.</div>}
 
             <div style={S.pagination}>
               <button disabled={page === 0} onClick={() => setPage(p => Math.max(0, p - 1))} style={S.pageBtn}>← Previous</button>
@@ -143,7 +151,7 @@ export default function MissUniverseCollection() {
               <button disabled={items.length < PAGE_SIZE || page >= maxPage || (page + 1) * PAGE_SIZE >= MAX_IMAGES} onClick={() => setPage(p => p + 1)} style={S.pageBtn}>Next →</button>
             </div>
 
-            <p style={S.footer}>Images load on demand and are not copied into the repository. Wikimedia Commons provides source and licensing information for each result. The 10,000 limit is an application catalog cap. VTON uses the selected image through the existing person-image upload flow to IDM-VTON.</p>
+            <p style={S.footer}>Images load on demand and are not copied into the repository. Wikimedia Commons provides source and licensing information for each result. The 10,000 limit is an application catalog cap.</p>
           </section>
         </div>
       )}
@@ -165,6 +173,7 @@ const S = {
   input:{flex:1,padding:13,borderRadius:12,border:'1px solid #333',background:'#171717',color:'#fff',boxSizing:'border-box'},
   count:{color:'#777',whiteSpace:'nowrap',fontSize:12},
   notice:{padding:12,borderRadius:12,background:'#151515',color:'#999',marginBottom:14},
+  error:{padding:12,borderRadius:12,background:'rgba(127,29,29,.25)',border:'1px solid rgba(248,113,113,.2)',color:'#fca5a5',marginBottom:14,fontSize:12},
   grid:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:12},
   card:{background:'#151515',border:'1px solid #292929',borderRadius:14,overflow:'hidden',color:'#fff'},
   img:{width:'100%',height:230,objectFit:'cover',display:'block'},
