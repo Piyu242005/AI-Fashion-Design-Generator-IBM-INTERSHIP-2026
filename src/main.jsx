@@ -5,6 +5,7 @@ import App from './App.jsx';
 import ErrorBoundary from './ErrorBoundary.jsx';
 import FeatureHub from './FeatureHub.jsx';
 import MissUniverseCollection from './MissUniverseCollection.jsx';
+import VTONModelCollection from './VTONModelCollection.jsx';
 
 function repairPersistedState() {
   try {
@@ -29,6 +30,7 @@ ReactDOM.createRoot(root).render(
       <App />
       <FeatureHub />
       <MissUniverseCollection />
+      <VTONModelCollection />
     </ErrorBoundary>
   </React.StrictMode>
 );
